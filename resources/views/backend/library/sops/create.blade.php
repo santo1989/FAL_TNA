@@ -42,14 +42,20 @@
                              <table class="table">
                                  <tbody>
                                      <tr>
+                                         <td class="create_label_column">Lead Time</td>
+                                         <td class="create_input_column">
+                                             <input type="number" name="lead_time" id="lead_time" class="form-control"
+                                                 required>
+                                         </td>
                                          <td class="create_label_column">Perticulars</td>
                                          <td class="create_input_column">
-                                                <input type="text" name="Perticulars" id="Perticulars" class="form-control"
-                                                    required>
+                                             <input type="text" name="Perticulars" id="Perticulars"
+                                                 class="form-control" required>
                                          </td>
                                          <td class="create_label_column">Days</td>
                                          <td class="create_input_column">
-                                                <input type="number" name="day" id="day" class="form-control" required>
+                                             <input type="number" name="day" id="day" class="form-control"
+                                                 required>
                                          </td>
                                      </tr>
                                  </tbody>

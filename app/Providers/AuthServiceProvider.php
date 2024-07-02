@@ -83,5 +83,9 @@ class AuthServiceProvider extends ServiceProvider
                 return $user->role_id == $role->id;
             });
         });
+
+        Gate::define('TNA-CURD', function ($user) {
+            return in_array($user->role->name, ['SuperVisor', 'Admin', 'Marchendiser']);
+        });
     }
 }

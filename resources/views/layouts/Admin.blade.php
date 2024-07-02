@@ -41,7 +41,8 @@
                         @can('Admin')
                             <div class="row justify-content-center">
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('home') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('home') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
                                         Home
                                     </a>
@@ -55,83 +56,96 @@
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
 
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('divisions.index') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('divisions.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                         Division Management
                                     </a>
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('companies.index') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('companies.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                         Company Management
                                     </a>
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('departments.index') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('departments.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                         Department Management
                                     </a>
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('designations.index') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('designations.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                         Designation Management
                                     </a>
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('buyers.index') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('buyers.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                         Buyer Management
                                     </a>
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('suppliers.index') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('suppliers.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-tachometer-alt"></i></div>
                                         Supplier Management
                                     </a>
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('roles.index') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('roles.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-user-shield"></i></div>
                                         Role
                                     </a>
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('users.index') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('users.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-user-friends"></i></div>
                                         Users
                                     </a>
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('online_user') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('online_user') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
                                         Online User List
                                     </a>
 
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('buyer_assigns.index') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('buyer_assigns.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
                                         Buyer Assign
                                     </a>
 
                                 </div>
-                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('sops.index') }}">
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('sops.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
                                         Standard SOP
                                     </a>
 
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('marchent_sops.index') }}">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('marchent_sops.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
                                         Buyer ways SOP
                                     </a>
 
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('tnas.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
                                         TNA
                                     </a>
@@ -145,8 +159,9 @@
 
                         @can('General')
                             <div class="row justify-content-center">
-                                <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('home') }}">
+                                {{-- <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('home') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
                                         Home
                                     </a>
@@ -157,15 +172,50 @@
                                         <div class="sb-nav-link-icon"><i class="far fa-address-card"></i></div>
                                         Profile
                                     </a>
+                                </div> --}}
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('tnas.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        TNA
+                                    </a>
+
                                 </div>
 
+                            </div>
+                        @endcan
+                        @can('Marchendiser')
+                            <div class="row justify-content-center">
+                                {{-- <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('home') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
+                                        Home
+                                    </a>
+                                </div>
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('users.show', ['user' => auth()->user()->id]) }}">
+                                        <div class="sb-nav-link-icon"><i class="far fa-address-card"></i></div>
+                                        Profile
+                                    </a>
+                                </div> --}}
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('tnas.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        TNA
+                                    </a>
+
+                                </div>
 
                             </div>
                         @endcan
                         @can('SuperVisor')
                             <div class="row justify-content-center">
-                                <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;" href="{{ route('home') }}">
+                                {{-- <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('home') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
                                         Home
                                     </a>
@@ -176,38 +226,54 @@
                                         <div class="sb-nav-link-icon"><i class="far fa-address-card"></i></div>
                                         Profile
                                     </a>
-                                </div> 
-                            </div>
-                            </div>
-                        @endcan
-                    </div>
-                </div>
-            </div>
-        </div>
-        <div class="col-12">
-            <div class="card">
-                <div class="text-left p-1 card-header">
-                    Reports
-                </div>
+                                </div> --}}
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('tnas.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        TNA
+                                    </a>
 
-                <div class="card-body">
-                    <div class="row justify-content-center">
-                        <div class="col-3 pt-1 pb-1">
-                            <a href="{{ url('/products') }}" class="btn btn-sm btn-outline-primary" style="width: 10rem;">Products</a>
+                                </div>
+                            </div>
                         </div>
-                        <div class="col-3 pt-1 pb-1">
-                            <a href="{{ url('/products') }}" class="btn btn-sm btn-outline-primary" style="width: 10rem;">Products</a>
-                        </div>
-                        <div class="col-3 pt-1 pb-1">
-                            <a href="{{ url('/products') }}" class="btn btn-sm btn-outline-primary" style="width: 10rem;">Products</a>
-                        </div>
-                        <div class="col-3 pt-1 pb-1">
-                            <a href="{{ url('/products') }}" class="btn btn-sm btn-outline-primary" style="width: 10rem;">Products</a>
-                        </div>
-                    </div>
+                    @endcan
                 </div>
             </div>
         </div>
+    </div>
+    <div class="col-12">
+        <div class="card">
+            <div class="text-left p-1 card-header">
+                Reports
+            </div>
+
+            <div class="card-body">
+                <div class="row justify-content-center">
+                    <div class="col-3 pt-1 pb-1">
+                        <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                            href="{{ route('tnas_dashboard') }}">
+                            <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                            TNA Dashboard
+                        </a>
+
+                    </div>
+                    {{-- <div class="col-3 pt-1 pb-1">
+                        <a href="{{ url('/products') }}" class="btn btn-sm btn-outline-primary"
+                            style="width: 10rem;">Products</a>
+                    </div>
+                    <div class="col-3 pt-1 pb-1">
+                        <a href="{{ url('/products') }}" class="btn btn-sm btn-outline-primary"
+                            style="width: 10rem;">Products</a>
+                    </div>
+                    <div class="col-3 pt-1 pb-1">
+                        <a href="{{ url('/products') }}" class="btn btn-sm btn-outline-primary"
+                            style="width: 10rem;">Products</a>
+                    </div> --}}
+                </div>
+            </div>
+        </div>
+    </div>
     </div>
     </div>
     <script>

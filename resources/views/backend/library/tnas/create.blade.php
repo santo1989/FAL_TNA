@@ -40,8 +40,6 @@
                          <form method="POST" action="{{ route('tnas.store') }}" enctype="multipart/form-data">
                              @csrf
                              <table class="table">
-
-
                                  <tbody>
                                      <tr>
                                          <td class="create_label_column">Buyer</td>
@@ -56,26 +54,40 @@
                                          <td class="create_label_column">Style</td>
                                          <td class="create_input_column">
                                              <input type="text" name="style" id="style" class="form-control"
-                                                 required>
+                                                 placeholder="Must be Full Style Number" required>
                                          </td>
                                      </tr>
                                      <tr>
                                          <td class="create_label_column">PO Number</td>
                                          <td class="create_input_column">
                                              <input type="text" name="po" id="po" class="form-control"
-                                                 required>
+                                                 placeholder="Must be Full PO Number" required>
                                          </td>
                                          <td class="create_label_column">Picture</td>
                                          <td class="create_input_column">
-                                             <input type="file" name="picture" id="picture" class="form-control"
-                                                 required>
+                                             <input type="file" name="picture" id="picture" class="form-control">
                                          </td>
                                      </tr>
                                      <tr>
                                          <td class="create_label_column">Item</td>
                                          <td class="create_input_column">
-                                             <input type="text" name="item" id="item" class="form-control"
-                                                 required>
+                                             {{-- <input type="text" name="item" id="item" class="form-control"
+                                                 required> --}}
+                                             <select id="item" name="item" class="form-control" required>
+                                                 <option value="">Select Item</option>
+                                                 <option value="T-shirt">T-shirt</option>
+                                                 <option value="Polo Shirt">Polo Shirt</option>
+                                                 <option value="Romper">Romper</option>
+                                                 <option value="Sweat Shirt">Sweat Shirt</option>
+                                                 <option value="Jacket">Jacket</option>
+                                                 <option value="Hoodie">Hoodie</option>
+                                                 <option value="Jogger">Jogger</option>
+                                                 <option value="Pant/Bottom">Pant/Bottom</option>
+                                                 <option value="Cargo Pant">Cargo Pant</option>
+                                                 <option value="Leggings">Leggings</option>
+                                                 <option value="Ladies/Girls Dress">Ladies/Girls Dress</option>
+                                                 <option value="Others">Others</option>
+                                             </select>
                                          </td>
 
                                          <td class="create_label_column">Color</td>
@@ -103,10 +115,10 @@
                                              <input type="date" name="shipment_etd" id="shipment_etd"
                                                  class="form-control" required>
                                          </td>
-                                         <td class="create_label_column">Total Lead Time: <label
-                                                 id="total_lead_time"></label>
+                                         <td class="create_label_column">Total Lead Time: </td>
                                          <td class="create_input_column">
-                                             Order Free Time : <label id="order_free_time"></label>
+                                             <input type="text" name="total_lead_time" id="total_lead_time"
+                                                 class="form-control" required readonly>
                                          </td>
                                      </tr>
                                      <script>
@@ -116,18 +128,14 @@
                                                  var shipment_etd = new Date($('#shipment_etd').val());
                                                  var diffTime = Math.abs(shipment_etd - po_receive_date);
                                                  var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                                 $('#total_lead_time').text(diffDays + ' Days');
-                                                 var order_free_time = diffDays - 30;
-                                                 $('#order_free_time').text(order_free_time + ' Days');
+                                                 $('#total_lead_time').val(diffDays);
                                              });
                                              $('#shipment_etd').change(function() {
                                                  var po_receive_date = new Date($('#po_receive_date').val());
                                                  var shipment_etd = new Date($('#shipment_etd').val());
                                                  var diffTime = Math.abs(shipment_etd - po_receive_date);
                                                  var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-                                                 $('#total_lead_time').text(diffDays + ' Days');
-                                                 var order_free_time = diffDays - 30;
-                                                 $('#order_free_time').text(order_free_time + ' Days');
+                                                 $('#total_lead_time').val(diffDays);
                                              });
                                          });
                                      </script>

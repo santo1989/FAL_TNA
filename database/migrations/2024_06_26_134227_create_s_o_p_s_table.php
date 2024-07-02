@@ -15,6 +15,7 @@ class CreateSOPSTable extends Migration
     {
         Schema::create('s_o_p_s', function (Blueprint $table) {
             $table->id();
+            $table->string('lead_time')->nullable();
             $table->string('Perticulars')->nullable();
             $table->string('day')->nullable();
             $table->string('status')->nullable();

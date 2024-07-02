@@ -39,6 +39,7 @@
                                  style="overflow-x: auto;">
                                  <thead>
                                      <tr>
+                                         <th>Lead Time</th>
                                          <th>Perticulars Name</th>
                                          <th>Days</th>
                                          <th>Action</th>
@@ -47,6 +48,7 @@
                                  <tbody>
                                      @forelse ($sops as $sop)
                                          <tr>
+                                             <td>{{ $sop->lead_time }} Days</td>
                                              <td>{{ $sop->Perticulars }}</td>
                                              <td>{{ $sop->day }}</td>
                                              <td>

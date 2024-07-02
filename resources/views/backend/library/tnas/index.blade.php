@@ -3,7 +3,7 @@
 
          <div class="row p-1">
              <div class="col-12">
-                 <h3 class="text-center p-1">SOP List</h3>
+                 <h3 class="text-center p-1">TNA List</h3>
                  <div class="row p-1">
                      <div class="col-6 text-start">
 
@@ -12,8 +12,10 @@
                              Close</a>
                      </div>
                      <div class="col-6 text-end">
-                         <a href="{{ route('sops.create') }}" class="btn btn-outline-primary"> <i
-                                 class="fas fa-plus"></i> Add SOP</a>
+                        <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-success"> <i
+                                 class="fas fa-tachometer-alt"></i> TNA Dashboard</a>
+                         <a href="{{ route('tnas.create') }}" class="btn btn-outline-primary"> <i
+                                 class="fas fa-plus"></i> Add TNA</a>
                      </div>
                      </tr>
                  </div>
@@ -39,31 +41,54 @@
                                  style="overflow-x: auto;">
                                  <thead>
                                      <tr>
-                                         <th>Perticulars Name</th>
-                                         <th>Days</th>
+                                         <th>Buyer</th>
+                                         <th>Style</th>
+                                         <th>PO Number</th>
+                                         <th>Item</th>
+                                         <th>Color</th>
+                                         {{-- <th>Picture</th> --}}
+                                         <th>Total Qty</th>
+                                         <th>PO Date</th>
+                                         <th>Shipment Date</th>
+                                         <th>Lead Days</th>
                                          <th>Action</th>
                                      </tr>
                                  </thead>
                                  <tbody>
-                                     @forelse ($sops as $sop)
+                                     @forelse ($tnas as $tna)
                                          <tr>
-                                             <td>{{ $sop->Perticulars }}</td>
-                                             <td>{{ $sop->day }}</td>
+                                             <td>{{ $tna->buyer }}</td>
+                                             <td>{{ $tna->style }}</td>
+                                             <td>{{ $tna->po }}</td>
+                                             <td>{{ $tna->item }}</td>
+                                             <td>{{ $tna->color }}</td>
+                                             {{-- <td><img src="{{ asset('storage/tna/' . $tna->picture) }}" alt="Picture"
+                                                        style="width: 50px; height: 50px;"></td> --}}
+                                             <td>{{ $tna->qty_pcs }}</td>
+                                             <td>{{ $tna->po_receive_date }}</td>
+                                             <td>{{ $tna->shipment_etd }}</td>
+                                             <td>{{ $tna->total_lead_time }}
+                                             </td>
+
                                              <td>
-                                                 <a href="{{ route('sops.edit', $sop->id) }}"
-                                                     class="btn btn-outline-primary"><i class="fas fa-edit"></i></a>
-                                                 <form action="{{ route('sops.destroy', $sop->id) }}" method="POST"
-                                                     style="display:inline-block;">
-                                                     @csrf
-                                                     @method('DELETE')
-                                                     <button type="submit" class="btn btn-outline-danger"><i
-                                                             class="fas fa-trash"></i></button>
-                                                 </form>
+                                                 <a href="{{ route('tnas.show', $tna->id) }}"
+                                                     class="btn btn-outline-info"><i class="fas fa-eye"></i></a>
+                                                 @can('TNA-CURD')
+                                                     <a href="{{ route('tnas.edit', $tna->id) }}"
+                                                         class="btn btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                                     <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST"
+                                                         style="display:inline-block;">
+                                                         @csrf
+                                                         @method('DELETE')
+                                                         <button type="submit" class="btn btn-outline-danger"><i
+                                                                 class="fas fa-trash"></i></button>
+                                                     </form>
+                                                 @endcan
                                              </td>
                                          </tr>
                                      @empty
                                          <tr>
-                                             <td colspan="3">No sops found</td>
+                                             <td colspan="10" class="text-center">No TNA Found</td>
                                          </tr>
                                      @endforelse
                                  </tbody>

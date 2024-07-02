@@ -2,17 +2,17 @@
 
 use App\Http\Controllers\BuyerAssignController;
 use App\Http\Controllers\BuyerController;
-use App\Http\Controllers\CompanyController; 
+use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\DivisionController;
 use App\Http\Controllers\MarchentSOPController;
-use App\Http\Controllers\NotificationController; 
+use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SOPController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TNAController;
-use App\Http\Controllers\UserController; 
+use App\Http\Controllers\UserController;
 use App\Models\Notification;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
@@ -20,7 +20,7 @@ use Illuminate\Support\Facades\Route;
 
 // Route::get('/', function () {
 //     return view('welcome');
-    
+
 // });
 
 Route::get('/', function () {
@@ -89,7 +89,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/divisions/{division}/edit', [DivisionController::class, 'edit'])->name('divisions.edit');
     Route::put('/divisions/{division}', [DivisionController::class, 'update'])->name('divisions.update');
     Route::delete('/divisions/{division}', [DivisionController::class, 'destroy'])->name('divisions.destroy');
-   
+
     // companies
     Route::resource('companies', CompanyController::class);
 
@@ -130,7 +130,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/buyer_assigns/{buyer_assign}', [BuyerAssignController::class, 'update'])->name('buyer_assigns.update');
     Route::delete('/buyer_assigns/{buyer_assign}', [BuyerAssignController::class, 'destroy'])->name('buyer_assigns.destroy');
     Route::post('/buyer_assigns/{buyer_assign}/buyer_assigns_active', [BuyerAssignController::class, 'buyer_assign_active'])->name('buyer_assigns.active');
-    
+
     //sops
     Route::resource('sops', SOPController::class);
 
@@ -151,10 +151,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/tnas/{tna}/edit', [TNAController::class, 'edit'])->name('tnas.edit');
     Route::put('/tnas/{tna}', [TNAController::class, 'update'])->name('tnas.update');
     Route::delete('/tnas/{tna}', [TNAController::class, 'destroy'])->name('tnas.destroy');
-    
 
-   
+    Route::post('/update-tna-date', [TNAController::class, 'updateDate'])->name('tnas.updateDate');
 
+    //tnas_dashboard
+    Route::get('/tnas_dashboard', [TNAController::class, 'tnas_dashboard'])->name('tnas_dashboard'); 
 });
 
 
