@@ -101,10 +101,12 @@
                                                     <td>
                                                         <x-backend.form.anchor :href="route('buyers.edit', ['buyer' => $buyer->id])" type="edit" />
                                                         <x-backend.form.anchor :href="route('buyers.show', ['buyer' => $buyer->id])" type="show" />
+                                                             @if (auth()->user()->role_id == 1)
                                                         <button class="btn btn-outline-danger my-1 mx-1 inline btn-sm"
                                                             onclick="confirmDelete('{{ route('buyers.destroy', ['buyer' => $buyer->id]) }}')">
                                                             <i class="bi bi-trash"></i> Delete
                                                         </button>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             @endif

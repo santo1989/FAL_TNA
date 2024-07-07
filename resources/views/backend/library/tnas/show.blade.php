@@ -129,7 +129,7 @@
                     <th>Actual</th>
                 </tr>
             </thead>
-            <tbody class="text-center bg-light">
+            <tbody class="text-nowrap bg-light">
                 @forelse ($tnas as $tna)
                     <tr>
                         <td>{{ $tna->id }}</td>
@@ -171,56 +171,57 @@
                         </td>
                         @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'etd'] as $task)
                             @foreach (['plan', 'actual'] as $type)
+                            
                                 @php
                                     $date = $tna->{$task . '_' . $type};
                                     $cellClass = '';
-                                    if ($date) {
+                                    
+                                   if ($date && $date != 'N/A') {
                                         $today = \Carbon\Carbon::now();
                                         $cellDate = \Carbon\Carbon::parse($date);
                                         $diffDays = $today->diffInDays($cellDate, false);
 
-                                        // if actual date is empty then
-                                        if ($type === 'plan' && empty($date)) {
-                                            $cellClass = 'bg-light';
-                                        } elseif ($cellDate->isToday() || $cellDate->isPast()) {
-                                            $cellClass = 'bg-red';
-                                        } elseif ($diffDays <= 2 && $diffDays > 0) {
-                                            $cellClass = 'bg-yellow';
-                                        }
+                                        // if actual date is empty and plane date have value then if plan date is today or past then bg color red else plan date before 2 days then bg color yellow else bg color light example: if plan date is 10-10-2021 and actual date is empty and today date is 10-10-2021 then bg color red if plan date is 8-10-2021 and actual date is empty then bg color yellow if plan date is 9-10-2021 and actual date is empty then bg color light
+                                        if ($type === 'plan' && empty($tna->{$task . '_actual'})) {
+                                            if ($cellDate->isToday() || $cellDate->lt($today)) {
+                                                $cellClass = 'bg-red';
+                                            } elseif ($diffDays <= 2) {
+                                                $cellClass = 'bg-yellow';
+                                            } else {
+                                                $cellClass = 'bg-light';
+                                            }
+                                        }  
 
-                                        // if ($cellDate->isToday() || $cellDate->isPast()
-                                        // ) {
-                                        //     $cellClass = 'bg-red';
-                                        // } elseif ($diffDays <= 2 && $diffDays > 0) {
-                                        //     $cellClass = 'bg-yellow';
-                                        // }
-
-                                        //if actual date and plan date both have value then check if actual date is same or date over then plan date then bg color red expample: if plan date is 10-10-2021 and actual date is 10-10-2021 or 12-10-2021 then bg color red
+                                        //if actual date and plan date both have value then check if actual date is date over then plan date then text front red and blod expample: if plan date is 10-10-2021 and actual date is  12-10-2021 then text front red and blod
                                         if ($type === 'actual' && $tna->{$task . '_plan'}) {
                                             $planDate = \Carbon\Carbon::parse($tna->{$task . '_plan'});
-                                            if ($cellDate->isToday() || $cellDate->gt($planDate)) {
-                                                $cellClass = 'bg-red';
+                                            $actualDate = \Carbon\Carbon::parse($date);
+                                            if ($cellDate->gt($planDate)) {
+                                                $cellClass = 'text-danger font-weight-bold';
                                             }
-                                        }
+                                            if ($cellDate->gt($actualDate)) {
+                                                $cellClass = 'bg-light';
+                                            }
+                                        } 
+                                    }elseif($date == 'N/A'){
+                                        $date = 'N/A';
                                     }
+
                                 @endphp
                                 <!-- if actual date is empty then modal button show else show date -->
                                 @if ($type === 'actual' && empty($date))
+                                    
                                     <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
-                                        data-task="{{ $task . '_' . $type }}" onclick="openModal(this)">
-                                        {{-- <button class="btn btn-outline-secondary">Add Date</button> --}}
+                                        data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"
+                                        data-plan-date="{{ $tna->{$task . '_plan'} }}">
                                     </td>
                                 @else
                                     <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
                                         data-task="{{ $task . '_' . $type }}">
-                                        {{ \Carbon\Carbon::parse($date)->format('d-M-y') ?? '' }}
+                                        {{-- {{ \Carbon\Carbon::parse($date)->format('d-M-y') ?? '' }} --}}
+                                        {{ $date == 'N/A' ? 'N/A' : ($date ? \Carbon\Carbon::parse($date)->format('d-M-y') : '') }}
                                     </td>
-                                @endif
-                                {{-- <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
-                                    data-task="{{ $task . '_' . $type }}"
-                                    @if ($type === 'actual') onclick="openModal(this)" @endif>
-                                    {{ \Carbon\Carbon::parse($date)->format('d-M-y') ?? '' }}
-                                </td> --}}
+                                @endif 
                             @endforeach
                         @endforeach
                     </tr>
@@ -253,6 +254,15 @@
                             <label for="dateInput">Date</label>
                             <input type="date" class="form-control" id="dateInput" name="date"
                                 value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}">
+                            <br>
+                            <div class="form-check" id="naCheckbox" style="display:none;">
+                            <input class="form-check-input" type="checkbox" value="na" id="naButton">
+                            <label class="form-check-label" for="naButton">
+                                N/A
+                            </label>
+                        </div> 
+                        <textarea class="form-control" id="explanation" rows="3" style="display: none;" placeholder="Explanation"></textarea>
+                      
                         </div>
                         <script>
                             // Get the current date in YYYY-MM-DD format
@@ -274,7 +284,8 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-outline-primary" onclick="submitDate()">Save changes</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="submitDate()">Save
+                        changes</button>
                 </div>
             </div>
         </div>
@@ -287,15 +298,34 @@
         function openModal(cell) {
             const id = cell.getAttribute('data-id');
             const task = cell.getAttribute('data-task');
+             const planDate = cell.getAttribute('data-plan-date');
             document.getElementById('tnaId').value = id;
             document.getElementById('taskName').value = task;
+
+             if (task === 'print_strike_off_submission_actual') {
+                document.getElementById('dateInput').style.display = 'block';
+                document.getElementById('naCheckbox').style.display = 'block';
+            } else {
+                document.getElementById('dateInput').style.display = 'block';
+                document.getElementById('naCheckbox').style.display = 'none';
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            if (planDate && new Date(planDate) < new Date(today)) {
+                document.getElementById('explanation').style.display = 'block';
+            } else {
+                document.getElementById('explanation').style.display = 'none';
+            }
+
             $('#dateModal').modal('show'); // Open the modal
         }
 
         function submitDate() {
-            const id = document.getElementById('tnaId').value;
+             const id = document.getElementById('tnaId').value;
             const task = document.getElementById('taskName').value;
             const date = document.getElementById('dateInput').value;
+            const naChecked = document.getElementById('naButton').checked;
+            const explanation = document.getElementById('explanation').value;
             // AJAX request to update the date in the database
             $.ajax({
                 url: '/update-tna-date', // Your route to handle the date update
@@ -304,7 +334,8 @@
                     _token: $('input[name="_token"]').val(),
                     id: id,
                     task: task,
-                    date: date
+                    date: naChecked ? 'N/A' : date,
+                    explanation: explanation
                 },
                 success: function(response) {
                     // Refresh the page or update the cell content and class

@@ -71,7 +71,7 @@
             TNA Dashboard</h4>
         <div class="row justify-content-center pb-2">
             @php
-                $buyerList = DB::table('t_n_a_s')->where('order_close', 0)->select('buyer')->distinct()->get();
+                $buyerList = DB::table('t_n_a_s')->where('order_close', 1)->select('buyer')->distinct()->get();
             @endphp
             <div class="col-12">
                 <button class="btn btn-outline-secondary bg-light btn-sm" onclick="downloadExcel()"
@@ -93,7 +93,7 @@
 
         </div>
         <table class="table table-bordered table-hover text-center
-        " style="font-size: 10px;" id="PrintTable">
+        " style="font-size: 13px;" id="PrintTable">
             <thead class="thead-dark">
                 <tr>
                     <th>SL</th>
@@ -286,6 +286,7 @@
     <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light m-2">
         <i class="fas fa-arrow-left"></i> Cancel
     </a>
+
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script> <!-- Core theme JS-->
@@ -386,7 +387,7 @@
         // Periodically update the table
         setInterval(() => {
             $.ajax({
-                url: "{{ route('tnas_dashboard_update') }}",
+                url: "{{ route('archives_dashboard_update') }}",
                 type: 'GET',
                 success: function(data) {
                     // If localStorage has buyer name then show the buyer name data after page load else show all buyers data and calculateTotalsAndAverages function call to calculate total quantity, average lead time, and average order free time
@@ -566,7 +567,7 @@
             }
         });
     }, 5000);
-</script> --}}
+</scrip> --}}
 
 </body>
 

@@ -51,7 +51,7 @@
 
 </head>
 
-<body style="background-image: url('{{ asset('images/assets/back.png') }}'); background-size: cover; background-repeat: no-repeat;">
+<body style="background-image: url('{{ asset('images/assets/back.png') }}'); background-size: cover; background-repeat: repeat;">
 
     <div class="container-fluid px-5">
         <div class="card mx-5 my-3" style="background-color: #eef0f2; padding-left: 100px; padding-right: 100px;">

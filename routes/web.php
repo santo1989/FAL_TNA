@@ -155,7 +155,17 @@ Route::middleware('auth')->group(function () {
     Route::post('/update-tna-date', [TNAController::class, 'updateDate'])->name('tnas.updateDate');
 
     //tnas_dashboard
-    Route::get('/tnas_dashboard', [TNAController::class, 'tnas_dashboard'])->name('tnas_dashboard'); 
+    Route::get('/tnas_dashboard', [TNAController::class, 'tnas_dashboard'])->name('tnas_dashboard');
+    // tnas_dashboard_update 
+    Route::get('/tnas_dashboard_update', [TNAController::class, 'tnas_dashboard_update'])->name('tnas_dashboard_update');
+    //tnas_close
+    Route::post('/tnas_close/{tna}', [TNAController::class, 'tnas_close'])->name('tnas_close');
+    // archives
+    Route::get('/archives', [TNAController::class, 'archives'])->name('archives');
+    // archives_dashboard
+    Route::get('/archives_dashboard', [TNAController::class, 'archives_dashboard'])->name('archives_dashboard');
+    // archives_dashboard_update
+    Route::get('/archives_dashboard_update', [TNAController::class, 'archives_dashboard_update'])->name('archives_dashboard_update');
 });
 
 

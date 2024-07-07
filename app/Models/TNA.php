@@ -8,4 +8,11 @@ use Illuminate\Database\Eloquent\Model;
 class TNA extends Model
 {
     use HasFactory;
+
+    protected $guarded = [];
+
+    public function explanations()
+    {
+        return $this->hasMany(TnaExplanation::class);
+    }
 }

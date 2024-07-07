@@ -71,8 +71,7 @@
                                      <tr>
                                          <td class="create_label_column">Item</td>
                                          <td class="create_input_column">
-                                             {{-- <input type="text" name="item" id="item" class="form-control"
-                                                 required> --}}
+                                           
                                              <select id="item" name="item" class="form-control" required>
                                                  <option value="">Select Item</option>
                                                  <option value="T-shirt">T-shirt</option>
@@ -93,7 +92,7 @@
                                          <td class="create_label_column">Color</td>
                                          <td class="create_input_column">
                                              <input type="text" name="color" id="color" class="form-control"
-                                                 required>
+                                                 >
                                          </td>
                                      </tr>
                                      <tr>

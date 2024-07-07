@@ -10,12 +10,12 @@
                          <a href=" {{ route('home') }} " class="btn btn-outline-secondary"><i
                                  class="fas fa-arrow-left"></i>
                              Close</a> 
-                             <a href="{{ route('archives') }}" class="btn btn-outline-secondary"> <i
-                                 class="fas fa-archive"></i> TNA Archives</a>
+                             <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary"> <i
+                                 class="fas fa-info"></i> TNA List</a>
                      </div>
                      <div class="col-6 text-end">
-                         <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-success"> <i
-                                 class="fas fa-tachometer-alt"></i> TNA Dashboard</a>
+                         <a href="{{ route('archives_dashboard') }}" class="btn btn-outline-success"> <i
+                                 class="fas fa-tachometer-alt"></i> Archives Dashboard</a>
 
 
                          @can('TNA-CURD')
@@ -79,7 +79,7 @@
                                              <td>
                                                  <a href="{{ route('tnas.show', $tna->id) }}"
                                                      class="btn btn-outline-info"><i class="fas fa-eye"></i></a>
-                                                 @can('TNA-CURD')
+                                                 {{-- @can('TNA-CURD')
                                                      <a href="{{ route('tnas.edit', $tna->id) }}"
                                                          class="btn btn-outline-primary"><i class="fas fa-edit"></i></a>
                                                      <form action="{{ route('tnas_close', ['tna' => $tna->id]) }}"
@@ -98,7 +98,7 @@
                                                                      class="fas fa-trash"></i></button>
                                                          </form>
                                                      @endif
-                                                 @endcan
+                                                 @endcan --}}
                                              </td>
                                          </tr>
                                      @empty

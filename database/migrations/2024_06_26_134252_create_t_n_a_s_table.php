@@ -33,8 +33,8 @@ class CreateTNASTable extends Migration
             $table->date('fabric_booking_actual')->nullable();
             $table->date('fit_sample_submission_plan')->nullable();
             $table->date('fit_sample_submission_actual')->nullable();
-            $table->date('print_strike_off_submission_plan')->nullable();
-            $table->date('print_strike_off_submission_actual')->nullable();
+            $table->string('print_strike_off_submission_plan')->nullable();
+            $table->string('print_strike_off_submission_actual')->nullable();
             $table->date('bulk_accessories_booking_plan')->nullable();
             $table->date('bulk_accessories_booking_actual')->nullable();
             $table->date('fit_comments_plan')->nullable();
@@ -53,6 +53,8 @@ class CreateTNASTable extends Migration
             $table->date('bulk_fabric_delivery_actual')->nullable();
             $table->date('pp_meeting_plan')->nullable();
             $table->date('pp_meeting_actual')->nullable();
+            // $table->date('final_inspection_plan')->nullable();
+            // $table->date('final_inspection_actual')->nullable();
             $table->date('etd_plan')->nullable();
             $table->date('etd_actual')->nullable();
             $table->string('assign_date')->nullable();

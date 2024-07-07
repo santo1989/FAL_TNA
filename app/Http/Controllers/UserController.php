@@ -125,8 +125,12 @@ class UserController extends Controller
     public function destroy(User $user)
     {
         try {
-            $user->delete();
-            return redirect()->route('users.index')->withMessage('Successfully Deleted!');
+            if (auth()->user()->role_id == 1) {
+                $user->delete();
+                return redirect()->route('users.index')->withMessage('Successfully Deleted!');
+            } else {
+                return redirect()->route('users.index')->withErrors('You are not authorized to  delete this user!');
+            } 
         } catch (QueryException $e) {
             return redirect()->back()->withErrors($e->getMessage());
         }

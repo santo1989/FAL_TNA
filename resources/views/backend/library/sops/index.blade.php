@@ -52,15 +52,17 @@
                                              <td>{{ $sop->Perticulars }}</td>
                                              <td>{{ $sop->day }}</td>
                                              <td>
-                                                 <a href="{{ route('sops.edit', $sop->id) }}"
-                                                     class="btn btn-outline-primary"><i class="fas fa-edit"></i></a>
-                                                 <form action="{{ route('sops.destroy', $sop->id) }}" method="POST"
-                                                     style="display:inline-block;">
-                                                     @csrf
-                                                     @method('DELETE')
-                                                     <button type="submit" class="btn btn-outline-danger"><i
-                                                             class="fas fa-trash"></i></button>
-                                                 </form>
+                                                 @if (auth()->user()->role_id == 1)
+                                                     <a href="{{ route('sops.edit', $sop->id) }}"
+                                                         class="btn btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                                     <form action="{{ route('sops.destroy', $sop->id) }}" method="POST"
+                                                         style="display:inline-block;">
+                                                         @csrf
+                                                         @method('DELETE')
+                                                         <button type="submit" class="btn btn-outline-danger"><i
+                                                                 class="fas fa-trash"></i></button>
+                                                     </form>
+                                                 @endif
                                              </td>
                                          </tr>
                                      @empty

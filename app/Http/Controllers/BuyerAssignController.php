@@ -120,8 +120,12 @@ class BuyerAssignController extends Controller
 
     public function destroy($id)
     {
-        BuyerAssign::findOrFail($id)->delete();
-        return redirect()->route('buyer_assigns.index');
+        if (auth()->user()->role_id == 1) {
+            BuyerAssign::findOrFail($id)->delete();
+            return redirect()->route('buyer_assigns.index')->withMessage('Successfully Deleted!');
+        } else {
+            return redirect()->route('buyer_assigns.index')->withErrors('You are not authorized to  do this!');
+        }  
     }
     
 }

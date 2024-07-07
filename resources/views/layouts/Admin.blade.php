@@ -213,20 +213,22 @@
                         @endcan
                         @can('SuperVisor')
                             <div class="row justify-content-center">
-                                {{-- <div class="col-3 pt-1 pb-1">
+                                <div class="col-3 pt-1 pb-1">
                                     <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
-                                        href="{{ route('home') }}">
-                                        <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
-                                        Home
+                                        href="{{ route('buyer_assigns.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        Buyer Assign
                                     </a>
+
                                 </div>
                                 <div class="col-3 pt-1 pb-1">
                                     <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
-                                        href="{{ route('users.show', ['user' => auth()->user()->id]) }}">
-                                        <div class="sb-nav-link-icon"><i class="far fa-address-card"></i></div>
-                                        Profile
+                                        href="{{ route('sops.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        Standard SOP
                                     </a>
-                                </div> --}}
+
+                                </div>
                                 <div class="col-3 pt-1 pb-1">
                                     <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
                                         href="{{ route('tnas.index') }}">
