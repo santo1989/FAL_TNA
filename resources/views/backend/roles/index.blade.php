@@ -24,6 +24,9 @@
                 <div class="col-12">
                     <div class="card">
                         <div class="card-header">
+                            <a href=" {{ route('home') }} " class="btn btn-outline-secondary"><i
+                                 class="fas fa-arrow-left"></i>
+                             Close</a> 
                             <a class="btn btn-outline-info btn-sm" href={{ route('roles.create') }}> <i
                                     class="bi bi-plus-circle"></i>
                                 Create</a>

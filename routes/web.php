@@ -80,6 +80,8 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/users/{user}/users_active', [UserController::class, 'user_active'])->name('users.active');
 
+    Route::post('/users/{user}/role', [UserController::class, 'updateRole'])->name('users.role');
+
     //divisions
 
     Route::get('/divisions', [DivisionController::class, 'index'])->name('divisions.index');

@@ -18,27 +18,28 @@
             @csrf
             @method('put')
 
- @if(Auth::user()->role_id == 1 || Auth::user()->role_id == 5 || Auth::user()->role_id == 4)
-            <div class="row">
-               
+            @if (Auth::user()->role_id == 1 || Auth::user()->role_id == 5 || Auth::user()->role_id == 4)
+                <div class="row">
+
                     <div class="col-sm-6">
                         <!-- text input -->
                         <div class="form-group">
                             <label>Role</label>
                             <select name="role_id" id="role_id" class="form-select">
                                 @foreach ($roles as $role)
-                                    <option value="{{ $role->id }}" {{ $role->id == $user->role_id ? 'selected' : '' }}>
+                                    <option value="{{ $role->id }}"
+                                        {{ $role->id == $user->role_id ? 'selected' : '' }}>
                                         {{ $role->name }}</option>
                                 @endforeach
                             </select>
                         </div>
 
                     </div>
-                
 
 
 
-            </div>
+
+                </div>
             @endif
             <div class="row">
                 <div class="col-md-4">
@@ -111,20 +112,24 @@
                 <div class="col-md-6">
                     <x-backend.form.input name="picture" type="file" label="Picture" :value="$user->picture" />
                 </div>
-            </div> 
-            @if(Auth::user()->role_id == 1 || Auth::user()->role_id == 5 || Auth::user()->role_id == 4 || Auth::user()->role_id == 3 && $user->department_id == Auth::user()->department_id || $user->id == Auth::user()->id)
-            <div class="row">
-                <div class="col-md-6">
-                 
-                     <x-backend.form.input name="password" type="password" label="Password" :value="encrypt($user->password)" />
-
-                    
-                </div>
-                <div class="col-md-6">
-                    <x-backend.form.input name="confirm_password" type="password" label="Confirm Password"
-                        :value="$user->confirm_password" />
-                </div>
             </div>
+            @if (Auth::user()->role_id == 1 ||
+                    Auth::user()->role_id == 5 ||
+                    Auth::user()->role_id == 4 ||
+                    (Auth::user()->role_id == 3 && $user->department_id == Auth::user()->department_id) ||
+                    $user->id == Auth::user()->id)
+                <div class="row">
+                    <div class="col-md-6">
+
+                        <x-backend.form.input name="password" type="password" label="Password" :value="encrypt($user->password)" />
+
+
+                    </div>
+                    <div class="col-md-6">
+                        <x-backend.form.input name="confirm_password" type="password" label="Confirm Password"
+                            :value="$user->confirm_password" />
+                    </div>
+                </div>
             @endif
             <div class="row">
                 <div class="col-md-6">
@@ -147,7 +152,13 @@
             {{-- style="background-image: linear-gradient(#40c47c,#40c47c,#40c47c);display:inline;margin-left: 33px" --}}
 
         </div>
-        <button type="submit" class="btn btn-outline-info btn-lg"><i class="bi bi-save-fill"></i>Save</button>
+        <div class="d-flex justify-content-center">
+            <a href="{{ route('users.index') }}" class="btn btn-outline-danger btn-lg"><i
+                    class="bi bi-backspace-fill"></i>Back</a>
+            <div class="pr-3"></div>
+
+            <button type="submit" class="btn btn-outline-info btn-lg"><i class="bi bi-save-fill"></i>Save</button>
+        </div>
         </div>
     </form>
     <div class="pb-3">

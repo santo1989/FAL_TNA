@@ -4,7 +4,9 @@
 
     <div class="container">
         <h1>Online Users - List</h1>
-
+<a href=" {{ route('home') }} " class="btn btn-outline-secondary"><i
+                                 class="fas fa-arrow-left"></i>
+                             Close</a> 
         <table class="table table-bordered data-table" id="users_table">
             <thead>
                 <tr>
