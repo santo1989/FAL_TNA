@@ -264,7 +264,7 @@
                                 N/A
                             </label>
                         </div> 
-                        <textarea class="form-control" id="explanation" rows="3" style="display: none;" placeholder="Explanation"></textarea>
+                        <textarea class="form-control" id="explanation" rows="3" style="display: none;" placeholder="Remarks"></textarea>
                       
                         </div>
                         <script>
