@@ -65,8 +65,7 @@
 
 </head>
 
-<body
-    style="background-image: url('{{ asset('images/assets/back.png') }}'); background-size: cover; background-repeat: repeat;">
+<body style="background-color:#a5bcfc">
 
 
 

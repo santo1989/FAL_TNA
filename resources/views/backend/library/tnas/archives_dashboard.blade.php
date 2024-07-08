@@ -70,7 +70,8 @@
 
 
     <div class="container-fluid pt-2">
-        <h4 class="text-center text-white"><img src="{{ asset('images/assets/FAL_logo.png') }}" alt="NTG" width="70px">
+        <h4 class="text-center text-white"><img src="{{ asset('images/assets/FAL_logo.png') }}" alt="NTG"
+                width="70px">
             TNA Dashboard</h4>
         <div class="row justify-content-center pb-2">
             @php
@@ -96,7 +97,8 @@
 
         </div>
         <table class="table table-bordered table-hover text-center text-nowrap
-        " style="font-size: 13px;" id="PrintTable">
+        " style="font-size: 13px;"
+            id="PrintTable">
             <thead class="thead-dark">
                 <tr>
                     <th>SL</th>
@@ -280,7 +282,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="36" class="text-center">No TNA Found</td>
+                        <td colspan="41" class="text-center">No TNA Found</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -332,7 +334,9 @@
                 const leadTimeCell = row.querySelector('td:nth-child(11)');
                 totalLeadTime += parseInt(leadTimeCell.textContent);
             });
-            document.getElementById('AvgLeadTime').textContent = (totalLeadTime / visibleRows.length).toFixed(2);
+
+            // Calculate average lead time and show in celing format
+            document.getElementById('AvgLeadTime').textContent = Math.ceil(totalLeadTime / visibleRows.length);
 
             // Calculate average order free time
             let totalOrderFreeTime = 0;
@@ -340,7 +344,9 @@
                 const orderFreeTimeCell = row.querySelector('td:nth-child(12)');
                 totalOrderFreeTime += parseInt(orderFreeTimeCell.textContent);
             });
-            document.getElementById('AvgOrderFreeTime').textContent = (totalOrderFreeTime / visibleRows.length).toFixed(2);
+
+            // Calculate average order free time and show in celing format
+            document.getElementById('AvgOrderFreeTime').textContent = Math.ceil(totalOrderFreeTime / visibleRows.length);
         }
 
         // Function to filter by buyer and recalculate totals and averages
@@ -463,7 +469,7 @@
 
 
 
- 
+
 
 </body>
 

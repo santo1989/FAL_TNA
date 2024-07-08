@@ -306,7 +306,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="36" class="text-center">No TNA Found</td>
+                        <td colspan="41" class="text-center">No TNA Found</td>
                     </tr>
                 @endforelse
             </tbody>

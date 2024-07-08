@@ -111,33 +111,35 @@
               @endforeach
           @endforeach
           {{-- @dd($explanation); --}}
-
-          @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-              <td>
-                  <a href="{{ route('tnas.edit', $tna->id) }}" class="btn btn-sm btn-outline-primary"
-                      data-toggle="tooltip" data-placement="top" title="Edit">
-                      <i class="fas fa-edit"></i>
-                  </a>
-              </td>
-          @elseif (auth()->user()->role_id == 3)
-              @php
-                  $privileges = DB::table('buyer_assigns')
-                      ->where('buyer_id', $tna->buyer_id)
-                      ->where('user_id', auth()->user()->id)
-                      ->first();
-              @endphp
-              @if ($privileges)
+          @if ($tna->order_close == 1)
+              <td class="bg-red">Order Closed</td>
+          @else
+              @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
                   <td>
                       <a href="{{ route('tnas.edit', $tna->id) }}" class="btn btn-sm btn-outline-primary"
                           data-toggle="tooltip" data-placement="top" title="Edit">
                           <i class="fas fa-edit"></i>
                       </a>
                   </td>
-              @else
-                  <td></td>
+              @elseif (auth()->user()->role_id == 3)
+                  @php
+                      $privileges = DB::table('buyer_assigns')
+                          ->where('buyer_id', $tna->buyer_id)
+                          ->where('user_id', auth()->user()->id)
+                          ->first();
+                  @endphp
+                  @if ($privileges)
+                      <td>
+                          <a href="{{ route('tnas.edit', $tna->id) }}" class="btn btn-sm btn-outline-primary"
+                              data-toggle="tooltip" data-placement="top" title="Edit">
+                              <i class="fas fa-edit"></i>
+                          </a>
+                      </td>
+                  @else
+                      <td></td>
+                  @endif
               @endif
           @endif
-
       </tr>
   @empty
       <tr>
