@@ -52,17 +52,20 @@
     <style>
         .bg-red {
             background-color: red !important;
+            color: white;
+            font-weight: bold;
         }
 
         .bg-yellow {
             background-color: yellow !important;
+            color: black;
+            font-weight: bold;
         }
     </style>
 
 </head>
 
-<body
-    style="background-image: url('{{ asset('images/assets/back.png') }}'); background-size: cover; background-repeat: repeat;">
+<body style="background-color:#a5bcfc">
 
 
 
@@ -77,12 +80,12 @@
                 <button class="btn btn-outline-secondary bg-light btn-sm" onclick="downloadExcel()"
                     style="width: 10rem;">
                     <i class="fas fa-download"></i> Download Excel File </button>
-                <button class="btn btn-sm btn-outline-primary" style="width: 10rem;" id="all-buyers-btn">
+                <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;" id="all-buyers-btn">
                     {{-- <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div> --}}
                     All Buyers
                 </button>
                 @foreach ($buyerList as $buyer)
-                    <button class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                    <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;"
                         id="buyer-{{ $buyer->buyer }}-btn" onclick="filterByBuyer('{{ $buyer->buyer }}')">
                         {{-- <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div> --}}
                         {{ $buyer->buyer }}
@@ -92,7 +95,7 @@
 
 
         </div>
-        <table class="table table-bordered table-hover text-center
+        <table class="table table-bordered table-hover text-center text-nowrap
         " style="font-size: 13px;" id="PrintTable">
             <thead class="thead-dark">
                 <tr>
@@ -122,6 +125,7 @@
                     <th colspan="2">Bulk Fabric Delivery</th>
                     <th colspan="2">PP Meeting</th>
                     <th colspan="2">ETD</th>
+                    <th rowspan="2">Action</th>
                 </tr>
                 <tr>
                     <th colspan="7"></th>
@@ -459,115 +463,7 @@
 
 
 
-
-
-    {{-- <script>
-        // Function to calculate total quantity, average lead time, and average order free time
-        function calculateTotalsAndAverages() {
-            const visibleRows = document.querySelectorAll('#tnaTableBody tr:not([style*="display: none"])');
-
-            // Calculate total quantity
-            let totalQty = 0;
-            visibleRows.forEach(row => {
-                const qtyCell = row.querySelector('#qty_pcs');
-                totalQty += parseInt(qtyCell.textContent);
-            });
-            document.getElementById('total_qty').textContent = totalQty;
-
-            // Calculate average lead time
-            let totalLeadTime = 0;
-            visibleRows.forEach(row => {
-                const leadTimeCell = row.querySelector('td:nth-child(11)');
-                totalLeadTime += parseInt(leadTimeCell.textContent);
-            });
-            document.getElementById('AvgLeadTime').textContent = (totalLeadTime / visibleRows.length).toFixed(2);
-
-            // Calculate average order free time
-            let totalOrderFreeTime = 0;
-            visibleRows.forEach(row => {
-                const orderFreeTimeCell = row.querySelector('td:nth-child(12)');
-                totalOrderFreeTime += parseInt(orderFreeTimeCell.textContent);
-            });
-            document.getElementById('AvgOrderFreeTime').textContent = (totalOrderFreeTime / visibleRows.length).toFixed(2);
-        }
-
-        // Function to filter by buyer and recalculate totals and averages
-        function filterByBuyer(buyer) {
-            const allBuyersBtn = document.getElementById('all-buyers-btn');
-            allBuyersBtn.classList.remove('btn-primary');
-            allBuyersBtn.classList.add('btn-outline-primary');
-            allBuyersBtn.style.color = 'black';
-            allBuyersBtn.style.fontWeight = 'normal';
-
-            const buyerBtn = document.getElementById(`buyer-${buyer}-btn`);
-            buyerBtn.classList.remove('btn-outline-primary');
-            buyerBtn.classList.add('btn-primary');
-            buyerBtn.style.color = 'white';
-            buyerBtn.style.fontWeight = 'bold';
-
-            const rows = document.querySelectorAll('#tnaTableBody tr');
-            rows.forEach(row => {
-                if (buyer === 'All Buyers') {
-                    row.style.display = '';
-                } else {
-                    const buyerCell = row.querySelector('td:nth-child(2)');
-                    if (buyerCell.textContent !== buyer) {
-                        row.style.display = 'none';
-                    } else {
-                        row.style.display = '';
-                    }
-                }
-
-                //localStorage the buyer name for the next time page load to show the same buyer data
-                localStorage.setItem('buyer', buyer);
-            });
-
-            // Recalculate totals and averages after filtering
-            calculateTotalsAndAverages();
-        }
-
-        // Event listener for "All Buyers" button to show all rows
-        document.getElementById('all-buyers-btn').addEventListener('click', () => {
-            const rows = document.querySelectorAll('#tnaTableBody tr');
-            rows.forEach(row => {
-                row.style.display = '';
-            });
-            calculateTotalsAndAverages();
-        });
-
-        // Initial calculation
-        calculateTotalsAndAverages();
-
-        $(function() {
-            $('[data-toggle="tooltip"]').tooltip();
-        });
-    </script>
-
-    <script>
-    
-
-    // Periodically update the table
-    setInterval(() => {
-        $.ajax({
-            url: "{{ route('tnas_dashboard_update') }}",
-            type: 'GET',
-            success: function(data) {
-                // if localStorage has buyer name then show the buyer name data after page load else show all buyers data and calculateTotalsAndAverages function call to calculate total quantity, average lead time, and average order free time
-                const buyer = localStorage.getItem('buyer');
-                //if after page load buyer name change then clean the localStorage and store the new buyer name for the next time page load to show the same buyer data
-                if (buyer && !data.includes(buyer)) {
-                    localStorage.removeItem('buyer');
-                }
-                if (buyer) {
-                    filterByBuyer(buyer);
-                } else {
-                    document.getElementById('tnaTableBody').innerHTML = data;
-                    calculateTotalsAndAverages();
-                } 
-            }
-        });
-    }, 5000);
-</scrip> --}}
+ 
 
 </body>
 

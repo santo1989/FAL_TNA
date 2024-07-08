@@ -52,10 +52,14 @@
     <style>
         .bg-red {
             background-color: red !important;
+            color: white;
+            font-weight: bold;
         }
 
         .bg-yellow {
             background-color: yellow !important;
+            color: black;
+            font-weight: bold;
         }
     </style>
 
@@ -67,7 +71,7 @@
 
 
     <div class="container-fluid pt-2">
-        <table class="table table-bordered table-hover text-center">
+        <table class="table table-bordered table-hover text-center text-nowrap">
             <thead class="thead-dark">
                 <tr>
                     <th>SL</th>

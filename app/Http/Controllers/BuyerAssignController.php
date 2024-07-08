@@ -57,6 +57,7 @@ class BuyerAssignController extends Controller
                 $buyer_assign->user_name = User::findOrFail($user_id)->name;
                 $buyer_assign->assign_date = date('Y-m-d');
                 $buyer_assign->assign_by = auth()->user()->name;
+                $buyer_assign->status = 0;
                 $buyer_assign->save();
             }
         });

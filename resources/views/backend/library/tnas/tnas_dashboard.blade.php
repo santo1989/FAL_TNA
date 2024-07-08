@@ -52,22 +52,26 @@
     <style>
         .bg-red {
             background-color: red !important;
+            color: white;
+            font-weight: bold;
         }
 
         .bg-yellow {
             background-color: yellow !important;
+            color: black;
+            font-weight: bold;
         }
     </style>
 
 </head>
 
-<body
-    style="background-image: url('{{ asset('images/assets/back.png') }}'); background-size: cover; background-repeat: repeat;">
+<body style="background-color:#a5bcfc">
 
 
 
     <div class="container-fluid pt-2">
-        <h4 class="text-center text-white"><img src="{{ asset('images/assets/FAL_logo.png') }}" alt="NTG" width="70px">
+        <h4 class="text-center text-white"><img src="{{ asset('images/assets/FAL_logo.png') }}" alt="NTG"
+                width="70px">
             TNA Dashboard</h4>
         <div class="row justify-content-center pb-2">
             @php
@@ -77,12 +81,12 @@
                 <button class="btn btn-outline-secondary bg-light btn-sm" onclick="downloadExcel()"
                     style="width: 10rem;">
                     <i class="fas fa-download"></i> Download Excel File </button>
-                <button class="btn btn-sm btn-outline-primary" style="width: 10rem;" id="all-buyers-btn">
+                <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;" id="all-buyers-btn">
                     {{-- <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div> --}}
                     All Buyers
                 </button>
                 @foreach ($buyerList as $buyer)
-                    <button class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                    <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;"
                         id="buyer-{{ $buyer->buyer }}-btn" onclick="filterByBuyer('{{ $buyer->buyer }}')">
                         {{-- <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div> --}}
                         {{ $buyer->buyer }}
@@ -92,8 +96,8 @@
 
 
         </div>
-        <table class="table table-bordered table-hover text-center
-        " style="font-size: 10px;" id="PrintTable">
+        <table class="table table-bordered table-hover text-center text-nowrap
+        " style="font-size: 12px;" id="PrintTable">
             <thead class="thead-dark">
                 <tr>
                     <th>SL</th>
@@ -122,6 +126,7 @@
                     <th colspan="2">Bulk Fabric Delivery</th>
                     <th colspan="2">PP Meeting</th>
                     <th colspan="2">ETD</th>
+                    <th rowspan="2">Action</th>
                 </tr>
                 <tr>
                     <th colspan="7"></th>
@@ -273,6 +278,31 @@
                             @endforeach
                         @endforeach
                         {{-- @dd($explanation); --}}
+                        @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
+              <td>
+                  <a href="{{ route('tnas.edit', $tna->id) }}" class="btn btn-sm btn-outline-primary"
+                      data-toggle="tooltip" data-placement="top" title="Edit">
+                      <i class="fas fa-edit"></i>
+                  </a>
+              </td>
+          @elseif (auth()->user()->role_id == 3)
+              @php
+                  $privileges = DB::table('buyer_assigns')
+                      ->where('buyer_id', $tna->buyer_id)
+                      ->where('user_id', auth()->user()->id)
+                      ->first();
+              @endphp
+              @if ($privileges)
+                  <td>
+                      <a href="{{ route('tnas.edit', $tna->id) }}" class="btn btn-sm btn-outline-primary"
+                          data-toggle="tooltip" data-placement="top" title="Edit">
+                          <i class="fas fa-edit"></i>
+                      </a>
+                  </td>
+              @else
+                  <td></td>
+              @endif
+          @endif
                     </tr>
                 @empty
                     <tr>
@@ -327,7 +357,9 @@
                 const leadTimeCell = row.querySelector('td:nth-child(11)');
                 totalLeadTime += parseInt(leadTimeCell.textContent);
             });
-            document.getElementById('AvgLeadTime').textContent = (totalLeadTime / visibleRows.length).toFixed(2);
+
+            // Calculate average lead time and show ceil value
+            document.getElementById('AvgLeadTime').textContent = Math.ceil(totalLeadTime / visibleRows.length);
 
             // Calculate average order free time
             let totalOrderFreeTime = 0;
@@ -335,7 +367,9 @@
                 const orderFreeTimeCell = row.querySelector('td:nth-child(12)');
                 totalOrderFreeTime += parseInt(orderFreeTimeCell.textContent);
             });
-            document.getElementById('AvgOrderFreeTime').textContent = (totalOrderFreeTime / visibleRows.length).toFixed(2);
+
+            // Calculate average order free time and show ceil value
+            document.getElementById('AvgOrderFreeTime').textContent = Math.ceil(totalOrderFreeTime / visibleRows.length);
         }
 
         // Function to filter by buyer and recalculate totals and averages

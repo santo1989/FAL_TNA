@@ -43,7 +43,7 @@
 
                      <div class="card-body">
                          <div class="table-responsive">
-                             <table class="table table-bordered table-striped" id="datatablesSimple"
+                             <table class="table table-bordered table-striped text-nowrap" id="datatablesSimple"
                                  style="overflow-x: auto;">
                                  <thead>
                                      <tr>
@@ -51,8 +51,8 @@
                                          <th>Style</th>
                                          <th>PO Number</th>
                                          <th>Item</th>
-                                         <th>Color</th>
-                                         {{-- <th>Picture</th> --}}
+                                       {{--   <th>Color</th>
+                                         <th>Picture</th> --}}
                                          <th>Total Qty</th>
                                          <th>PO Date</th>
                                          <th>Shipment Date</th>
@@ -67,8 +67,8 @@
                                              <td>{{ $tna->style }}</td>
                                              <td>{{ $tna->po }}</td>
                                              <td>{{ $tna->item }}</td>
-                                             <td>{{ $tna->color }}</td>
-                                             {{-- <td><img src="{{ asset('storage/tna/' . $tna->picture) }}" alt="Picture"
+                                            {{--  <td>{{ $tna->color }}</td>
+                                             <td><img src="{{ asset('storage/tna/' . $tna->picture) }}" alt="Picture"
                                                         style="width: 50px; height: 50px;"></td> --}}
                                              <td>{{ $tna->qty_pcs }}</td>
                                              <td>{{ $tna->po_receive_date }}</td>

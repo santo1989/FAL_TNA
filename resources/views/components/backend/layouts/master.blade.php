@@ -51,11 +51,11 @@
 
 </head>
 
-<body style="background-image: url('{{ asset('images/assets/back.png') }}'); background-size: cover; background-repeat: repeat;">
+<body style="background-color:#a5bcfc">
 
-    <div class="container-fluid px-5">
-        <div class="card mx-5 my-3" style="background-color: #eef0f2; padding-left: 100px; padding-right: 100px;">
-            <div class="mx-5 my-5" style="background-color: white; ">
+    <div class="container-fluid px-1">
+        <div class="card mx-1 my-1" style="background-color: #b3c6fd ; padding-left: 10px; padding-right: 10px;">
+            <div class="mx-1 my-1" style="background-color: #ccd9fe ; ">
                 {{ $breadCrumb ?? '' }}
             {{ $slot ?? '' }}
             </div>
