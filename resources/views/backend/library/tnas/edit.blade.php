@@ -69,13 +69,13 @@
                                                  placeholder="Must be Full PO Number" required
                                                  value="{{ $tnas->po }}">
                                          </td>
-                                         <td class="create_label_column">Picture</td>
+                                         {{-- <td class="create_label_column">Picture</td>
                                          <td class="create_input_column">
                                              <input type="file" name="picture" id="picture" class="form-control"
                                                  value="{{ $tnas->picture }}">
                                          </td>
                                      </tr>
-                                     <tr>
+                                     <tr> --}}
                                          <td class="create_label_column">Item</td>
                                          <td class="create_input_column">
 
@@ -120,11 +120,11 @@
                                              </select>
                                          </td>
 
-                                         <td class="create_label_column">Color</td>
+                                         {{-- <td class="create_label_column">Color</td>
                                          <td class="create_input_column">
                                              <input type="text" name="color" id="color" class="form-control"
                                                   value="{{ $tnas->color }}">
-                                         </td>
+                                         </td> --}}
                                      </tr>
                                      <tr>
                                          <td class="create_label_column">Qty (pcs)</td>

@@ -3,18 +3,44 @@
   @endphp
   @forelse ($tnas as $tna)
       <tr>
-          <td>{{ $sl++ }}</td>
+          @if ($tna->order_close == 1)
+              <td class="bg-red">{{ $sl++ }}</td>
+          @else
+              @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
+                  <td>
+                      <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
+                          data-toggle="tooltip" data-placement="top" title="show">
+                          <i class="fas fa-eye"></i>{{ $sl++ }}
+                      </a>
+                  </td>
+              @elseif (auth()->user()->role_id == 3)
+                  @php
+                      $privileges = DB::table('buyer_assigns')
+                          ->where('buyer_id', $tna->buyer_id)
+                          ->where('user_id', auth()->user()->id)
+                          ->first();
+                  @endphp
+                  @if ($privileges)
+                      <td>
+                          <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
+                              data-toggle="tooltip" data-placement="top" title="show">
+                              <i class="fas fa-eye"></i>{{ $sl++ }}
+                          </a>
+                      </td>
+                  @else
+                      <td>{{ $sl++ }}</td>
+                  @endif
+              @endif
+          @endif
           <td>{{ $tna->buyer }}</td>
           <td>{{ $tna->style }}</td>
-          <td>{{ $tna->po }}</td>
-          <td></td>
-          <td>{{ $tna->item }}</td>
-          <td>{{ $tna->color }}</td>
+          <td>{{ $tna->po }}</td> 
+          <td>{{ $tna->item }}</td> 
           <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
           <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
-          <td>{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
-          <td>{{ $tna->total_lead_time }}</td>
-          <td>
+          <td class="text-bold">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
+          <td id="total_lead_time">{{ $tna->total_lead_time }}</td>
+          <td id="order_free_time">
               @if ($tna->pp_meeting_actual == null)
                   @php
                       $today = \Carbon\Carbon::parse($tna->pp_meeting_plan);
@@ -111,35 +137,7 @@
               @endforeach
           @endforeach
           {{-- @dd($explanation); --}}
-          @if ($tna->order_close == 1)
-              <td class="bg-red">Order Closed</td>
-          @else
-              @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                  <td>
-                      <a href="{{ route('tnas.edit', $tna->id) }}" class="btn btn-sm btn-outline-primary"
-                          data-toggle="tooltip" data-placement="top" title="Edit">
-                          <i class="fas fa-edit"></i>
-                      </a>
-                  </td>
-              @elseif (auth()->user()->role_id == 3)
-                  @php
-                      $privileges = DB::table('buyer_assigns')
-                          ->where('buyer_id', $tna->buyer_id)
-                          ->where('user_id', auth()->user()->id)
-                          ->first();
-                  @endphp
-                  @if ($privileges)
-                      <td>
-                          <a href="{{ route('tnas.edit', $tna->id) }}" class="btn btn-sm btn-outline-primary"
-                              data-toggle="tooltip" data-placement="top" title="Edit">
-                              <i class="fas fa-edit"></i>
-                          </a>
-                      </td>
-                  @else
-                      <td></td>
-                  @endif
-              @endif
-          @endif
+
       </tr>
   @empty
       <tr>

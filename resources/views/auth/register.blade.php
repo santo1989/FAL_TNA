@@ -24,7 +24,7 @@
                                 <div class="flex justify-content-between mt-3">
                                     <div class="w-1/2">
                                         {{-- Open Space Start --}}
-                                          <div style="height:115px;">
+                                        <div style="height:115px;">
                                             <h3 class="mb-4 pb-2 pb-md-0 mb-md-5">Registration Form</h3>
 
                                         </div>
@@ -58,7 +58,7 @@
 
                                     </div>
                                     <div class="w-1/2">
-                                        {{-- image preview start--}}
+                                        {{-- image preview start --}}
                                         <div class="mt-3 ">
                                             <img class="img-thumbnail mx-auto d-block" id="output" height="100px"
                                                 width="100px" />
@@ -79,7 +79,7 @@
                                             <x-label for="imageUpload" :value="__('Picture')" />
 
                                             <x-input id="image" class="block mt-1 ml-2  w-full" type="file"
-                                                name="picture" :value="old('picture')" required autofocus accept="image/*"
+                                                name="picture" :value="old('picture')" autofocus accept="image/*"
                                                 onchange="loadFile(event)" />
 
                                         </div>
@@ -311,7 +311,7 @@
                                 $.each(data.company, function(index, company) {
                                     companySelect.append(
                                         `<option value="${company.id}">${company.name}</option>`
-                                        );
+                                    );
                                 });
 
                                 designationSelect.empty();
@@ -320,7 +320,7 @@
                                 $.each(data.designations, function(index, designation) {
                                     designationSelect.append(
                                         `<option value="${designation.id}">${designation.name}</option>`
-                                        );
+                                    );
                                 });
                             },
                             error: function(xhr, status, error) {
@@ -351,7 +351,7 @@
                                 $.each(data.departments, function(index, departments) {
                                     companySelect.append(
                                         `<option value="${departments.id}">${departments.name}</option>`
-                                        );
+                                    );
                                 });
                             },
                             error: function(xhr, status, error) {
