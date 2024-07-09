@@ -213,6 +213,13 @@
                         @endcan
                         @can('SuperVisor')
                             <div class="row justify-content-center">
+                                 <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('buyers.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-atlas"></i></div>
+                                        Buyer Management
+                                    </a>
+                                </div>
                                 <div class="col-3 pt-1 pb-1">
                                     <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
                                         href="{{ route('buyer_assigns.index') }}">

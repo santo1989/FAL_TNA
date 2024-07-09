@@ -29,7 +29,9 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                {{-- <a class="btn btn-primary" href={{ route('buyers.create') }}>Create</a> --}}
+                                <a href=" {{ route('home') }} " class="btn btn-lg btn-outline-danger"><i
+                                        class="fas fa-arrow-left"></i>
+                                    Close</a>
                                 <x-backend.form.anchor :href="route('buyers.create')" type="create" />
                             </div>
                             <!-- /.card-header -->
@@ -50,7 +52,7 @@
                                     </thead>
                                     <tbody>
                                         @php $sl=0 @endphp
-                                      
+
                                         @forelse ($buyers as $key => $buyer)
                                             @if (
                                                 $key === 0 ||
@@ -75,10 +77,13 @@
                                                     <td>
                                                         <x-backend.form.anchor :href="route('buyers.edit', ['buyer' => $buyer->id])" type="edit" />
                                                         <x-backend.form.anchor :href="route('buyers.show', ['buyer' => $buyer->id])" type="show" />
-                                                        <button class="btn btn-outline-danger my-1 mx-1 inline btn-sm"
-                                                            onclick="confirmDelete('{{ route('buyers.destroy', ['buyer' => $buyer->id]) }}')">
-                                                            <i class="bi bi-trash"></i> Delete
-                                                        </button>
+                                                        @if (auth()->user()->role_id == 1)
+                                                            <button
+                                                                class="btn btn-outline-danger my-1 mx-1 inline btn-sm"
+                                                                onclick="confirmDelete('{{ route('buyers.destroy', ['buyer' => $buyer->id]) }}')">
+                                                                <i class="bi bi-trash"></i> Delete
+                                                            </button>
+                                                        @endif
                                                     </td>
                                                 </tr>
                                             @else
@@ -101,11 +106,12 @@
                                                     <td>
                                                         <x-backend.form.anchor :href="route('buyers.edit', ['buyer' => $buyer->id])" type="edit" />
                                                         <x-backend.form.anchor :href="route('buyers.show', ['buyer' => $buyer->id])" type="show" />
-                                                             @if (auth()->user()->role_id == 1)
-                                                        <button class="btn btn-outline-danger my-1 mx-1 inline btn-sm"
-                                                            onclick="confirmDelete('{{ route('buyers.destroy', ['buyer' => $buyer->id]) }}')">
-                                                            <i class="bi bi-trash"></i> Delete
-                                                        </button>
+                                                        @if (auth()->user()->role_id == 1)
+                                                            <button
+                                                                class="btn btn-outline-danger my-1 mx-1 inline btn-sm"
+                                                                onclick="confirmDelete('{{ route('buyers.destroy', ['buyer' => $buyer->id]) }}')">
+                                                                <i class="bi bi-trash"></i> Delete
+                                                            </button>
                                                         @endif
                                                     </td>
                                                 </tr>

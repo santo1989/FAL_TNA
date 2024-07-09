@@ -19,9 +19,12 @@ class TNAController extends Controller
         $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
         if (auth()->user()->role_id == 3) {
             $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
+        } elseif (auth()->user()->role_id == 2 && $marchent_buyer_assigns->count() > 0) {
+            $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
         } else {
             $tnas = TNA::where('order_close', '0')->latest()->get();
         }
+
         return view('backend.library.tnas.index', compact('tnas'));
     }
 
@@ -94,7 +97,7 @@ class TNAController extends Controller
             'buyer_id' => 'required',
             'style' => 'required',
             'po' => 'required',
-            'item' => 'required', 
+            'item' => 'required',
             'qty_pcs' => 'required',
             'po_receive_date' => 'required|date',
             'shipment_etd' => 'required|date',
@@ -376,7 +379,7 @@ class TNAController extends Controller
 
     //     if (auth()->user()->role_id == 1 || auth()->user()->role_id == 4) {
     //          //"po_receive_date", "shipment_etd" change then total_lead_time will be change and update plan date
-            
+
 
 
     //     } else {
@@ -461,6 +464,8 @@ class TNAController extends Controller
         $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
         if (auth()->user()->role_id == 3) {
             $tnas = $tnas->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->get();
+        } elseif (auth()->user()->role_id == 2 && $marchent_buyer_assigns->count() > 0) {
+            $tnas = $tnas->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->get();
         } else {
             $tnas = $tnas->get();
         }
@@ -489,6 +494,8 @@ class TNAController extends Controller
         $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
         if (auth()->user()->role_id == 3) {
             $tnas = TNA::where('order_close', '1')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
+        } elseif (auth()->user()->role_id == 2 && $marchent_buyer_assigns->count() > 0) {
+            $tnas = TNA::where('order_close', '1')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
         } else {
             $tnas = TNA::where('order_close', '1')->latest()->get();
         }
@@ -496,7 +503,7 @@ class TNAController extends Controller
     }
 
     public function archives_dashboard()
-    { 
+    {
         $tnas = $this->fetcharchivesData();
         return view('backend.library.tnas.archives_dashboard', compact('tnas'));
     }
@@ -515,6 +522,8 @@ class TNAController extends Controller
 
         $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
         if (auth()->user()->role_id == 3) {
+            $tnas = $tnas->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->get();
+        } elseif (auth()->user()->role_id == 2 && $marchent_buyer_assigns->count() > 0) {
             $tnas = $tnas->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->get();
         } else {
             $tnas = $tnas->get();
