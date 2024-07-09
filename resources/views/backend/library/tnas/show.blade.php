@@ -77,9 +77,9 @@
                     <th>Buyer</th>
                     <th>Style</th>
                     <th>PO</th>
-                    <th>Picture</th>
+                    {{-- <th>Picture</th> --}}
                     <th>Item</th>
-                    <th>Color</th>
+                    {{-- <th>Color</th> --}}
                     <th>Qty (pcs)</th>
                     <th>PO Receive Date</th>
                     <th>Shipment/ETD</th>
@@ -101,7 +101,7 @@
                     <th colspan="2">ETD</th>
                 </tr>
                 <tr>
-                    <th colspan="12"></th>
+                    <th colspan="10"></th>
                     <th>Plan</th>
                     <th>Actual</th>
                     <th>Plan</th>
@@ -139,12 +139,12 @@
                         <td>{{ $tna->buyer }}</td>
                         <td>{{ $tna->style }}</td>
                         <td>{{ $tna->po }}</td>
-                        <td></td>
+                        {{-- <td></td> --}}
                         <td>{{ $tna->item }}</td>
-                        <td>{{ $tna->color }}</td>
+                        {{-- <td>{{ $tna->color }}</td> --}}
                         <td>{{ $tna->qty_pcs }}</td>
                         <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
-                        <td>{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
+                        <td class="text-bold">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
                         <td>{{ $tna->total_lead_time }}</td>
                         <td>
                             @if ($tna->pp_meeting_actual == null)

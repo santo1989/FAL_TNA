@@ -104,10 +104,8 @@
                     <th>SL</th>
                     <th>Buyer</th>
                     <th>Style</th>
-                    <th>PO</th>
-                    <th>Picture</th>
-                    <th>Item</th>
-                    <th>Color</th>
+                    <th>PO</th> 
+                    <th>Item</th> 
                     <th>Qty (pcs)</th>
                     <th>PO Receive Date</th>
                     <th>Shipment/ETD</th>
@@ -127,10 +125,10 @@
                     <th colspan="2">Bulk Fabric Delivery</th>
                     <th colspan="2">PP Meeting</th>
                     <th colspan="2">ETD</th>
-                    <th rowspan="2">Action</th>
+                    
                 </tr>
                 <tr>
-                    <th colspan="7"></th>
+                    <th colspan="5"></th>
                     <th><label id="total_qty"></label></th>
                     <th colspan="2"></th>
                     <th><label id="AvgLeadTime"></label></th>
@@ -171,18 +169,29 @@
                 @endphp
                 @forelse ($tnas as $tna)
                     <tr>
-                        <td>{{ $sl++ }}</td>
+                        <td>
+                            @if (auth()->user()->role_id == 1)
+                                <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" type="submit"
+                                        onclick="return confirm('Are you sure want to delete ?')">
+                                        <i class="fas fa-trash"></i>{{ $sl++ }}
+                                    </button>
+                                </form>
+                            @else
+                            {{ $sl++ }}
+                            @endif
+                            </td>
                         <td>{{ $tna->buyer }}</td>
                         <td>{{ $tna->style }}</td>
-                        <td>{{ $tna->po }}</td>
-                        <td></td>
-                        <td>{{ $tna->item }}</td>
-                        <td>{{ $tna->color }}</td>
+                        <td>{{ $tna->po }}</td> 
+                        <td>{{ $tna->item }}</td> 
                         <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
                         <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
-                        <td>{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
-                        <td>{{ $tna->total_lead_time }}</td>
-                        <td>
+                        <td class="text-bold">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
+                        <td id="total_lead_time">{{ $tna->total_lead_time }}</td>
+                        <td id="order_free_time">
                             @if ($tna->pp_meeting_actual == null)
                                 @php
                                     $today = \Carbon\Carbon::parse($tna->pp_meeting_plan);
@@ -282,7 +291,7 @@
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="41" class="text-center">No TNA Found</td>
+                        <td colspan="38" class="text-center">No TNA Found</td>
                     </tr>
                 @endforelse
             </tbody>
@@ -331,7 +340,7 @@
             // Calculate average lead time
             let totalLeadTime = 0;
             visibleRows.forEach(row => {
-                const leadTimeCell = row.querySelector('td:nth-child(11)');
+                const leadTimeCell = row.querySelector('#total_lead_time');
                 totalLeadTime += parseInt(leadTimeCell.textContent);
             });
 
@@ -341,7 +350,7 @@
             // Calculate average order free time
             let totalOrderFreeTime = 0;
             visibleRows.forEach(row => {
-                const orderFreeTimeCell = row.querySelector('td:nth-child(12)');
+                const orderFreeTimeCell = row.querySelector('#order_free_time');
                 totalOrderFreeTime += parseInt(orderFreeTimeCell.textContent);
             });
 
