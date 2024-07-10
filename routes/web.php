@@ -155,6 +155,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/tnas/{tna}', [TNAController::class, 'destroy'])->name('tnas.destroy');
 
     Route::post('/update-tna-date', [TNAController::class, 'updateDate'])->name('tnas.updateDate');
+    // edit_actual_date
+    Route::get('/tnas/{tna}/edit_actual_date', [TNAController::class, 'edit_actual_date'])->name('tnas.edit_actual_date');
+    // tnas . update_actual_date
+    Route::post('/update-actual-date/{tnas}', [TNAController::class, 'updateActualDate'])->name('tnas.update_actual_date');
 
     //tnas_dashboard
     Route::get('/tnas_dashboard', [TNAController::class, 'tnas_dashboard'])->name('tnas_dashboard');

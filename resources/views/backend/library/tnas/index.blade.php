@@ -82,12 +82,18 @@
                                                  @can('TNA-CURD')
                                                      <a href="{{ route('tnas.edit', $tna->id) }}"
                                                          class="btn btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                                   <!--update actual date only for SuperVisor-->
+                                                        @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
+                                                            <a href="{{ route('tnas.edit_actual_date', $tna->id) }}"
+                                                                class="btn btn-outline-primary"><i class="fas fa-calendar"></i></a>
+                                                        @endif
                                                      <form action="{{ route('tnas_close', ['tna' => $tna->id]) }}"
                                                          method="POST" style="display:inline-block;">
                                                          @csrf
                                                          <input type="hidden" name="tna_id" value="{{ $tna->id }}">
                                                          <button type="submit" class="btn btn-outline-danger"><i
                                                                  class="fas fa-times"></i></button>
+                                                            
                                                      </form>
                                                      @if (auth()->user()->role_id == 1)
                                                          <form action="{{ route('tnas.destroy', $tna->id) }}"
@@ -98,6 +104,7 @@
                                                                      class="fas fa-trash"></i></button>
                                                          </form>
                                                      @endif
+
                                                  @endcan
                                              </td>
                                          </tr>

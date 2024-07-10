@@ -18,9 +18,9 @@
                       $privileges = DB::table('buyer_assigns')
                           ->where('buyer_id', $tna->buyer_id)
                           ->where('user_id', auth()->user()->id)
-                          ->first();
+                          ->first(); // Check if the user has privileges for the buyer
                   @endphp
-                  @if ($privileges)
+                  @if ($privileges > 0)
                       <td>
                           <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                               data-toggle="tooltip" data-placement="top" title="show">
@@ -30,12 +30,14 @@
                   @else
                       <td>{{ $sl++ }}</td>
                   @endif
+              @else
+                  <td>{{ $sl++ }}</td>
               @endif
           @endif
           <td>{{ $tna->buyer }}</td>
           <td>{{ $tna->style }}</td>
-          <td>{{ $tna->po }}</td> 
-          <td>{{ $tna->item }}</td> 
+          <td>{{ $tna->po }}</td>
+          <td>{{ $tna->item }}</td>
           <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
           <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
           <td class="text-bold">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>

@@ -531,4 +531,56 @@ class TNAController extends Controller
 
         return $tnas;
     }
+
+    public function edit_actual_date(Request $request, $id)
+    {
+        // dd($id);
+        $tnas = TNA::findOrFail($id);
+        // dd($tnas);
+        $buyers = Buyer::all()->where('is_active', '0');
+        return view('backend.library.tnas.edit_plan', compact('tnas', 'buyers'));
+    }
+
+    public function
+    updateActualDate(Request $request, $id)
+    {
+        // Print all request data for debugging
+        dd($request->all());
+
+        // Find the TNA record by ID
+        $tna = Tna::findOrFail($id);
+
+        // Check if the user's role is 4
+        if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1){
+            // Only update the actual date fields
+            $actualDateFields = [
+                'lab_dip_submission_actual',
+                'fabric_booking_actual',
+                'fit_sample_submission_actual',
+                'print_strike_off_submission_actual',
+                'bulk_accessories_booking_actual',
+                'fit_comments_actual',
+                'bulk_yarn_inhouse_actual',
+                'pp_sample_submission_actual',
+                'bulk_fabric_knitting_actual',
+                'pp_comments_receive_actual',
+                'bulk_fabric_dyeing_actual',
+                'bulk_fabric_delivery_actual',
+                'pp_meeting_actual',
+                'etd_actual'
+            ];
+
+            foreach ($actualDateFields as $field) {
+                if ($request->has($field)) {
+                    $tna->$field = $request->input($field);
+                }
+            }
+        }
+
+        // Save the TNA record
+        $tna->save();
+
+        // Redirect back with a success message
+        return redirect()->route('tnas.index')->with('message', 'TNA updated successfully.');
+    }
 }

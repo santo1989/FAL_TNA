@@ -104,8 +104,8 @@
                     <th rowspan="2">Action</th>
                     <th>Buyer</th>
                     <th>Style</th>
-                    <th>PO</th> 
-                    <th>Item</th> 
+                    <th>PO</th>
+                    <th>Item</th>
                     <th>Qty (pcs)</th>
                     <th>PO Receive Date</th>
                     <th>Shipment/ETD</th>
@@ -125,7 +125,7 @@
                     <th colspan="2">Bulk Fabric Delivery</th>
                     <th colspan="2">PP Meeting</th>
                     <th colspan="2">ETD</th>
-                    
+
                 </tr>
                 <tr>
                     <th colspan="4"></th>
@@ -185,23 +185,26 @@
                             @endphp
                             @if ($privileges)
                                 <td>
-                                   <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
-                                    data-toggle="tooltip" data-placement="top" title="show">
-                                    <i class="fas fa-eye"></i>{{ $sl++ }}
-                                </a>
+                                    <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
+                                        data-toggle="tooltip" data-placement="top" title="show">
+                                        <i class="fas fa-eye"></i>{{ $sl++ }}
+                                    </a>
                                 </td>
                             @else
                                 <td>{{ $sl++ }}</td>
                             @endif
+                        @else
+                            <td>{{ $sl++ }}</td>
                         @endif
-                       
+
                         <td>{{ $tna->buyer }}</td>
                         <td>{{ $tna->style }}</td>
-                        <td>{{ $tna->po }}</td> 
-                        <td>{{ $tna->item }}</td> 
+                        <td>{{ $tna->po }}</td>
+                        <td>{{ $tna->item }}</td>
                         <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
                         <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
-                        <td class="text-bold">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
+                        <td class="text-bold">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}
+                        </td>
                         <td id="total_lead_time">{{ $tna->total_lead_time }}</td>
                         <td id="order_free_time">
                             @if ($tna->pp_meeting_actual == null)
@@ -489,7 +492,7 @@
     </script>
 
 
- 
+
 
 </body>
 
