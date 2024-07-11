@@ -44,7 +44,7 @@
                      <div class="card-body">
                          <div class="table-responsive">
                              <table class="table table-bordered table-striped text-nowrap" id="datatablesSimple"
-                                 style="overflow-x: auto;">
+                                 style="overflow-x: auto;font-size: 14px;">
                                  <thead>
                                      <tr>
                                          <th>Buyer</th>
@@ -78,21 +78,21 @@
 
                                              <td>
                                                  <a href="{{ route('tnas.show', $tna->id) }}"
-                                                     class="btn btn-outline-info"><i class="fas fa-eye"></i></a>
+                                                     class="btn btn-outline-info"><i class="fas fa-eye"></i>show</a>
                                                  @can('TNA-CURD')
                                                      <a href="{{ route('tnas.edit', $tna->id) }}"
-                                                         class="btn btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                                         class="btn btn-outline-primary"><i class="fas fa-edit"></i>Edit</a>
                                                    <!--update actual date only for SuperVisor-->
                                                         @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
                                                             <a href="{{ route('tnas.edit_actual_date', $tna->id) }}"
-                                                                class="btn btn-outline-primary"><i class="fas fa-calendar"></i></a>
+                                                                class="btn btn-outline-primary"><i class="fas fa-calendar"></i>Plan</a>
                                                         @endif
                                                      <form action="{{ route('tnas_close', ['tna' => $tna->id]) }}"
                                                          method="POST" style="display:inline-block;">
                                                          @csrf
                                                          <input type="hidden" name="tna_id" value="{{ $tna->id }}">
                                                          <button type="submit" class="btn btn-outline-danger"><i
-                                                                 class="fas fa-times"></i></button>
+                                                                 class="fas fa-times"></i>close</button>
                                                             
                                                      </form>
                                                      @if (auth()->user()->role_id == 1)

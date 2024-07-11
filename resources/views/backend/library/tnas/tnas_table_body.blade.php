@@ -16,11 +16,11 @@
               @elseif (auth()->user()->role_id == 3)
                   @php
                       $privileges = DB::table('buyer_assigns')
-                          ->where('buyer_id', $tna->buyer_id)
+                          ->where('buyer_name', $tna->buyer)
                           ->where('user_id', auth()->user()->id)
-                          ->first(); // Check if the user has privileges for the buyer
+                          ->first();
                   @endphp
-                  @if ($privileges > 0)
+                  @if ($privileges)
                       <td>
                           <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                               data-toggle="tooltip" data-placement="top" title="show">

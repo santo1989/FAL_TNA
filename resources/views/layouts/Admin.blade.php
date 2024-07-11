@@ -8,8 +8,8 @@
         <x-backend.layouts.elements.breadcrumb>
             <x-slot name="pageHeader">
                 <div class="row">
-                    <div class="col-9">Dashboard</div>
-                    <div class="col-3 text-left">
+                    <div class="col-12">Dashboard</div>
+                    {{-- <div class="col-3 text-left">
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -22,7 +22,7 @@
                         </form>
 
 
-                    </div>
+                    </div> --}}
                 </div>
             </x-slot>
         </x-backend.layouts.elements.breadcrumb>

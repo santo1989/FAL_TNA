@@ -77,10 +77,15 @@
             @php
                 $buyerList = DB::table('t_n_a_s')->where('order_close', 0)->select('buyer')->distinct()->get();
             @endphp
+
             <div class="col-12">
+                <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light btn-sm"
+                    style="width: 10rem;">
+                    <i class="fas fa-arrow-left"></i> Back
+                </a>
                 <button class="btn btn-outline-secondary bg-light btn-sm" onclick="downloadExcel()"
                     style="width: 10rem;">
-                    <i class="fas fa-download"></i> Download Excel File </button>
+                    <i class="fas fa-download"></i> Download</button>
                 <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;" id="all-buyers-btn">
                     {{-- <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div> --}}
                     All Buyers
@@ -177,24 +182,22 @@
                                 </a>
                             </td>
                         @elseif (auth()->user()->role_id == 3)
-                            {{-- @php
+                            @php
                                 $privileges = DB::table('buyer_assigns')
-                                    ->where('buyer_id', $tna->buyer_id)
+                                    ->where('buyer_name', $tna->buyer)
                                     ->where('user_id', auth()->user()->id)
                                     ->first();
-
-                                    dd($privileges);
                             @endphp
-                            @if ($privileges) --}}
+                            @if ($privileges)
                                 <td>
                                     <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                                         data-toggle="tooltip" data-placement="top" title="show">
                                         <i class="fas fa-eye"></i>{{ $sl++ }}
                                     </a>
                                 </td>
-                            {{-- @else
+                            @else
                                 <td>{{ $sl++ }}</td>
-                            @endif --}}
+                            @endif
                         @else
                             <td>{{ $sl++ }}</td>
                         @endif

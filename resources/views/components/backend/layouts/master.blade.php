@@ -53,17 +53,19 @@
 
 <body style="background-color:#a5bcfc">
 
-    {{-- <div class="container-fluid px-1"> --}}
-        {{-- <div class="card mx-1 my-1" style="background-color: #b3c6fd ; padding-left: 10px; padding-right: 10px;"> --}}
+    <div class="container-fluid" style="background-color: #b3c6fd ;padding-left: 1px; padding-right: 1px;">
+        <div class="card mx-1 my-1" style="background-color: #ccd9fe ; padding-left: 1px; padding-right: 1px;">
             {{-- <div class="mx-1 my-1" style="background-color: #ccd9fe ; "> --}}
-                {{ $breadCrumb ?? '' }}
+                {{-- {{ $breadCrumb ?? '' }} --}}
+                {!! $breadCrumb ?? '' !!} 
+
             {{ $slot ?? '' }}
             {{-- </div> --}}
-        {{-- </div> --}}
+        </div>
 
 
 
-    {{-- </div> --}}
+    </div>
 
     <!-- Core theme JS-->
     <script src="{{ asset('ui/backend/js/scripts.js') }}"></script>
