@@ -56,7 +56,7 @@
                                          <th>Total Qty</th>
                                          <th>PO Date</th>
                                          <th>Shipment Date</th>
-                                         <th>Lead Days</th>
+                                         {{-- <th>Lead Days</th> --}}
                                          <th>Action</th>
                                      </tr>
                                  </thead>
@@ -73,7 +73,7 @@
                                              <td>{{ $tna->qty_pcs }}</td>
                                              <td>{{ $tna->po_receive_date }}</td>
                                              <td>{{ $tna->shipment_etd }}</td>
-                                             <td>{{ $tna->total_lead_time }}
+                                             {{-- <td>{{ $tna->total_lead_time }} --}}
                                              </td>
 
                                              <td>
