@@ -1,5 +1,5 @@
  <x-backend.layouts.master>
-     <div class="card mx-5 my-5" style="background-color: white; ">
+     <div class="card mx-1 my-1" style="background-color: white; ">
 
          <div class="row p-1">
              <div class="col-12">

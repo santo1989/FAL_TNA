@@ -177,22 +177,24 @@
                                 </a>
                             </td>
                         @elseif (auth()->user()->role_id == 3)
-                            @php
+                            {{-- @php
                                 $privileges = DB::table('buyer_assigns')
                                     ->where('buyer_id', $tna->buyer_id)
                                     ->where('user_id', auth()->user()->id)
                                     ->first();
+
+                                    dd($privileges);
                             @endphp
-                            @if ($privileges)
+                            @if ($privileges) --}}
                                 <td>
                                     <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                                         data-toggle="tooltip" data-placement="top" title="show">
                                         <i class="fas fa-eye"></i>{{ $sl++ }}
                                     </a>
                                 </td>
-                            @else
+                            {{-- @else
                                 <td>{{ $sl++ }}</td>
-                            @endif
+                            @endif --}}
                         @else
                             <td>{{ $sl++ }}</td>
                         @endif
