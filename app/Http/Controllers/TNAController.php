@@ -545,13 +545,13 @@ class TNAController extends Controller
     updateActualDate(Request $request, $id)
     {
         // Print all request data for debugging
-        dd($request->all());
+        // dd($request->all());
 
         // Find the TNA record by ID
         $tna = Tna::findOrFail($id);
 
         // Check if the user's role is 4
-        if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1){
+        if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1) {
             // Only update the actual date fields
             $actualDateFields = [
                 'lab_dip_submission_actual',
