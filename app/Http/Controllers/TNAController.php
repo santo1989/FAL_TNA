@@ -423,13 +423,26 @@ class TNAController extends Controller
     private function saveTnaExplanation($request, $tna)
     {
         $task = $request->task;
+
         if ($request->date == 'N/A') {
-            $tna->print_strike_off_submission_actual = 'N/A';
-            $tna->print_strike_off_submission_plan = 'N/A';
+            if ($task == 'print_strike_off_submission_actual') {
+                $tna->print_strike_off_submission_actual = 'N/A';
+                $tna->print_strike_off_submission_plan = 'N/A';
+            }
+            if ($task == 'fit_sample_submission_actual') {
+                $tna->fit_sample_submission_actual = 'N/A';
+                $tna->fit_sample_submission_plan = 'N/A';
+            }
         } else {
             $tna->$task = $request->date;
         }
+
+        if ($task == 'etd_actual') {
+            $tna->order_close = '1';
+        }
+
         $tna->save();
+
         if ($request->explanation) {
             // Save explanation and actual date to the new table
             TnaExplanation::create([

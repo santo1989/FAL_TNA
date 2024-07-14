@@ -305,7 +305,7 @@
             document.getElementById('tnaId').value = id;
             document.getElementById('taskName').value = task;
 
-             if (task === 'print_strike_off_submission_actual') {
+             if (task === 'print_strike_off_submission_actual' || task === 'fit_sample_submission_actual' ) {
                 document.getElementById('dateInput').style.display = 'block';
                 document.getElementById('naCheckbox').style.display = 'block';
             } else {
