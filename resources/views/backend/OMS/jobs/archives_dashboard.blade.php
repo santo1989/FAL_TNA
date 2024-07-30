@@ -1,4 +1,54 @@
-<x-backend.layouts.report_master> 
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+    <meta name="description" content="TNA Management Softwear from NTG, MIS Department" />
+    <meta name="author" content="Md. Hasibul Islam Santo, MIS, NTG" />
+    <title> {{ $pageTitle ?? 'FAL' }} </title>
+
+    <!-- <link href="css/styles.css" rel="stylesheet" /> -->
+
+    <!-- jQuery -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+    <!-- bootstrap 5 cdn  -->
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.1/css/bootstrap.min.css">
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.1/js/bootstrap.min.js"></script>
+
+
+    <!-- font-awesome -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/js/all.min.js" crossorigin="anonymous"></script>
+
+    <!-- Bootstrap core icon -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.3/font/bootstrap-icons.css">
+
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-beta.1/dist/css/select2.min.css" rel="stylesheet" />
+
+
+
+    <!-- sweetalert2 cdn-->
+
+    <link rel="stylesheet" href="//cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <script src="//cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+
+    <!-- DataTable -->
+
+    <link href="https://cdn.jsdelivr.net/npm/simple-datatables@latest/dist/style.css" rel="stylesheet" />
+
+    <!-- Custom CSS -->
+
+    <link href="{{ asset('ui/backend/css/styles.css') }}" rel="stylesheet" />
+
+    <!-- Push Notification -->
+
+    <script src="{{ asset('js/push.min.js') }}"></script>
+
     <style>
         .bg-red {
             background-color: red !important;
@@ -11,9 +61,11 @@
             color: black;
             font-weight: bold;
         }
+    </style>
 
- 
-    </style> 
+</head>
+
+<body style="background-color:#a5bcfc">
 
 
 
@@ -23,24 +75,20 @@
             TNA Dashboard</h4>
         <div class="row justify-content-center pb-2">
             @php
-                $buyerList = DB::table('t_n_a_s')->where('order_close', 0)->select('buyer')->distinct()->get();
+                $buyerList = DB::table('t_n_a_s')->where('order_close', 1)->select('buyer')->distinct()->get();
             @endphp
-
             <div class="col-12">
-                <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light btn-sm"
-                    style="width: 10rem;">
-                    <i class="fas fa-arrow-left"></i> Back
-                </a>
                 <button class="btn btn-outline-secondary bg-light btn-sm" onclick="downloadExcel()"
                     style="width: 10rem;">
-                    <i class="fas fa-download"></i> Download</button>
-                <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;" id="all-buyers-btn"> 
+                    <i class="fas fa-download"></i> Download Excel File </button>
+                <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;" id="all-buyers-btn">
+                    {{-- <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div> --}}
                     All Buyers
                 </button>
                 @foreach ($buyerList as $buyer)
                     <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;"
                         id="buyer-{{ $buyer->buyer }}-btn" onclick="filterByBuyer('{{ $buyer->buyer }}')">
-                         
+                        {{-- <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div> --}}
                         {{ $buyer->buyer }}
                     </button>
                 @endforeach
@@ -48,19 +96,19 @@
 
 
         </div>
-        <table class="table table-bordered table-hover text-center text-nowrap" style="font-size: 12px;"
-            id="datatablesSimple">
-            <thead class="thead-dark"
-                style="font-size: 12px; text-align: center; vertical-align: middle;position: sticky;top: 0;z-index: 1;">
+        <table class="table table-bordered table-hover text-center text-nowrap
+        " style="font-size: 13px;"
+            id="PrintTable">
+            <thead class="thead-dark">
                 <tr>
-                    <th rowspan="2" id="fixedhead">Action</th>
-                    <th rowspan="2" id="fixedhead">Buyer</th>
-                    <th rowspan="2" id="fixedhead">Style</th>
-                    <th rowspan="2" id="fixedhead">PO Number</th>
-                    <th rowspan="2">Item</th>
+                    <th>SL</th>
+                    <th>Buyer</th>
+                    <th>Style</th>
+                    <th>PO</th>
+                    <th>Item</th>
                     <th>Qty (pcs)</th>
                     <th>PO Receive Date</th>
-                    <th id="shortablehead">Shipment/ETD</th>
+                    <th>Shipment/ETD</th>
                     <th>Total Lead Time</th>
                     <th>Order Free Time</th>
                     <th colspan="2">Lab Dip Submission</th>
@@ -70,7 +118,6 @@
                     <th colspan="2">Bulk Accessories Booking</th>
                     <th colspan="2">Fit Comments</th>
                     <th colspan="2">Bulk Yarn Inhouse</th>
-                    <th colspan="2">Bulk Accessories Inhouse</th>
                     <th colspan="2">PP Sample Submission</th>
                     <th colspan="2">Bulk Fabric Knitting</th>
                     <th colspan="2">PP Comments Receive</th>
@@ -80,13 +127,12 @@
                     <th colspan="2">ETD</th>
 
                 </tr>
-                <tr> 
+                <tr>
+                    <th colspan="5"></th>
                     <th><label id="total_qty"></label></th>
                     <th colspan="2"></th>
                     <th><label id="AvgLeadTime"></label></th>
                     <th><label id="AvgOrderFreeTime"></label></th>
-                    <th>Plan</th>
-                    <th>Actual</th>
                     <th>Plan</th>
                     <th>Actual</th>
                     <th>Plan</th>
@@ -123,42 +169,27 @@
                 @endphp
                 @forelse ($tnas as $tna)
                     <tr>
-                        @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                            <td id="fixedrow">
-                                <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
-                                    data-toggle="tooltip" data-placement="top" title="show">
-                                    <i class="fas fa-eye"></i>{{ $sl++ }}
-                                </a>
-                            </td>
-                        @elseif (auth()->user()->role_id == 3)
-                            @php
-                                $privileges = DB::table('buyer_assigns')
-                                    ->where('buyer_name', $tna->buyer)
-                                    ->where('user_id', auth()->user()->id)
-                                    ->first();
-                            @endphp
-                            @if ($privileges)
-                                <td id="fixedrow">
-                                    <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
-                                        data-toggle="tooltip" data-placement="top" title="show">
-                                        <i class="fas fa-eye"></i>{{ $sl++ }}
-                                    </a>
-                                </td>
+                        <td>
+                            @if (auth()->user()->role_id == 1)
+                                <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button class="btn btn-sm btn-outline-danger" type="submit"
+                                        onclick="return confirm('Are you sure want to delete ?')">
+                                        <i class="fas fa-trash"></i>{{ $sl++ }}
+                                    </button>
+                                </form>
                             @else
-                                <td id="fixedrow">{{ $sl++ }}</td>
+                                {{ $sl++ }}
                             @endif
-                        @else
-                            <td id="fixedrow">{{ $sl++ }}</td>
-                        @endif
-
-                        <td id="fixedrow">{{ $tna->buyer }}</td>
-                        <td id="fixedrow">{{ $tna->style }}</td>
-                        <td id="fixedrow">{{ $tna->po }}</td>
+                        </td>
+                        <td>{{ $tna->buyer }}</td>
+                        <td>{{ $tna->style }}</td>
+                        <td>{{ $tna->po }}</td>
                         <td>{{ $tna->item }}</td>
                         <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
                         <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
-                        <td class="text-bold" id="shortablerow">
-                            {{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}
+                        <td class="text-bold">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}
                         </td>
                         <td id="total_lead_time">{{ $tna->total_lead_time }}</td>
                         <td id="order_free_time">
@@ -187,7 +218,7 @@
                             @endif
 
                         </td>
-                        @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'bulk_accessories_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'etd'] as $task)
+                        @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'etd'] as $task)
                             @foreach (['plan', 'actual'] as $type)
                                 @php
                                     $date = $tna->{$task . '_' . $type};
@@ -257,25 +288,23 @@
                                 @endif
                             @endforeach
                         @endforeach
-                       
-
+                        {{-- @dd($explanation); --}}
                     </tr>
                 @empty
                     <tr>
-                        <td colspan="41" class="text-center">No TNA Found</td>
+                        <td colspan="38" class="text-center">No TNA Found</td>
                     </tr>
                 @endforelse
             </tbody>
 
         </table>
     </div> <!-- container -->
-   
-    </div>
- <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light m-2">
+    <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light m-2">
         <i class="fas fa-arrow-left"></i> Cancel
     </a>
-    <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-secondary bg-light m-2">
-        <i class="fas fa-sync"></i> Refresh Page </a>
+
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script> <!-- Core theme JS-->
     <script src="{{ asset('ui/backend/js/scripts.js') }}"></script>
 
@@ -297,10 +326,6 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
     <script>
-       
-
-
-
         // Function to calculate total quantity, average lead time, and average order free time
         function calculateTotalsAndAverages() {
             const visibleRows = document.querySelectorAll('#tnaTableBody tr:not([style*="display: none"])');
@@ -320,7 +345,7 @@
                 totalLeadTime += parseInt(leadTimeCell.textContent);
             });
 
-            // Calculate average lead time and show ceil value
+            // Calculate average lead time and show in celing format
             document.getElementById('AvgLeadTime').textContent = Math.ceil(totalLeadTime / visibleRows.length);
 
             // Calculate average order free time
@@ -330,7 +355,7 @@
                 totalOrderFreeTime += parseInt(orderFreeTimeCell.textContent);
             });
 
-            // Calculate average order free time and show ceil value
+            // Calculate average order free time and show in celing format
             document.getElementById('AvgOrderFreeTime').textContent = Math.ceil(totalOrderFreeTime / visibleRows.length);
         }
 
@@ -382,7 +407,7 @@
         // Periodically update the table
         setInterval(() => {
             $.ajax({
-                url: "{{ route('tnas_dashboard_update') }}",
+                url: "{{ route('archives_dashboard_update') }}",
                 type: 'GET',
                 success: function(data) {
                     // If localStorage has buyer name then show the buyer name data after page load else show all buyers data and calculateTotalsAndAverages function call to calculate total quantity, average lead time, and average order free time
@@ -423,7 +448,7 @@
             var tab_text = "<table border='2px'><tr bgcolor='#87AFC6'>";
             var textRange;
             var j = 0;
-            tab = document.getElementById('datatablesSimple'); // id of table
+            tab = document.getElementById('PrintTable'); // id of table
 
             for (j = 0; j < tab.rows.length; j++) {
                 tab_text = tab_text + tab.rows[j].innerHTML + "</tr>";
@@ -452,5 +477,10 @@
         }
     </script>
 
- 
-</x-backend.layouts.report_master>
+
+
+
+
+</body>
+
+</html>

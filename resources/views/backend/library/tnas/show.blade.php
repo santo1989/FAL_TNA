@@ -144,7 +144,8 @@
                         {{-- <td>{{ $tna->color }}</td> --}}
                         <td>{{ $tna->qty_pcs }}</td>
                         <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
-                        <td class="text-bold">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
+                        <td class="text-bold">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}
+                        </td>
                         <td>{{ $tna->total_lead_time }}</td>
                         <td>
                             @if ($tna->pp_meeting_actual == null)
@@ -172,14 +173,13 @@
                             @endif
 
                         </td>
-                        @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'etd'] as $task)
+                        @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'bulk_accessories_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'etd'] as $task)
                             @foreach (['plan', 'actual'] as $type)
-                            
                                 @php
                                     $date = $tna->{$task . '_' . $type};
                                     $cellClass = '';
-                                    
-                                   if ($date && $date != 'N/A') {
+
+                                    if ($date && $date != 'N/A') {
                                         $today = \Carbon\Carbon::now();
                                         $cellDate = \Carbon\Carbon::parse($date);
                                         $diffDays = $today->diffInDays($cellDate, false);
@@ -193,7 +193,7 @@
                                             } else {
                                                 $cellClass = 'bg-light';
                                             }
-                                        }  
+                                        }
 
                                         //if actual date and plan date both have value then check if actual date is date over then plan date then text front red and blod expample: if plan date is 10-10-2021 and actual date is  12-10-2021 then text front red and blod
                                         if ($type === 'actual' && $tna->{$task . '_plan'}) {
@@ -205,15 +205,14 @@
                                             if ($cellDate->gt($actualDate)) {
                                                 $cellClass = 'bg-light';
                                             }
-                                        } 
-                                    }elseif($date == 'N/A'){
+                                        }
+                                    } elseif ($date == 'N/A') {
                                         $date = 'N/A';
                                     }
 
                                 @endphp
                                 <!-- if actual date is empty then modal button show else show date -->
                                 @if ($type === 'actual' && empty($date))
-                                    
                                     <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
                                         data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"
                                         data-plan-date="{{ $tna->{$task . '_plan'} }}">
@@ -224,7 +223,7 @@
                                         {{-- {{ \Carbon\Carbon::parse($date)->format('d-M-y') ?? '' }} --}}
                                         {{ $date == 'N/A' ? 'N/A' : ($date ? \Carbon\Carbon::parse($date)->format('d-M-y') : '') }}
                                     </td>
-                                @endif 
+                                @endif
                             @endforeach
                         @endforeach
                     </tr>
@@ -259,13 +258,13 @@
                                 value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}">
                             <br>
                             <div class="form-check" id="naCheckbox" style="display:none;">
-                            <input class="form-check-input" type="checkbox" value="na" id="naButton">
-                            <label class="form-check-label" for="naButton">
-                                N/A
-                            </label>
-                        </div> 
-                        <textarea class="form-control" id="explanation" rows="3" style="display: none;" placeholder="Remarks"></textarea>
-                      
+                                <input class="form-check-input" type="checkbox" value="na" id="naButton">
+                                <label class="form-check-label" for="naButton">
+                                    N/A
+                                </label>
+                            </div>
+                            <textarea class="form-control" id="explanation" rows="3" style="display: none;" placeholder="Remarks"></textarea>
+
                         </div>
                         <script>
                             // Get the current date in YYYY-MM-DD format
@@ -301,11 +300,11 @@
         function openModal(cell) {
             const id = cell.getAttribute('data-id');
             const task = cell.getAttribute('data-task');
-             const planDate = cell.getAttribute('data-plan-date');
+            const planDate = cell.getAttribute('data-plan-date');
             document.getElementById('tnaId').value = id;
             document.getElementById('taskName').value = task;
 
-             if (task === 'print_strike_off_submission_actual' || task === 'fit_sample_submission_actual' ) {
+            if (task === 'print_strike_off_submission_actual' || task === 'fit_sample_submission_actual') {
                 document.getElementById('dateInput').style.display = 'block';
                 document.getElementById('naCheckbox').style.display = 'block';
             } else {
@@ -324,7 +323,7 @@
         }
 
         function submitDate() {
-             const id = document.getElementById('tnaId').value;
+            const id = document.getElementById('tnaId').value;
             const task = document.getElementById('taskName').value;
             const date = document.getElementById('dateInput').value;
             const naChecked = document.getElementById('naButton').checked;

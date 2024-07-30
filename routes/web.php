@@ -6,9 +6,12 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\DivisionController;
+use App\Http\Controllers\JobController;
 use App\Http\Controllers\MarchentSOPController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RoleController;
+use App\Http\Controllers\SewingBlanceController;
+use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\SOPController;
 use App\Http\Controllers\SupplierController;
 use App\Http\Controllers\TNAController;
@@ -172,6 +175,53 @@ Route::middleware('auth')->group(function () {
     Route::get('/archives_dashboard', [TNAController::class, 'archives_dashboard'])->name('archives_dashboard');
     // archives_dashboard_update
     Route::get('/archives_dashboard_update', [TNAController::class, 'archives_dashboard_update'])->name('archives_dashboard_update');
+
+    //OMS//
+  
+    //jobs
+     
+    Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
+    Route::get('/jobs/create', [JobController::class, 'create'])->name('jobs.create');
+    Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
+    Route::get('/jobs/{job_no}/edit', [JobController::class, 'edit'])->name('jobs.edit');
+    Route::get('/jobs/{edit_jobs}/edit_jobs', [JobController::class, 'edit_jobs'])->name('jobs.edit_jobs'); 
+    Route::PUT('/update_edit_jobs/{edit_jobs}', [JobController::class, 'update_edit_jobs'])->name('jobs.update_edit_jobs');
+    Route::get('/jobs/{job_no}', [JobController::class, 'show'])->name('jobs.show');
+    Route::delete('/jobs/{id}', [JobController::class, 'destroy'])->name('jobs.destroy');
+    Route::post('/destroy_all/{job_no}', [JobController::class, 'destroy_all'])->name('jobs.destroy_all');
+
+    //Reports
+
+    Route::get('/monthly-order-summary', [JobController::class, 'monthlyOrderSummary'])->name('monthly_order_summary'); 
+    Route::get('/quantity-wise-summary', [JobController::class, 'quantityWiseSummary'])->name('quantity_wise_summary');
+    Route::get('/item-wise-summary', [JobController::class, 'itemWiseSummary'])->name('item_wise_summary');
+    Route::get('/delivery-summary', [JobController::class, 'deliverySummary'])->name('delivery_summary');
+    Route::get('/buyer-wise-tna-summary', [TNAController::class, 'BuyerWiseTnaSummary'])->name('BuyerWiseTnaSummary');
+
+
+
+
+    
+
+    //sewing_balances
+    Route::get('/sewing_balances', [SewingBlanceController::class, 'index'])->name('sewing_balances.index');
+    Route::get('/sewing_balances/create/{sewing_balances}', [SewingBlanceController::class, 'create_sewing_balances'])->name('sewing_balances.create');
+    Route::post('/sewing_balances/{sewing_balances}', [SewingBlanceController::class, 'store'])->name('sewing_balances_store');
+    Route::get('/sewing_balances/{sewing_blance}', [SewingBlanceController::class, 'show'])->name('sewing_balances.show');
+    Route::get('/sewing_balances/{sewing_blance}/edit', [SewingBlanceController::class, 'edit'])->name('sewing_balances.edit');
+    Route::put('/sewing_balances/{sewing_blance}', [SewingBlanceController::class, 'update'])->name('sewing_balances.update');
+    Route::delete('/sewing_balances/{sewing_blance}', [SewingBlanceController::class, 'destroy'])->name('sewing_balances.destroy');
+
+    //shipments
+    Route::get('/shipments', [ShipmentController::class, 'index'])->name('shipments.index');
+    Route::get('/shipments/create/{shipment}', [ShipmentController::class, 'create'])->name('shipments.create');
+    Route::post('/shipments/{shipment}', [ShipmentController::class, 'store'])->name('shipments_store');
+    Route::get('/shipments/{shipment}', [ShipmentController::class, 'show'])->name('shipments.show');
+    Route::get('/shipments/{shipment}/edit', [ShipmentController::class, 'edit'])->name('shipments.edit');
+    Route::put('/shipments/{shipment}', [ShipmentController::class, 'update'])->name('shipments.update');
+    Route::delete('/shipments/{shipment}', [ShipmentController::class, 'destroy'])->name('shipments.destroy');
+
+
 });
 
 

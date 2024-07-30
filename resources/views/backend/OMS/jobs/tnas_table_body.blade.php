@@ -4,10 +4,10 @@
   @forelse ($tnas as $tna)
       <tr>
           @if ($tna->order_close == 1)
-              <td class="bg-red" id="fixedrow">{{ $sl++ }}</td>
+              <td class="bg-red">{{ $sl++ }}</td>
           @else
               @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                  <td id="fixedrow">
+                  <td>
                       <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                           data-toggle="tooltip" data-placement="top" title="show">
                           <i class="fas fa-eye"></i>{{ $sl++ }}
@@ -16,31 +16,31 @@
               @elseif (auth()->user()->role_id == 3)
                   @php
                       $privileges = DB::table('buyer_assigns')
-                          ->where('buyer_name', $tna->buyer)
+                          ->where('buyer_id', $tna->buyer_id)
                           ->where('user_id', auth()->user()->id)
-                          ->first();
+                          ->first(); // Check if the user has privileges for the buyer
                   @endphp
-                  @if ($privileges)
-                      <td id="fixedrow">
+                  @if ($privileges > 0)
+                      <td>
                           <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                               data-toggle="tooltip" data-placement="top" title="show">
                               <i class="fas fa-eye"></i>{{ $sl++ }}
                           </a>
                       </td>
                   @else
-                      <td id="fixedrow">{{ $sl++ }}</td>
+                      <td>{{ $sl++ }}</td>
                   @endif
               @else
-                  <td id="fixedrow">{{ $sl++ }}</td>
+                  <td>{{ $sl++ }}</td>
               @endif
           @endif
-          <td id="fixedrow">{{ $tna->buyer }}</td>
-          <td id="fixedrow">{{ $tna->style }}</td>
-          <td id="fixedrow">{{ $tna->po }}</td>
+          <td>{{ $tna->buyer }}</td>
+          <td>{{ $tna->style }}</td>
+          <td>{{ $tna->po }}</td>
           <td>{{ $tna->item }}</td>
           <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
           <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
-          <td class="text-bold" id="shortablerow">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
+          <td class="text-bold">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
           <td id="total_lead_time">{{ $tna->total_lead_time }}</td>
           <td id="order_free_time">
               @if ($tna->pp_meeting_actual == null)
@@ -68,7 +68,7 @@
               @endif
 
           </td>
-          @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'bulk_accessories_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'etd'] as $task)
+          @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'etd'] as $task)
               @foreach (['plan', 'actual'] as $type)
                   @php
                       $date = $tna->{$task . '_' . $type};

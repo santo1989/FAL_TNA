@@ -10,7 +10,18 @@
     <title> {{ $pageTitle ?? 'FAL' }} </title>
 
     <!-- <link href="css/styles.css" rel="stylesheet" /> -->
-   
+
+    {{-- <!--local Assets include start -->
+    <link rel="stylesheet" href="{{ asset('vendor/twbs/bootstrap/dist/css/bootstrap.min.css') }}">
+    <script src="{{ asset('vendor/twbs/bootstrap/dist/js/bootstrap.bundle.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('vendor/fortawesome/font-awesome/css/all.min.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/twbs/bootstrap-icons/font/bootstrap-icons.css') }}">
+    <link rel="stylesheet" href="{{ asset('vendor/select2/select2/dist/css/select2.min.css') }}">
+    <script src="{{ asset('vendor/components/jquery/jquery.min.js') }}"></script>
+    <link rel="stylesheet" href="{{ asset('vendor/components/jqueryui/jquery-ui.min.css') }}">
+    <script src="{{ asset('vendor/components/jqueryui/jquery-ui.min.js') }}"></script>
+    <!--local Assets include end --> --}}
+
     <!-- jQuery -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
 
@@ -53,18 +64,12 @@
 
 <body style="background-color:#a5bcfc">
 
-    <div class="container-fluid" style="background-color: #b3c6fd ;padding-left: 1px; padding-right: 1px;">
-        <div class="card mx-1 my-1" style="background-color: #ccd9fe ; padding-left: 1px; padding-right: 1px;">
-            {{-- <div class="mx-1 my-1" style="background-color: #ccd9fe ; "> --}}
-            {{-- {{ $breadCrumb ?? '' }} --}}
+    <div class="container-fluid"> 
+
             {!! $breadCrumb ?? '' !!}
 
-            {{ $slot ?? '' }}
-            {{-- </div> --}}
-        </div>
-
-
-
+            {{ $slot ?? '' }} 
+ 
     </div>
 
     <!-- Core theme JS-->

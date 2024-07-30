@@ -88,7 +88,7 @@
                                                          <input type="hidden" name="tna_id" value="{{ $tna->id }}">
                                                          <button type="submit" class="btn btn-outline-danger"><i
                                                                  class="fas fa-times"></i></button>
-                                                     </form>
+                                                     </form> @endcan --}}
                                                      @if (auth()->user()->role_id == 1)
                                                          <form action="{{ route('tnas.destroy', $tna->id) }}"
                                                              method="POST" style="display:inline-block;">
@@ -98,7 +98,7 @@
                                                                      class="fas fa-trash"></i></button>
                                                          </form>
                                                      @endif
-                                                 @endcan --}}
+                                                
                                              </td>
                                          </tr>
                                      @empty
