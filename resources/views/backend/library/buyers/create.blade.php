@@ -29,16 +29,16 @@
                     @endforeach
                 </select>
             </div>
-             @php
+            @php
                 $companies = App\Models\Company::all();
             @endphp
             <div class="form-group">
-                            <label for="company_id">Company Name</label>
-                            <select name="company_id" id="company_id" class="form-control">
-                                <option value="">Select Company</option>
-                                
-                            </select>
-                        </div>
+                <label for="company_id">Company Name</label>
+                <select name="company_id" id="company_id" class="form-control">
+                    <option value="">Select Company</option>
+
+                </select>
+            </div>
             <br>
             <div class="row">
                 <div class="buyer-name-input form-group col-md-4 pb-2">
@@ -52,14 +52,14 @@
                 </div>
 
             </div>
-            <br> 
+            <br>
             <x-backend.form.saveButton>Save</x-backend.form.saveButton>
 
 
 
         </div>
     </form>
- <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
             $('#division_id').on('change', function() {
@@ -91,10 +91,9 @@
                 }
             });
         });
+    </script>
 
-        </script>
-
-        <!-- JavaScript -->
+    <!-- JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Get the container and the add button

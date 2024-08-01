@@ -175,6 +175,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/archives_dashboard', [TNAController::class, 'archives_dashboard'])->name('archives_dashboard');
     // archives_dashboard_update
     Route::get('/archives_dashboard_update', [TNAController::class, 'archives_dashboard_update'])->name('archives_dashboard_update');
+//Reports
+    Route::get('/buyer-wise-tna-summary', [TNAController::class, 'BuyerWiseTnaSummary'])->name('BuyerWiseTnaSummary');
 
     //OMS//
   
@@ -196,7 +198,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/quantity-wise-summary', [JobController::class, 'quantityWiseSummary'])->name('quantity_wise_summary');
     Route::get('/item-wise-summary', [JobController::class, 'itemWiseSummary'])->name('item_wise_summary');
     Route::get('/delivery-summary', [JobController::class, 'deliverySummary'])->name('delivery_summary');
-    Route::get('/buyer-wise-tna-summary', [TNAController::class, 'BuyerWiseTnaSummary'])->name('BuyerWiseTnaSummary');
+   
 
 
 

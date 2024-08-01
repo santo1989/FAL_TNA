@@ -414,7 +414,7 @@
                                     </tr>
                                 </tbody>
                             </table>
-                                     <table class="table table-bordered mt-2" id="colorWayTable">
+                            <table class="table table-bordered mt-2" id="colorWayTable">
                                 <thead>
                                     <tr>
                                         <th>Color</th>
@@ -473,123 +473,120 @@
                                 </tfoot>
                             </table>
                             <table class="table">
-                                    <tr>
-                                        <td class="create_label_column">Inspection Date</td>
-                                        <td class="create_input_column">
-                                            <input type="date" name="ins_date" class="form-control"
-                                                value="{{ old('ins_date') }}">
-                                        </td>
-                                        
-                                        <td class="create_label_column">Delivery Date</td>
-                                        <td class="create_input_column">
-                                            <input type="date" name="delivery_date" class="form-control"
-                                                value="{{ old('delivery_date') }}">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="create_label_column">Target SMV</td>
-                                        <td class="create_input_column">
-                                            <input type="number" step="0.01" name="target_smv"
-                                                class="form-control" placeholder="Target SMV"
-                                                value="{{ old('target_smv') }}">
-                                        </td>
-                                        <td class="create_label_column">Production Minutes</td>
-                                        <td class="create_input_column">
-                                            <input type="number" step="0.01" name="production_minutes"
-                                                class="form-control" placeholder="Production Minutes"
-                                                value="{{ old('production_minutes') }}" required readonly>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="create_label_column">Unit Price</td>
-                                        <td class="create_input_column">
-                                            <input type="number" step="0.01" name="unit_price"
-                                                class="form-control" placeholder="Unit Price"
-                                                value="{{ old('unit_price') }}">
-                                        </td>
-                                        <td class="create_label_column">Total Value</td>
-                                        <td class="create_input_column">
-                                            <input type="number" step="0.01" name="total_value"
-                                                class="form-control" placeholder="Total Value"
-                                                value="{{ old('total_value') }}" required readonly>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="create_label_column">CM/PC</td>
-                                        <td class="create_input_column">
-                                            <input type="number" step="0.01" name="cm_pc" class="form-control"
-                                                placeholder="CM/PC" value="{{ old('cm_pc') }}">
-                                        </td>
-                                        <td class="create_label_column">Total CM</td>
-                                        <td class="create_input_column">
-                                            <input type="number" step="0.01" name="total_cm"
-                                                class="form-control" placeholder="Total CM"
-                                                value="{{ old('total_cm') }}" required readonly>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="create_label_column">Consumption/Dzn</td>
-                                        <td class="create_input_column">
-                                            <input type="number" step="0.01" name="consumption_dzn"
-                                                class="form-control" placeholder="Consumption/Dzn"
-                                                value="{{ old('consumption_dzn') }}">
-                                        </td>
-                                        <td class="create_label_column">Fabric Quantity</td>
-                                        <td class="create_input_column">
-                                            <input type="number" step="0.01" name="fabric_qnty"
-                                                class="form-control" placeholder="Fabric Quantity"
-                                                value="{{ old('fabric_qnty') }}" required readonly>
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="create_label_column">Fabrication</td>
-                                        <td class="create_input_column">
-                                            <input type="text" name="fabrication" class="form-control"
-                                                placeholder="Fabrication" value="{{ old('fabrication') }}">
-                                        </td>
-                                        <td class="create_label_column">Order Received Date</td>
-                                        <td class="create_input_column">
-                                            <input type="date" name="order_received_date" class="form-control"
-                                                value="{{ old('order_received_date') }}">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="create_label_column">AOP</td>
-                                        <td class="create_input_column">
-                                            <select name="aop" class="form-control">
-                                                <option value="">Select AOP</option>
-                                                <option value="Yes" {{ old('aop') == 'Yes' ? 'selected' : '' }}>Yes
-                                                </option>
-                                                <option value="No" {{ old('aop') == 'No' ? 'selected' : '' }}>No
-                                                </option>
-                                            </select>
-                                        </td>
-                                        <td class="create_label_column">Print</td>
-                                        <td class="create_input_column">
-                                            <input type="text" name="print" class="form-control"
-                                                placeholder="Print" value="{{ old('print') }}">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="create_label_column">Embroidery</td>
-                                        <td class="create_input_column">
-                                            <select name="embroidery" class="form-control">
-                                                <option value="">Select Embroidery</option>
-                                                <option value="Yes"
-                                                    {{ old('embroidery') == 'Yes' ? 'selected' : '' }}>Yes</option>
-                                                <option value="No"
-                                                    {{ old('embroidery') == 'No' ? 'selected' : '' }}>No</option>
-                                            </select>
-                                        </td>
-                                        <td class="create_label_column">Remarks</td>
-                                        <td class="create_input_column">
-                                            <textarea name="remarks" class="form-control" placeholder="Remarks">{{ old('remarks') }}</textarea>
-                                        </td>
-                                    </tr>
+                                <tr>
+                                    <td class="create_label_column">Inspection Date</td>
+                                    <td class="create_input_column">
+                                        <input type="date" name="ins_date" class="form-control"
+                                            value="{{ old('ins_date') }}">
+                                    </td>
+
+                                    <td class="create_label_column">Delivery Date</td>
+                                    <td class="create_input_column">
+                                        <input type="date" name="delivery_date" class="form-control"
+                                            value="{{ old('delivery_date') }}">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="create_label_column">Target SMV</td>
+                                    <td class="create_input_column">
+                                        <input type="number" step="0.01" name="target_smv" class="form-control"
+                                            placeholder="Target SMV" value="{{ old('target_smv') }}">
+                                    </td>
+                                    <td class="create_label_column">Production Minutes</td>
+                                    <td class="create_input_column">
+                                        <input type="number" step="0.01" name="production_minutes"
+                                            class="form-control" placeholder="Production Minutes"
+                                            value="{{ old('production_minutes') }}" required readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="create_label_column">Unit Price</td>
+                                    <td class="create_input_column">
+                                        <input type="number" step="0.01" name="unit_price" class="form-control"
+                                            placeholder="Unit Price" value="{{ old('unit_price') }}">
+                                    </td>
+                                    <td class="create_label_column">Total Value</td>
+                                    <td class="create_input_column">
+                                        <input type="number" step="0.01" name="total_value" class="form-control"
+                                            placeholder="Total Value" value="{{ old('total_value') }}" required
+                                            readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="create_label_column">CM/PC</td>
+                                    <td class="create_input_column">
+                                        <input type="number" step="0.01" name="cm_pc" class="form-control"
+                                            placeholder="CM/PC" value="{{ old('cm_pc') }}">
+                                    </td>
+                                    <td class="create_label_column">Total CM</td>
+                                    <td class="create_input_column">
+                                        <input type="number" step="0.01" name="total_cm" class="form-control"
+                                            placeholder="Total CM" value="{{ old('total_cm') }}" required readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="create_label_column">Consumption/Dzn</td>
+                                    <td class="create_input_column">
+                                        <input type="number" step="0.01" name="consumption_dzn"
+                                            class="form-control" placeholder="Consumption/Dzn"
+                                            value="{{ old('consumption_dzn') }}">
+                                    </td>
+                                    <td class="create_label_column">Fabric Quantity</td>
+                                    <td class="create_input_column">
+                                        <input type="number" step="0.01" name="fabric_qnty" class="form-control"
+                                            placeholder="Fabric Quantity" value="{{ old('fabric_qnty') }}" required
+                                            readonly>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="create_label_column">Fabrication</td>
+                                    <td class="create_input_column">
+                                        <input type="text" name="fabrication" class="form-control"
+                                            placeholder="Fabrication" value="{{ old('fabrication') }}">
+                                    </td>
+                                    <td class="create_label_column">Order Received Date</td>
+                                    <td class="create_input_column">
+                                        <input type="date" name="order_received_date" class="form-control"
+                                            value="{{ old('order_received_date') }}">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="create_label_column">AOP</td>
+                                    <td class="create_input_column">
+                                        <select name="aop" class="form-control">
+                                            <option value="">Select AOP</option>
+                                            <option value="Yes" {{ old('aop') == 'Yes' ? 'selected' : '' }}>Yes
+                                            </option>
+                                            <option value="No" {{ old('aop') == 'No' ? 'selected' : '' }}>No
+                                            </option>
+                                        </select>
+                                    </td>
+                                    <td class="create_label_column">Print</td>
+                                    <td class="create_input_column">
+                                        <input type="text" name="print" class="form-control"
+                                            placeholder="Print" value="{{ old('print') }}">
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td class="create_label_column">Embroidery</td>
+                                    <td class="create_input_column">
+                                        <select name="embroidery" class="form-control">
+                                            <option value="">Select Embroidery</option>
+                                            <option value="Yes" {{ old('embroidery') == 'Yes' ? 'selected' : '' }}>
+                                                Yes</option>
+                                            <option value="No" {{ old('embroidery') == 'No' ? 'selected' : '' }}>
+                                                No</option>
+                                        </select>
+                                    </td>
+                                    <td class="create_label_column">Remarks</td>
+                                    <td class="create_input_column">
+                                        <textarea name="remarks" class="form-control" placeholder="Remarks">{{ old('remarks') }}</textarea>
+                                    </td>
+                                </tr>
                                 </tbody>
                             </table>
 
-                           
+
                             <div class="button-container">
                                 <button type="submit" id="saveButton" class="btn btn-outline-success">
                                     <i class="fas fa-save"></i> Save
@@ -606,7 +603,7 @@
     </div>
 
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
     <script>

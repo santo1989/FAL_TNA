@@ -86,14 +86,14 @@
                                         <td class="create_label_column">Unite Price</td>
                                         <td class="create_input_column">
                                             <input type="number" step="0.01" name="unit_price" class="form-control"
-                                                placeholder="Unite Price" value="{{ $basic_info->unit_price }}" required
-                                                readonly id="unit_price">
+                                                placeholder="Unite Price" value="{{ $basic_info->unit_price }}"
+                                                required readonly id="unit_price">
                                         </td>
                                         <td class="create_label_column">Shipment Value</td>
                                         <td class="create_input_column">
                                             <input type="number" step="0.01" name="shipped_value"
-                                                class="form-control" placeholder="Shipment Value" required
-                                                readonly id="shipped_value">
+                                                class="form-control" placeholder="Shipment Value" required readonly
+                                                id="shipped_value">
                                         </td>
                                     </tr>
                                 </tbody>
@@ -109,7 +109,7 @@
                                 </thead>
                                 <tbody>
                                     @foreach ($color_sizes_qties as $color)
-                                    {{-- @dd($color) --}}
+                                        {{-- @dd($color) --}}
                                         <tr>
                                             <input type="hidden" name="job_id[]" value="{{ $color->job_id }}">
                                             <td>
@@ -165,7 +165,7 @@
         </form>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 

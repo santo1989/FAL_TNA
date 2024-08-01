@@ -27,7 +27,8 @@
                 <select name="division_id" id="division_id" class="form-control">
                     <option value="">Select Division</option>
                     @foreach ($divisions as $divisions)
-                        <option value="{{ $divisions->id }}" {{ $buyer->division_id == $divisions->id ? 'selected' : '' }}>
+                        <option value="{{ $divisions->id }}"
+                            {{ $buyer->division_id == $divisions->id ? 'selected' : '' }}>
                             {{ $divisions->name }}</option>
                     @endforeach
                 </select>
@@ -54,7 +55,7 @@
             <x-backend.form.saveButton>Save</x-backend.form.saveButton>
         </div>
     </form>
-<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
             $('#division_id').on('change', function() {
@@ -86,8 +87,7 @@
                 }
             });
         });
-
-        </script>
+    </script>
 
 
 </x-backend.layouts.master>

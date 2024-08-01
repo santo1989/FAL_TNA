@@ -97,61 +97,62 @@
         </div>
         <!-- /.container-fluid -->
     </section>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
     <script>
         $(document).ready(function() {
-                    // Add new row
-                    $("#add").click(function() {
-                            var rowId = Math.floor(Math.random() * 1000000); // Generate random row id
-                            var row = $("#row1").clone(); // Clone the first row
-                            row.attr("id", "row" + rowId); // Set the new row id
-                            row.find("select.kra").attr("name", "kra[]").attr("id", "kra_" +
-                            rowId); // Update select's name and id
-                            row.find("select.kpi").attr("name", "kpi[]").attr("id", "kpi_" +
-                            rowId); // Update select's name and id
-                            row.find("input.weight_of_kpis").attr("name", "weight_of_kpis[]"); // Update input's name
-                            row.find("input.bench_mark_target").attr("name",
-                            "bench_mark_target[]"); // Update input's name
-                            row.find("input.achivement").attr("name", "achivement[]"); // Update input's name
-                            row.find("input.sources_of_informations ").attr("name ","sources_of_informations[]"); // Update input's name
-                                row.find("input.score").attr("name", "score[]"); // Update input's name
-                                row.find("input.weight_value").attr("name",
-                                "weight_value[]"); // Update input's name
-                                row.find("input.justification").attr("name",
-                                "justification[]"); // Update input's name
-                                row.find("#add").remove(); // Remove the add button from the new row
-                                $("#tableBody").append(row); // Add the new row to the table body
-                                // Update the KPI dropdown when KRA is selected
-                                $("select.kra").change(function() {
-                                    var kraId = $(this).val();
-                                    var kpiDropdown = $(this).parent().next().find("select.kpi");
+            // Add new row
+            $("#add").click(function() {
+                var rowId = Math.floor(Math.random() * 1000000); // Generate random row id
+                var row = $("#row1").clone(); // Clone the first row
+                row.attr("id", "row" + rowId); // Set the new row id
+                row.find("select.kra").attr("name", "kra[]").attr("id", "kra_" +
+                    rowId); // Update select's name and id
+                row.find("select.kpi").attr("name", "kpi[]").attr("id", "kpi_" +
+                    rowId); // Update select's name and id
+                row.find("input.weight_of_kpis").attr("name", "weight_of_kpis[]"); // Update input's name
+                row.find("input.bench_mark_target").attr("name",
+                    "bench_mark_target[]"); // Update input's name
+                row.find("input.achivement").attr("name", "achivement[]"); // Update input's name
+                row.find("input.sources_of_informations ").attr("name ",
+                "sources_of_informations[]"); // Update input's name
+                row.find("input.score").attr("name", "score[]"); // Update input's name
+                row.find("input.weight_value").attr("name",
+                    "weight_value[]"); // Update input's name
+                row.find("input.justification").attr("name",
+                    "justification[]"); // Update input's name
+                row.find("#add").remove(); // Remove the add button from the new row
+                $("#tableBody").append(row); // Add the new row to the table body
+                // Update the KPI dropdown when KRA is selected
+                $("select.kra").change(function() {
+                    var kraId = $(this).val();
+                    var kpiDropdown = $(this).parent().next().find("select.kpi");
 
-                                    // Clear the KPI dropdown
-                                    kpiDropdown.empty();
-                                    kpiDropdown.append("<option value=''>Select KPI</option>");
+                    // Clear the KPI dropdown
+                    kpiDropdown.empty();
+                    kpiDropdown.append("<option value=''>Select KPI</option>");
 
-                                    // Load the KPIs for the selected KRA using AJAX
-                                    $.ajax({
-                                        type: "GET",
-                                        url: "{{ route('getKPI') }}",
-                                        data: {
-                                            kra_id: kraId
-                                        },
-                                        dataType: "json",
-                                        success: function(response) {
-                                            $.each(response, function(key, kpi) {
-                                                kpiDropdown.append("<option value='" + kpi
-                                                    .id + "'>" + kpi.name + "</option>");
-                                            });
-                                        },
-                                        error: function(xhr, status, error) {
-                                            console.log(xhr.responseText);
-                                        },
-                                    });
-                                });
+                    // Load the KPIs for the selected KRA using AJAX
+                    $.ajax({
+                        type: "GET",
+                        url: "{{ route('getKPI') }}",
+                        data: {
+                            kra_id: kraId
+                        },
+                        dataType: "json",
+                        success: function(response) {
+                            $.each(response, function(key, kpi) {
+                                kpiDropdown.append("<option value='" + kpi
+                                    .id + "'>" + kpi.name + "</option>");
                             });
+                        },
+                        error: function(xhr, status, error) {
+                            console.log(xhr.responseText);
+                        },
                     });
+                });
+            });
+        });
     </script>
 
 

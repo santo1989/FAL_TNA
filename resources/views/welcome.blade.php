@@ -89,7 +89,10 @@
                         <h5 class="modal-title text-center text-light" id="loginModalLabel">Log in</h5>
                         {{-- <button type="button" class="btn-close btn-outline-light" data-bs-dismiss="modal"
                             aria-label="Close"></button> --}}
-                            <button type="button" class="btn btn-light btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white; border-color: white; color: black;" onmouseover="this.classList.add('btn-danger')" onmouseout="this.classList.remove('btn-danger')"></button>
+                        <button type="button" class="btn btn-light btn-close" data-bs-dismiss="modal"
+                            aria-label="Close" style="background-color: white; border-color: white; color: black;"
+                            onmouseover="this.classList.add('btn-danger')"
+                            onmouseout="this.classList.remove('btn-danger')"></button>
 
                     </div>
                     <div class="modal-body text-center text-light" style="background-color: transparent;">
@@ -166,7 +169,10 @@
                 <div class="modal-content" style="background-color: rgba(0,0,0,0.5)">
                     <div class="modal-header" style="background: rgba(0, 0, 0, 0.5); color: #f1f1f1;">
                         <h5 class="modal-title text-center" id="registerModalLabel"> Create New Account</h5>
-                       <button type="button" class="btn btn-light btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: white; border-color: white; color: black;" onmouseover="this.classList.add('btn-danger')" onmouseout="this.classList.remove('btn-danger')"></button>
+                        <button type="button" class="btn btn-light btn-close" data-bs-dismiss="modal"
+                            aria-label="Close" style="background-color: white; border-color: white; color: black;"
+                            onmouseover="this.classList.add('btn-danger')"
+                            onmouseout="this.classList.remove('btn-danger')"></button>
 
 
 
@@ -213,7 +219,9 @@
                                                                 <div class="col-12">
                                                                     <select name="division_id" id="division_id"
                                                                         class="form-control" required>
-                                                                        <option value="" style="background-color: rgba(0, 0, 0, 0.5)">Select Division</option>
+                                                                        <option value=""
+                                                                            style="background-color: rgba(0, 0, 0, 0.5)">
+                                                                            Select Division</option>
                                                                         @foreach ($divisions as $division)
                                                                             <option value="{{ $division->id }}">
                                                                                 {{ $division->name }}
@@ -321,7 +329,9 @@
                                                                 <div class="col-12">
                                                                     <select name="company_id" id="company_id"
                                                                         class="form-control" required>
-                                                                        <option value="" style="background-color: rgba(0, 0, 0, 0.5)">Select Division first
+                                                                        <option value=""
+                                                                            style="background-color: rgba(0, 0, 0, 0.5)">
+                                                                            Select Division first
                                                                         </option>
 
                                                                     </select>
@@ -342,7 +352,9 @@
                                                                 <div class="col-12">
                                                                     <select name="department_id" id="department_id"
                                                                         class="form-control" required>
-                                                                        <option value="" style="background-color: rgba(0, 0, 0, 0.5)">Select Company first
+                                                                        <option value=""
+                                                                            style="background-color: rgba(0, 0, 0, 0.5)">
+                                                                            Select Company first
                                                                         </option>
 
                                                                     </select>
@@ -364,7 +376,9 @@
                                                                 <div class="col-12">
                                                                     <select name="designation_id" id="designation_id"
                                                                         class="form-control" required>
-                                                                        <option value="" style="background-color: rgba(0, 0, 0, 0.5)">Select Division first
+                                                                        <option value=""
+                                                                            style="background-color: rgba(0, 0, 0, 0.5)">
+                                                                            Select Division first
                                                                         </option>
                                                                     </select>
                                                                 </div>
@@ -463,7 +477,7 @@
                             </div>
 
                         </div>
-                        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+                        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
                         <script>
                             $(document).ready(function() {
                                 $('#division_id').on('change', function() {
@@ -480,7 +494,9 @@
                                                 const designationSelect = $('#designation_id');
 
                                                 companySelect.empty();
-                                                companySelect.append('<option value="" style="background-color: rgba(0, 0, 0, 0.5)">Select Company</option>');
+                                                companySelect.append(
+                                                    '<option value="" style="background-color: rgba(0, 0, 0, 0.5)">Select Company</option>'
+                                                    );
                                                 $.each(data.company, function(index, company) {
                                                     companySelect.append(
                                                         `<option value="${company.id}">${company.name}</option>`
@@ -489,7 +505,8 @@
 
                                                 designationSelect.empty();
                                                 designationSelect.append(
-                                                    '<option value="" style="background-color: rgba(0, 0, 0, 0.5)">Select Designation</option>');
+                                                    '<option value="" style="background-color: rgba(0, 0, 0, 0.5)">Select Designation</option>'
+                                                    );
                                                 $.each(data.designations, function(index, designation) {
                                                     designationSelect.append(
                                                         `<option value="${designation.id}">${designation.name}</option>`
@@ -520,7 +537,9 @@
                                                 const companySelect = $('#department_id');
 
                                                 companySelect.empty();
-                                                companySelect.append('<option value="" style="background-color: rgba(0, 0, 0, 0.5)">Select Department</option>');
+                                                companySelect.append(
+                                                    '<option value="" style="background-color: rgba(0, 0, 0, 0.5)">Select Department</option>'
+                                                    );
                                                 $.each(data.departments, function(index, departments) {
                                                     companySelect.append(
                                                         `<option value="${departments.id}">${departments.name}</option>`

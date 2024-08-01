@@ -4,10 +4,10 @@
   @forelse ($tnas as $tna)
       <tr>
           @if ($tna->order_close == 1)
-              <td class="bg-red" id="fixedrow">{{ $sl++ }}</td>
+              <td class="bg-red" style="width: 100px;">{{ $sl++ }}</td>
           @else
               @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                  <td id="fixedrow">
+                  <td style="width: 100px;">
                       <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                           data-toggle="tooltip" data-placement="top" title="show">
                           <i class="fas fa-eye"></i>{{ $sl++ }}
@@ -16,31 +16,33 @@
               @elseif (auth()->user()->role_id == 3)
                   @php
                       $privileges = DB::table('buyer_assigns')
-                          ->where('buyer_name', $tna->buyer)
+                          ->where('buyer_id', $tna->buyer_id)
                           ->where('user_id', auth()->user()->id)
-                          ->first();
+                          ->count();
+                      // dd($privileges)
                   @endphp
-                  @if ($privileges)
-                      <td id="fixedrow">
+                  @if ($privileges > 0)
+                      <td style="width: 100px;">
                           <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                               data-toggle="tooltip" data-placement="top" title="show">
                               <i class="fas fa-eye"></i>{{ $sl++ }}
                           </a>
                       </td>
                   @else
-                      <td id="fixedrow">{{ $sl++ }}</td>
+                      <td style="width: 100px;">{{ $sl++ }}</td>
                   @endif
               @else
-                  <td id="fixedrow">{{ $sl++ }}</td>
+                  <td style="width: 100px;">{{ $sl++ }}</td>
               @endif
           @endif
-          <td id="fixedrow">{{ $tna->buyer }}</td>
-          <td id="fixedrow">{{ $tna->style }}</td>
-          <td id="fixedrow">{{ $tna->po }}</td>
+          <td style="width: 150px;">{{ $tna->buyer }}</td>
+          <td style="width: 250px;">{{ $tna->style }}</td>
+          <td style="width: 100px;">{{ $tna->po }}</td>
           <td>{{ $tna->item }}</td>
           <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
           <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
-          <td class="text-bold" id="shortablerow">{{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
+          <td class="text-bold" id="shortablerow">
+              {{ \Carbon\Carbon::parse($tna->shipment_etd)->format('d-M-y') ?? '' }}</td>
           <td id="total_lead_time">{{ $tna->total_lead_time }}</td>
           <td id="order_free_time">
               @if ($tna->pp_meeting_actual == null)
@@ -119,9 +121,23 @@
                   @endphp
                   <!-- if actual date is empty then modal button show else show date -->
                   @if ($type === 'actual' && empty($date))
-                      <td>
-
-                      </td>
+                      @if (auth()->user()->role_id == 3)
+                          @php
+                              $buyer_privilage = DB::table('buyer_assigns')
+                                  ->where('buyer_id', $tna->buyer_id)
+                                  ->where('user_id', auth()->user()->id)
+                                  ->count();
+                              // dd($buyer_privilage);
+                          @endphp
+                          @if ($buyer_privilage > 0)
+                              <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                  data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"
+                                  data-plan-date="{{ $tna->{$task . '_plan'} }}">
+                              </td>
+                          @endif
+                      @else
+                          <td></td>
+                      @endif
                   @else
                       @php
                           $explanation =

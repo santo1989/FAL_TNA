@@ -290,7 +290,7 @@
             </div> --}}
 
         </div>
-        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
         <script>
             $(document).ready(function() {
                 $('#division_id').on('change', function() {
@@ -398,7 +398,7 @@
             <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/6.0.1/mdb.min.js"></script>
 
             {{-- jquary 3.5.1 --}}
-            <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+            <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
 
             <script>

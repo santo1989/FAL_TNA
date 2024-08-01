@@ -93,28 +93,27 @@
         </div>
         <!-- /.container-fluid -->
     </section>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
     <script>
-
-       $(document).ready(function() {
+        $(document).ready(function() {
             var i = 1;
             $('#add').click(function() {
                 i++;
-              $('#row1').after('<tr id="row' + i + '">' +
-                '<td>' +
-                '<select name="kra[]" id="kra_id" class="form-control kra">' +
-                '<option value="">Select KRA</option>' +
-                @foreach ($kras as $kra)
-                    '<option value="{{ $kra->id }}">{{ $kra->name }}</option>' +
-                @endforeach
-            '</select>' +
-            '</td>' +
-            '<td>' +
-            '<select name="kpi[]" class="form-control kpi">' +
-            '<option value="">Select KPI</option>' +
-            '</select>' +
-            '</td>' + +
+                $('#row1').after('<tr id="row' + i + '">' +
+                    '<td>' +
+                    '<select name="kra[]" id="kra_id" class="form-control kra">' +
+                    '<option value="">Select KRA</option>' +
+                    @foreach ($kras as $kra)
+                        '<option value="{{ $kra->id }}">{{ $kra->name }}</option>' +
+                    @endforeach
+                    '</select>' +
+                    '</td>' +
+                    '<td>' +
+                    '<select name="kpi[]" class="form-control kpi">' +
+                    '<option value="">Select KPI</option>' +
+                    '</select>' +
+                    '</td>' + +
                     '<td><input type="text" name="weight_of_kpis[]" class="form-control weight_of_kpis" /></td>' +
                     '<td><input type="text" name="bench_mark_target[]" class="form-control bench_mark_target" /></td>' +
                     '<td><input type="text" name="achivement[]" class="form-control achivement" /></td>' +
@@ -148,24 +147,24 @@
         $(document).ready(function() {
             $('#kra_id').on('change', function() {
                 var kra_id = $(this).val();
-                console.log(kra_id) 
-                    $.ajax({
-                        url: "{{ route('getKPI') }}",
-                        type: "GET",
-                        data: {
-                            kra_id: kra_id,
-                        },
-                        success: function(data) {
-                            console.log(data);
-                            $('#kpi_id').empty();
-                            $('#kpi_id').append('<option value="">Select KPI</option>');
-                            $.each(data, function(key, value) {
-                                $('#kpi_id').append('<option value="' + value.id +
-                                    '">' + value.name + '</option>');
-                            });
-                        }
-                    });
-                
+                console.log(kra_id)
+                $.ajax({
+                    url: "{{ route('getKPI') }}",
+                    type: "GET",
+                    data: {
+                        kra_id: kra_id,
+                    },
+                    success: function(data) {
+                        console.log(data);
+                        $('#kpi_id').empty();
+                        $('#kpi_id').append('<option value="">Select KPI</option>');
+                        $.each(data, function(key, value) {
+                            $('#kpi_id').append('<option value="' + value.id +
+                                '">' + value.name + '</option>');
+                        });
+                    }
+                });
+
             });
         });
     </script>

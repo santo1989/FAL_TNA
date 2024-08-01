@@ -9,9 +9,11 @@
 
                          <a href=" {{ route('home') }} " class="btn btn-outline-secondary"><i
                                  class="fas fa-arrow-left"></i>
-                             Close</a> 
-                             <a href="{{ route('archives') }}" class="btn btn-outline-secondary"> <i
+                             Close</a>
+                         <a href="{{ route('archives') }}" class="btn btn-outline-secondary"> <i
                                  class="fas fa-archive"></i> TNA Archives</a>
+                         <a href="{{ route('BuyerWiseTnaSummary') }}" class="btn btn-outline-success"> <i
+                                 class="fas fa-user"></i> TNA Pending List</a>
                      </div>
                      <div class="col-6 text-end">
                          <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-success"> <i
@@ -51,7 +53,7 @@
                                          <th>Style</th>
                                          <th>PO Number</th>
                                          <th>Item</th>
-                                         {{--<th>Color</th>
+                                         {{-- <th>Color</th>
                                           <th>Picture</th> --}}
                                          <th>Total Qty</th>
                                          <th>PO Date</th>
@@ -67,7 +69,7 @@
                                              <td>{{ $tna->style }}</td>
                                              <td>{{ $tna->po }}</td>
                                              <td>{{ $tna->item }}</td>
-                                            {{-- <td>{{ $tna->color }}</td>
+                                             {{-- <td>{{ $tna->color }}</td>
                                               <td><img src="{{ asset('storage/tna/' . $tna->picture) }}" alt="Picture"
                                                         style="width: 50px; height: 50px;"></td> --}}
                                              <td>{{ $tna->qty_pcs }}</td>
@@ -82,18 +84,19 @@
                                                  @can('TNA-CURD')
                                                      <a href="{{ route('tnas.edit', $tna->id) }}"
                                                          class="btn btn-outline-primary"><i class="fas fa-edit"></i>Edit</a>
-                                                   <!--update actual date only for SuperVisor-->
-                                                        @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                                                            <a href="{{ route('tnas.edit_actual_date', $tna->id) }}"
-                                                                class="btn btn-outline-primary"><i class="fas fa-calendar"></i>Plan</a>
-                                                        @endif
+                                                     <!--update actual date only for SuperVisor-->
+                                                     @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
+                                                         <a href="{{ route('tnas.edit_actual_date', $tna->id) }}"
+                                                             class="btn btn-outline-primary"><i
+                                                                 class="fas fa-calendar"></i>Plan</a>
+                                                     @endif
                                                      <form action="{{ route('tnas_close', ['tna' => $tna->id]) }}"
                                                          method="POST" style="display:inline-block;">
                                                          @csrf
                                                          <input type="hidden" name="tna_id" value="{{ $tna->id }}">
                                                          <button type="submit" class="btn btn-outline-danger"><i
                                                                  class="fas fa-times"></i>close</button>
-                                                            
+
                                                      </form>
                                                      @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
                                                          <form action="{{ route('tnas.destroy', $tna->id) }}"
@@ -104,7 +107,6 @@
                                                                      class="fas fa-trash"></i></button>
                                                          </form>
                                                      @endif
-
                                                  @endcan
                                              </td>
                                          </tr>

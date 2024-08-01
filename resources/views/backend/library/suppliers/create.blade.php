@@ -45,7 +45,7 @@
                     </div>
                     <br>
                 </div>
-               
+
             </div>
             <div class="row">
                 <div class="supplier-name-input form-group col-md-4 pb-2">
@@ -59,14 +59,14 @@
                 </div>
 
             </div>
-            <br> 
+            <br>
             <x-backend.form.saveButton>Save</x-backend.form.saveButton>
 
 
 
         </div>
     </form>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
             $('#division_id').on('change', function() {
@@ -100,7 +100,7 @@
         });
     </script>
 
-   
+
     <!-- JavaScript -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {

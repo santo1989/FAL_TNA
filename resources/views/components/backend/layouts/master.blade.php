@@ -10,9 +10,9 @@
     <title> {{ $pageTitle ?? 'FAL' }} </title>
 
     <!-- <link href="css/styles.css" rel="stylesheet" /> -->
-   
+
     <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
     <!-- bootstrap 5 cdn  -->
 
@@ -45,9 +45,7 @@
 
     <link href="{{ asset('ui/backend/css/styles.css') }}" rel="stylesheet" />
 
-    <!-- Push Notification -->
 
-    <script src="{{ asset('js/push.min.js') }}"></script>
 
 </head>
 

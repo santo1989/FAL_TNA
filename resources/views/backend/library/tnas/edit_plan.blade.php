@@ -87,6 +87,7 @@
                                          <th>Bulk Accessories Booking</th>
                                          <th>Fit Comments</th>
                                          <th>Bulk Yarn Inhouse</th>
+                                         <th>Bulk Accessories Inhouse</th>
                                          <th>PP Sample Submission</th>
                                          <th>Bulk Fabric Knitting</th>
                                          <th>PP Comments Receive</th>
@@ -115,6 +116,8 @@
                                                  value="{{ $tnas->fit_comments_actual }}" class="form-control"></td>
                                             <td><input type="date" name="bulk_yarn_inhouse_actual"
                                                  value="{{ $tnas->bulk_yarn_inhouse_actual }}" class="form-control"></td>
+                                            <td><input type="date" name="bulk_accessories_inhouse_actual" value="{{ $tnas->bulk_accessories_inhouse_actual }}"
+                                                 class="form-control"></td>
                                             <td><input type="date" name="pp_sample_submission_actual"
                                                  value="{{ $tnas->pp_sample_submission_actual }}" class="form-control"></td>
                                             <td><input type="date" name="bulk_fabric_knitting_actual" value="{{ $tnas->bulk_fabric_knitting_actual }}"

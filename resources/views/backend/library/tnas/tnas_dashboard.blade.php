@@ -1,4 +1,6 @@
-<x-backend.layouts.report_master> 
+<x-backend.layouts.report_master>
+    {{-- @dd($tnas) --}}
+
     <style>
         .bg-red {
             background-color: red !important;
@@ -12,9 +14,77 @@
             font-weight: bold;
         }
 
- 
-    </style> 
 
+
+
+        /* Make all table headers sticky horizontally */
+        thead th {
+            position: sticky;
+            top: 0;
+            background: #343a40;
+            /* Adjust background color as needed */
+            z-index: 20;
+            /* Ensure headers stay above the table body */
+        }
+
+        /* Make the first 4 columns sticky vertically */
+        /* thead th:nth-child(-n+4), */
+        tbody td:nth-child(-n+4) {
+            position: sticky;
+            left: 0;
+            background: #494747;
+            /* Match this with your table's background */
+            color: white;
+        }
+
+        /* Hover effect on table rows */
+        #PrintTable tbody tr:hover {
+            background-color: #fdf1f1;
+            /* Red background color on hover */
+
+        }
+
+
+
+        /* Adjust z-index for each of the first 4 columns to stack properly */
+
+        tbody td:nth-child(1) {
+            left: 0px;
+            z-index: 6;
+            /* Higher value for the first column */
+        }
+
+
+        tbody td:nth-child(2) {
+            left: 70px;
+            z-index: 7;
+            /* Higher value for the second column */
+        }
+
+
+        tbody td:nth-child(3) {
+            left: 150px;
+            z-index: 8;
+            /* Higher value for the third column */
+        }
+
+
+        tbody td:nth-child(4) {
+            left: 360px;
+            z-index: 9;
+            /* Higher value for the fourth column */
+        }
+
+
+        .sortable {
+            cursor: pointer;
+        }
+
+        .sortable:hover {
+            background-color: #f90303;
+            /* Light background on hover */
+        }
+    </style>
 
 
     <div class="container-fluid pt-2">
@@ -34,13 +104,13 @@
                 <button class="btn btn-outline-secondary bg-light btn-sm" onclick="downloadExcel()"
                     style="width: 10rem;">
                     <i class="fas fa-download"></i> Download</button>
-                <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;" id="all-buyers-btn"> 
+                <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;" id="all-buyers-btn">
                     All Buyers
                 </button>
                 @foreach ($buyerList as $buyer)
                     <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;"
                         id="buyer-{{ $buyer->buyer }}-btn" onclick="filterByBuyer('{{ $buyer->buyer }}')">
-                         
+
                         {{ $buyer->buyer }}
                     </button>
                 @endforeach
@@ -49,14 +119,14 @@
 
         </div>
         <table class="table table-bordered table-hover text-center text-nowrap" style="font-size: 12px;"
-            id="datatablesSimple">
+            id="PrintTable">
             <thead class="thead-dark"
                 style="font-size: 12px; text-align: center; vertical-align: middle;position: sticky;top: 0;z-index: 1;">
                 <tr>
-                    <th rowspan="2" id="fixedhead">Action</th>
-                    <th rowspan="2" id="fixedhead">Buyer</th>
-                    <th rowspan="2" id="fixedhead">Style</th>
-                    <th rowspan="2" id="fixedhead">PO Number</th>
+                    <th rowspan="2" style="width: 70px;">Action</th>
+                    <th rowspan="2" style="width: 150px;">Buyer</th>
+                    <th rowspan="2" style="width: 250px;">Style</th>
+                    <th rowspan="2" style="width: 100px;">PO Number</th>
                     <th rowspan="2">Item</th>
                     <th>Qty (pcs)</th>
                     <th>PO Receive Date</th>
@@ -80,7 +150,7 @@
                     <th colspan="2">ETD</th>
 
                 </tr>
-                <tr> 
+                <tr>
                     <th><label id="total_qty"></label></th>
                     <th colspan="2"></th>
                     <th><label id="AvgLeadTime"></label></th>
@@ -122,9 +192,10 @@
                     $sl = 1;
                 @endphp
                 @forelse ($tnas as $tna)
+                    {{-- @dd($tna) --}}
                     <tr>
                         @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                            <td id="fixedrow">
+                            <td style="width: 70px;">
                                 <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                                     data-toggle="tooltip" data-placement="top" title="show">
                                     <i class="fas fa-eye"></i>{{ $sl++ }}
@@ -133,27 +204,29 @@
                         @elseif (auth()->user()->role_id == 3)
                             @php
                                 $privileges = DB::table('buyer_assigns')
-                                    ->where('buyer_name', $tna->buyer)
+                                    ->where('buyer_id', $tna->buyer_id)
                                     ->where('user_id', auth()->user()->id)
-                                    ->first();
+                                    ->count();
+                                // dd($privileges)
                             @endphp
-                            @if ($privileges)
-                                <td id="fixedrow">
+                            @if ($privileges > 0)
+                                {{-- @dd($tna->buyer) --}}
+                                <td style="width: 70px;">
                                     <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                                         data-toggle="tooltip" data-placement="top" title="show">
                                         <i class="fas fa-eye"></i>{{ $sl++ }}
                                     </a>
                                 </td>
                             @else
-                                <td id="fixedrow">{{ $sl++ }}</td>
+                                <td style="width: 70px;">{{ $sl++ }}</td>
                             @endif
                         @else
-                            <td id="fixedrow">{{ $sl++ }}</td>
+                            <td style="width: 70px;">{{ $sl++ }}</td>
                         @endif
 
-                        <td id="fixedrow">{{ $tna->buyer }}</td>
-                        <td id="fixedrow">{{ $tna->style }}</td>
-                        <td id="fixedrow">{{ $tna->po }}</td>
+                        <td style="width: 150px;">{{ $tna->buyer }}</td>
+                        <td style="width: 250px;">{{ $tna->style }}</td>
+                        <td style="width: 100px;">{{ $tna->po }}</td>
                         <td>{{ $tna->item }}</td>
                         <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
                         <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
@@ -238,9 +311,23 @@
                                 @endphp
                                 <!-- if actual date is empty then modal button show else show date -->
                                 @if ($type === 'actual' && empty($date))
-                                    <td>
-
-                                    </td>
+                                    @if (auth()->user()->role_id == 3)
+                                        @php
+                                            $buyer_privilage = DB::table('buyer_assigns')
+                                                ->where('buyer_id', $tna->buyer_id)
+                                                ->where('user_id', auth()->user()->id)
+                                                ->count();
+                                            // dd($buyer_privilage);
+                                        @endphp
+                                        @if ($buyer_privilage > 0)
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"
+                                                data-plan-date="{{ $tna->{$task . '_plan'} }}">
+                                            </td>
+                                        @endif
+                                    @else
+                                        <td></td>
+                                    @endif
                                 @else
                                     @php
                                         $explanation =
@@ -257,7 +344,6 @@
                                 @endif
                             @endforeach
                         @endforeach
-                       
 
                     </tr>
                 @empty
@@ -269,35 +355,134 @@
 
         </table>
     </div> <!-- container -->
-   
+
     </div>
- <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light m-2">
+    <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light m-2">
         <i class="fas fa-arrow-left"></i> Cancel
     </a>
     <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-secondary bg-light m-2">
         <i class="fas fa-sync"></i> Refresh Page </a>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script> <!-- Core theme JS-->
-    <script src="{{ asset('ui/backend/js/scripts.js') }}"></script>
+    <!-- Modal for Date Update -->
+    <div class="modal fade" id="dateModal" tabindex="-1" role="dialog" aria-labelledby="dateModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="dateModalLabel">Update Date</h5>
+                    <button type="button" class="close" data-bs-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="dateForm">
+                        @csrf
+                        <input type="hidden" name="id" id="tnaId">
+                        <input type="hidden" name="task" id="taskName">
+                        <div class="form-group">
+                            <label for="dateInput">Date</label>
+                            <input type="date" class="form-control" id="dateInput" name="date"
+                                value="{{ date('Y-m-d') }}" max="{{ date('Y-m-d') }}">
+                            <br>
+                            <div class="form-check" id="naCheckbox" style="display:none;">
+                                <input class="form-check-input" type="checkbox" value="na" id="naButton">
+                                <label class="form-check-label" for="naButton">N/A</label>
+                            </div>
+                            <textarea class="form-control" id="explanation" rows="3" style="display: none;" placeholder="Remarks"></textarea>
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-outline-primary" onclick="submitDate()">Save
+                        changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- Add jQuery and Bootstrap JS -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function openModal(cell) {
+            const id = cell.getAttribute('data-id');
+            const task = cell.getAttribute('data-task');
+            const planDate = cell.getAttribute('data-plan-date');
+            document.getElementById('tnaId').value = id;
+            document.getElementById('taskName').value = task;
 
-    <!-- Bootstrap core JS-->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" crossorigin="anonymous">
+            if (task === 'print_strike_off_submission_actual' || task === 'fit_sample_submission_actual') {
+                document.getElementById('dateInput').style.display = 'block';
+                document.getElementById('naCheckbox').style.display = 'block';
+            } else {
+                document.getElementById('dateInput').style.display = 'block';
+                document.getElementById('naCheckbox').style.display = 'none';
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('explanation').style.display = planDate && new Date(planDate) < new Date(today) ?
+                'block' : 'none';
+
+            $('#dateModal').modal('show');
+        }
+
+        function submitDate() {
+            const id = document.getElementById('tnaId').value;
+            const task = document.getElementById('taskName').value;
+            const date = document.getElementById('dateInput').value;
+            const naChecked = document.getElementById('naButton').checked;
+            const explanation = document.getElementById('explanation').value;
+
+            $.ajax({
+                url: '/update-tna-date', // Your route to handle the date update
+                type: 'POST',
+                data: {
+                    _token: $('input[name="_token"]').val(),
+                    id: id,
+                    task: task,
+                    date: naChecked ? 'N/A' : date,
+                    explanation: explanation
+                },
+                success: function(response) {
+                    // Optionally, update the cell content and class here without reloading
+                    location.reload();
+                }
+            });
+
+            $('#dateModal').modal('hide');
+        }
+
+        // Reset modal form on close
+        $('#dateModal').on('hidden.bs.modal', function() {
+            $('#dateForm').trigger('reset');
+        });
     </script>
 
-
-
-    <!-- DataTable JS -->
-    <script src="https://cdn.jsdelivr.net/npm/simple-datatables@latest" crossorigin="anonymous"></script>
-    <script src="{{ asset('ui/backend/js/datatables-simple-demo.js') }}"></script>
-
-    <!-- Select2 JS -->
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.13/js/select2.min.js"></script>
-
-    <!-- Add jQuery and Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
-    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
-
     <script>
-       
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make the "Shipment/ETD" column sortable
+            document.getElementById('shortablehead').addEventListener('click', function() {
+                sortTable(7); // Assuming this is the index of the column you want to sort
+            });
+        });
+
+        function sortTable(columnIndex) {
+            const table = document.getElementById('PrintTable');
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+            rows.sort((a, b) => {
+                const aText = a.children[columnIndex].textContent.trim();
+                const bText = b.children[columnIndex].textContent.trim();
+                return aText.localeCompare(bText, undefined, {
+                    numeric: true
+                });
+            });
+
+            rows.forEach(row => table.querySelector('tbody').appendChild(row));
+            calculateTotalsAndAverages(); // Recalculate after sorting
+        }
+
+
 
 
 
@@ -393,6 +578,8 @@
                         localStorage.removeItem('buyer');
                     }
 
+                    console.log(data);
+
                     document.getElementById('tnaTableBody').innerHTML = data;
 
                     if (buyer) {
@@ -400,9 +587,12 @@
                     } else {
                         calculateTotalsAndAverages();
                     }
+                },
+                error: function(error) {
+                    console.error('Ajax error:', status, error);
                 }
             });
-        }, 5000);
+        }, 50000);
 
         // On page load, check for stored buyer and filter if present
         window.onload = function() {
@@ -423,7 +613,7 @@
             var tab_text = "<table border='2px'><tr bgcolor='#87AFC6'>";
             var textRange;
             var j = 0;
-            tab = document.getElementById('datatablesSimple'); // id of table
+            tab = document.getElementById('PrintTable'); // id of table
 
             for (j = 0; j < tab.rows.length; j++) {
                 tab_text = tab_text + tab.rows[j].innerHTML + "</tr>";
@@ -452,5 +642,5 @@
         }
     </script>
 
- 
+
 </x-backend.layouts.report_master>

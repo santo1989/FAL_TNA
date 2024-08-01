@@ -12,7 +12,7 @@
     <!-- <link href="css/styles.css" rel="stylesheet" /> -->
 
     <!-- jQuery -->
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
 
     <!-- bootstrap 5 cdn  -->
 
@@ -92,6 +92,7 @@
                     <th colspan="2">Bulk Accessories Booking</th>
                     <th colspan="2">Fit Comments</th>
                     <th colspan="2">Bulk Yarn Inhouse</th>
+                    <th colspan="2">Bulk Accessories Inhouse</th>
                     <th colspan="2">PP Sample Submission</th>
                     <th colspan="2">Bulk Fabric Knitting</th>
                     <th colspan="2">PP Comments Receive</th>
@@ -102,6 +103,8 @@
                 </tr>
                 <tr>
                     <th colspan="10"></th>
+                    <th>Plan</th>
+                    <th>Actual</th>
                     <th>Plan</th>
                     <th>Actual</th>
                     <th>Plan</th>
@@ -294,7 +297,7 @@
     </div>
 
     <!-- Add jQuery and Bootstrap JS -->
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
     <script>
         function openModal(cell) {

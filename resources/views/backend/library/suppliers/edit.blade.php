@@ -50,10 +50,10 @@
                     @endforeach
                 </select>
             </div>
-            <br> 
+            <br>
             <br>
             <x-backend.form.input name="name" type="text" label="Supplier Name" :value="$supplier->name" />
-            
+
 
 
             <br>
@@ -61,7 +61,7 @@
             <x-backend.form.saveButton>Save</x-backend.form.saveButton>
         </div>
     </form>
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
             $('#division_id').on('change', function() {
@@ -93,5 +93,5 @@
                 }
             });
         });
-    </script> 
+    </script>
 </x-backend.layouts.master>

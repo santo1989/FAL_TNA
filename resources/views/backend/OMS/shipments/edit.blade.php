@@ -71,15 +71,17 @@
                                         <td class="create_label_column">Sweing Balance</td>
                                         <td class="create_input_column">
                                             <input type="number" name="sewing_balance" class="form-control"
-                                                placeholder="Sewing Balance" value="{{ $old_sewing_basic_info->sewing_balance }}"
-                                                required readonly id="sewing_balance">
+                                                placeholder="Sewing Balance"
+                                                value="{{ $old_sewing_basic_info->sewing_balance }}" required readonly
+                                                id="sewing_balance">
                                         </td>
                                     </tr>
                                     <tr>
                                         <td class="create_label_column">Production Plan</td>
                                         <td class="create_input_column">
                                             <input type="month" name="production_plan" class="form-control"
-                                                placeholder="Production Plan" required  value="{{ $old_sewing_basic_info->production_plan }}">
+                                                placeholder="Production Plan" required
+                                                value="{{ $old_sewing_basic_info->production_plan }}">
                                         </td>
                                         <td class="create_label_column">Target SMV</td>
                                         <td class="create_input_column">
@@ -91,7 +93,8 @@
                                         <td class="create_input_column">
                                             <input type="number" step="0.01" name="production_min_balance"
                                                 class="form-control" placeholder="Production Min Balance" required
-                                                readonly id="production_min_balance" value="{{ $old_sewing_basic_info->production_min_balance }}">
+                                                readonly id="production_min_balance"
+                                                value="{{ $old_sewing_basic_info->production_min_balance }}">
                                         </td>
                                     </tr>
                                 </tbody>
@@ -120,13 +123,18 @@
                                             <td>
                                                 @php
                                                     $total_sewing_qty = 0;
-                                                    $order_qty = $color_sizes_qties->where('id', $color->job_id)->sum('color_quantity');
-                                                    $remaining_qty = $old_sewing_balances->where('color_id', $color->id)->sum('sewing_balance');
-                                                    if($remaining_qty > 0){
-                                                        $total_sewing_qty = $remaining_qty;}else{
+                                                    $order_qty = $color_sizes_qties
+                                                        ->where('id', $color->job_id)
+                                                        ->sum('color_quantity');
+                                                    $remaining_qty = $old_sewing_balances
+                                                        ->where('color_id', $color->id)
+                                                        ->sum('sewing_balance');
+                                                    if ($remaining_qty > 0) {
+                                                        $total_sewing_qty = $remaining_qty;
+                                                    } else {
                                                         $total_sewing_qty = 0;
-                                                        }
-                                                    $remain_qty = $order_qty  - $total_sewing_qty;
+                                                    }
+                                                    $remain_qty = $order_qty - $total_sewing_qty;
 
                                                 @endphp
                                                 <input type="number" name="color_quantity[]" class="form-control"
@@ -134,8 +142,10 @@
                                             </td>
                                             <td>
                                                 <input type="number" name="sewing_quantity[]"
-                                                    class="form-control sewing_quantity" placeholder="Sewing Quantity" value="{{ $color->sewing_balance }}">
-                                                <input type="hidden" name="old_sewing_quantity[]" value="{{ $color->sewing_balance }}">
+                                                    class="form-control sewing_quantity" placeholder="Sewing Quantity"
+                                                    value="{{ $color->sewing_balance }}">
+                                                <input type="hidden" name="old_sewing_quantity[]"
+                                                    value="{{ $color->sewing_balance }}">
                                             </td>
                                         </tr>
                                     @endforeach
@@ -154,7 +164,7 @@
         </form>
     </div>
 
-    <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
@@ -197,7 +207,7 @@
         });
     </script> --}}
 
-     <script>
+    <script>
         $(document).ready(function() {
             $('#style-select').select2();
             $('#po-select').select2();
@@ -207,13 +217,14 @@
             calculateProductionMinBalance();
 
             $('.sewing_quantity').on('input', function() {
-                const maxQuantity = parseInt($(this).closest('tr').find('[name="color_quantity[]"]').val()) || 0;
+                const maxQuantity = parseInt($(this).closest('tr').find('[name="color_quantity[]"]')
+                .val()) || 0;
                 let sewingQuantity = parseInt($(this).val()) || 0;
-                
+
                 if (sewingQuantity > maxQuantity) {
                     sewingQuantity = maxQuantity;
                 }
-                
+
                 $(this).val(sewingQuantity);
 
                 calculateSewingBalance();
