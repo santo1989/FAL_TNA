@@ -43,6 +43,7 @@ class TNAController extends Controller
 
     public function store(Request $request)
     {
+        // dd($request->all());
         // Validate request
         $request->validate([
             'buyer_id' => 'required',
@@ -690,7 +691,8 @@ class TNAController extends Controller
                     $buyers[$buyerName]['details'][$column][] = [
                         'style' => $row->style,
                         'po' => $row->po,
-                        'task' => $column
+                        'task' => $column,
+                        'PlanDate' => $row->$planColumn // Replace task with plan date
                     ];
                 }
             }
@@ -701,6 +703,22 @@ class TNAController extends Controller
             'columns' => $columns
         ]);
     }
+
+    public function copy_tna(Request $request, $id)
+    {
+        $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
+        $buyerList = Buyer::all()->where('is_active', '0');
+        if (auth()->user()->role_id == 3) {
+            $buyers = $buyerList->whereIn('id', $marchent_buyer_assigns->pluck('buyer_id'));
+        } else {
+            $buyers = $buyerList;
+        }
+        $tnas = TNA::where('order_close', '0')->find($id);
+        // dd($tnas);
+        return view('backend.library.tnas.copy_tna', compact('buyers', 'tnas'));
+    }
+
+
 
   
 }

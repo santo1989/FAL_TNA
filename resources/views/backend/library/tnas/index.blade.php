@@ -81,6 +81,9 @@
                                              <td>
                                                  <a href="{{ route('tnas.show', $tna->id) }}"
                                                      class="btn btn-outline-info"><i class="fas fa-eye"></i>show</a>
+                                                 <a href="{{ route('tnas.copy_tna', $tna->id) }}"
+                                                     class="btn btn-outline-primary"><i class="fas fa-copy"></i>Copy</a>
+
                                                  @can('TNA-CURD')
                                                      <a href="{{ route('tnas.edit', $tna->id) }}"
                                                          class="btn btn-outline-primary"><i class="fas fa-edit"></i>Edit</a>

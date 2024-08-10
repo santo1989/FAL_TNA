@@ -88,7 +88,7 @@
                             <tr>
                                 <th>Style</th>
                                 <th>PO Number</th>
-                                <th>Task</th>
+                                <th>Plan Date</th>
                             </tr>
                         </thead>
                         <tbody id="detailsBody">
@@ -111,6 +111,9 @@
             var button = $(event.relatedTarget);
             var buyer = button.data('buyer');
             var task = button.data('task');
+            var PlanDate = button.data('PlanDate');
+            //date show in 11-july-24 in that format
+            
             var details = button.data('details');
             var modal = $(this);
             var detailsBody = $('#detailsBody');
@@ -122,11 +125,11 @@
                     `<tr>
                         <td>${detail.style}</td>
                         <td>${detail.po}</td>
-                        <td>${task}</td>
+                        <td>${detail.PlanDate}</td>
                     </tr>`
                 );
             });
-
+console.log(details);
             modal.find('.modal-title').text(`Task Details for ${buyer} - ${task}`);
         });
     </script>

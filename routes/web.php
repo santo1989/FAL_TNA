@@ -162,6 +162,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/tnas/{tna}/edit_actual_date', [TNAController::class, 'edit_actual_date'])->name('tnas.edit_actual_date');
     // tnas . update_actual_date
     Route::post('/update-actual-date/{tnas}', [TNAController::class, 'updateActualDate'])->name('tnas.update_actual_date');
+    //tnas.copy_tna
+    Route::get('/tnas/{tna}/copy_tna', [TNAController::class, 'copy_tna'])->name('tnas.copy_tna');
 
     //tnas_dashboard
     Route::get('/tnas_dashboard', [TNAController::class, 'tnas_dashboard'])->name('tnas_dashboard');
@@ -175,18 +177,18 @@ Route::middleware('auth')->group(function () {
     Route::get('/archives_dashboard', [TNAController::class, 'archives_dashboard'])->name('archives_dashboard');
     // archives_dashboard_update
     Route::get('/archives_dashboard_update', [TNAController::class, 'archives_dashboard_update'])->name('archives_dashboard_update');
-//Reports
+    //Reports
     Route::get('/buyer-wise-tna-summary', [TNAController::class, 'BuyerWiseTnaSummary'])->name('BuyerWiseTnaSummary');
 
     //OMS//
-  
+
     //jobs
-     
+
     Route::get('/jobs', [JobController::class, 'index'])->name('jobs.index');
     Route::get('/jobs/create', [JobController::class, 'create'])->name('jobs.create');
     Route::post('/jobs', [JobController::class, 'store'])->name('jobs.store');
     Route::get('/jobs/{job_no}/edit', [JobController::class, 'edit'])->name('jobs.edit');
-    Route::get('/jobs/{edit_jobs}/edit_jobs', [JobController::class, 'edit_jobs'])->name('jobs.edit_jobs'); 
+    Route::get('/jobs/{edit_jobs}/edit_jobs', [JobController::class, 'edit_jobs'])->name('jobs.edit_jobs');
     Route::PUT('/update_edit_jobs/{edit_jobs}', [JobController::class, 'update_edit_jobs'])->name('jobs.update_edit_jobs');
     Route::get('/jobs/{job_no}', [JobController::class, 'show'])->name('jobs.show');
     Route::delete('/jobs/{id}', [JobController::class, 'destroy'])->name('jobs.destroy');
@@ -194,16 +196,16 @@ Route::middleware('auth')->group(function () {
 
     //Reports
 
-    Route::get('/monthly-order-summary', [JobController::class, 'monthlyOrderSummary'])->name('monthly_order_summary'); 
+    Route::get('/monthly-order-summary', [JobController::class, 'monthlyOrderSummary'])->name('monthly_order_summary');
     Route::get('/quantity-wise-summary', [JobController::class, 'quantityWiseSummary'])->name('quantity_wise_summary');
     Route::get('/item-wise-summary', [JobController::class, 'itemWiseSummary'])->name('item_wise_summary');
     Route::get('/delivery-summary', [JobController::class, 'deliverySummary'])->name('delivery_summary');
-   
 
 
 
 
-    
+
+
 
     //sewing_balances
     Route::get('/sewing_balances', [SewingBlanceController::class, 'index'])->name('sewing_balances.index');
@@ -222,8 +224,6 @@ Route::middleware('auth')->group(function () {
     Route::get('/shipments/{shipment}/edit', [ShipmentController::class, 'edit'])->name('shipments.edit');
     Route::put('/shipments/{shipment}', [ShipmentController::class, 'update'])->name('shipments.update');
     Route::delete('/shipments/{shipment}', [ShipmentController::class, 'destroy'])->name('shipments.destroy');
-
-
 });
 
 

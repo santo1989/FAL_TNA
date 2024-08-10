@@ -38,10 +38,15 @@
         }
 
         /* Hover effect on table rows */
-        #PrintTable tbody tr:hover {
-            background-color: #fdf1f1;
-            /* Red background color on hover */
+        #PrintTable tbody tr:hover td {
+            background-color: #ffffff00;
+            /* Default background color on hover */
+        }
 
+        /* Change background color for the first 4 columns on hover */
+        #PrintTable tbody tr:hover td:nth-child(-n+4) {
+            background-color: #ffcc00;
+            /* Background color for the first 4 columns on hover */
         }
 
 
@@ -352,7 +357,7 @@
                     </tr>
                 @endforelse
             </tbody>
-{{-- {{ $tnas->links() }} --}}
+            {{-- {{ $tnas->links() }} --}}
         </table>
     </div> <!-- container -->
 
@@ -564,55 +569,55 @@
         // Initial calculation
         calculateTotalsAndAverages();
 
-       // Function to generate a hash for the table's current content
-function getTableHash() {
-    const tableContent = document.getElementById('tnaTableBody').innerHTML;
-    // Simple hash function for the content
-    return Array.from(tableContent).reduce((hash, char) => {
-        hash = ((hash << 5) - hash) + char.charCodeAt(0);
-        return hash & hash; // Convert to 32bit integer
-    }, 0);
-}
-
-// Initial hash of the table data
-let currentTableHash = getTableHash();
-
-// Periodically update the table
-setInterval(() => {
-    $.ajax({
-        url: "{{ route('tnas_dashboard_update') }}",
-        type: 'GET',
-        success: function(data) {
-            const newTableHash = getTableHash(data);
-
-            // Update only if the new data is different
-            if (currentTableHash !== newTableHash) {
-                document.getElementById('tnaTableBody').innerHTML = data;
-                currentTableHash = newTableHash;
-
-                const buyer = localStorage.getItem('buyer');
-                if (buyer) {
-                    filterByBuyer(buyer);
-                } else {
-                    calculateTotalsAndAverages();
-                }
-            }
-        },
-        error: function(error) {
-            console.error('Ajax error:', error);
+        // Function to generate a hash for the table's current content
+        function getTableHash() {
+            const tableContent = document.getElementById('tnaTableBody').innerHTML;
+            // Simple hash function for the content
+            return Array.from(tableContent).reduce((hash, char) => {
+                hash = ((hash << 5) - hash) + char.charCodeAt(0);
+                return hash & hash; // Convert to 32bit integer
+            }, 0);
         }
-    });
-}, 50000);
 
-// On page load, check for stored buyer and filter if present
-window.onload = function() {
-    const buyer = localStorage.getItem('buyer');
-    if (buyer) {
-        filterByBuyer(buyer);
-    } else {
-        calculateTotalsAndAverages();
-    }
-};
+        // Initial hash of the table data
+        let currentTableHash = getTableHash();
+
+        // Periodically update the table
+        setInterval(() => {
+            $.ajax({
+                url: "{{ route('tnas_dashboard_update') }}",
+                type: 'GET',
+                success: function(data) {
+                    const newTableHash = getTableHash(data);
+
+                    // Update only if the new data is different
+                    if (currentTableHash !== newTableHash) {
+                        document.getElementById('tnaTableBody').innerHTML = data;
+                        currentTableHash = newTableHash;
+
+                        const buyer = localStorage.getItem('buyer');
+                        if (buyer) {
+                            filterByBuyer(buyer);
+                        } else {
+                            calculateTotalsAndAverages();
+                        }
+                    }
+                },
+                error: function(error) {
+                    console.error('Ajax error:', error);
+                }
+            });
+        }, 50000);
+
+        // On page load, check for stored buyer and filter if present
+        window.onload = function() {
+            const buyer = localStorage.getItem('buyer');
+            if (buyer) {
+                filterByBuyer(buyer);
+            } else {
+                calculateTotalsAndAverages();
+            }
+        };
 
         $(function() {
             $('[data-toggle="tooltip"]').tooltip();
