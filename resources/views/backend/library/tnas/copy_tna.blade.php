@@ -169,8 +169,7 @@
                  </div>
              </div>
          </div>
-     </div>
-     @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 4)
+     </div> 
          <script>
              //po_receive_date, shipment_etd can be editable by Admin and SuperVisor only and total_lead_time will be calculated automatically
              $(document).ready(function() {
@@ -193,6 +192,5 @@
                      $('#total_lead_time').val(diffDays);
                  });
              });
-         </script>
-         @endif
+         </script> 
  </x-backend.layouts.master>

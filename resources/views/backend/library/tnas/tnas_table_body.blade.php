@@ -1,13 +1,14 @@
+ 
   @php
       $sl = 1;
   @endphp
   @forelse ($tnas as $tna)
       <tr>
           @if ($tna->order_close == 1)
-              <td class="bg-red" style="width: 100px;">{{ $sl++ }}</td>
+              <td class="bg-red" >{{ $sl++ }}</td>
           @else
               @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                  <td style="width: 100px;">
+                  <td >
                       <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                           data-toggle="tooltip" data-placement="top" title="show">
                           <i class="fas fa-eye"></i>{{ $sl++ }}
@@ -22,23 +23,23 @@
                       // dd($privileges)
                   @endphp
                   @if ($privileges > 0)
-                      <td style="width: 100px;">
+                      <td >
                           <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                               data-toggle="tooltip" data-placement="top" title="show">
                               <i class="fas fa-eye"></i>{{ $sl++ }}
                           </a>
                       </td>
                   @else
-                      <td style="width: 100px;">{{ $sl++ }}</td>
+                      <td >{{ $sl++ }}</td>
                   @endif
               @else
-                  <td style="width: 100px;">{{ $sl++ }}</td>
+                  <td >{{ $sl++ }}</td>
               @endif
           @endif
-          <td style="width: 150px;">{{ $tna->buyer }}</td>
-          <td style="width: 250px;">{{ $tna->style }}</td>
-          <td style="width: 100px;">{{ $tna->po }}</td>
-          <td>{{ $tna->item }}</td>
+          <td >{{ $tna->buyer }}</td>
+          <td >{{ $tna->style }}</td>
+          <td >{{ $tna->po }}</td>
+          <td >{{ $tna->item }}</td>
           <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
           <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
           <td class="text-bold" id="shortablerow">

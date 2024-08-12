@@ -563,8 +563,17 @@
                                     </td>
                                     <td class="create_label_column">Print</td>
                                     <td class="create_input_column">
-                                        <input type="text" name="print" class="form-control"
-                                            placeholder="Print" value="{{ old('print') }}">
+                                        {{-- <input type="text" name="print" class="form-control"
+                                            placeholder="Print" value="{{ old('print') }}"> --}}
+                                            <select name="print" class="form-control">
+                                            <option value="">Select Print Type</option>
+                                            <option value="Chest Print" {{ old('print') == 'Chest Print' ? 'selected' : '' }}>
+                                                Chest Print</option>
+                                            <option value="Neck Print" {{ old('print') == 'Neck Print' ? 'selected' : '' }}>
+                                                Neck Print</option>
+                                            <option value="Both Print" {{ old('print') == 'Both Print' ? 'selected' : '' }}>
+                                                Both Print</option>
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>

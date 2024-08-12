@@ -1,5 +1,5 @@
 <x-backend.layouts.report_master>
-    {{-- @dd($tnas) --}}
+
 
     <style>
         .bg-red {
@@ -14,73 +14,56 @@
             font-weight: bold;
         }
 
-
-
-
         /* Make all table headers sticky horizontally */
         thead th {
             position: sticky;
             top: 0;
             background: #343a40;
-            /* Adjust background color as needed */
+            color: white;
             z-index: 20;
-            /* Ensure headers stay above the table body */
         }
 
-        /* Make the first 4 columns sticky vertically */
-        /* thead th:nth-child(-n+4), */
-        tbody td:nth-child(-n+4) {
+        /* Make the first 4 columns sticky vertically with fixed widths and z-index */
+        tbody td:nth-child(1),
+        tbody td:nth-child(2),
+        tbody td:nth-child(3),
+        tbody td:nth-child(4) {
             position: sticky;
-            left: 0;
             background: #494747;
-            /* Match this with your table's background */
             color: white;
+            padding: 5px;
+            z-index: 10;
         }
 
         /* Hover effect on table rows */
         #PrintTable tbody tr:hover td {
             background-color: #ffffff00;
-            /* Default background color on hover */
+            /* Transparent background on hover */
         }
 
         /* Change background color for the first 4 columns on hover */
         #PrintTable tbody tr:hover td:nth-child(-n+4) {
             background-color: #ffcc00;
-            /* Background color for the first 4 columns on hover */
         }
 
-
-
-        /* Adjust z-index for each of the first 4 columns to stack properly */
-
-        tbody td:nth-child(1) {
-            left: 0px;
-            z-index: 6;
-            /* Higher value for the first column */
+        /* Define column widths for the headers */
+        thead th:nth-child(1) {
+            width: 150px;
         }
 
-
-        tbody td:nth-child(2) {
-            left: 70px;
-            z-index: 7;
-            /* Higher value for the second column */
+        thead th:nth-child(2) {
+            width: 150px;
         }
 
-
-        tbody td:nth-child(3) {
-            left: 150px;
-            z-index: 8;
-            /* Higher value for the third column */
+        thead th:nth-child(3) {
+            width: 150px;
         }
 
-
-        tbody td:nth-child(4) {
-            left: 360px;
-            z-index: 9;
-            /* Higher value for the fourth column */
+        thead th:nth-child(4) {
+            width: 150px;
         }
 
-
+        /* Sortable column styles */
         .sortable {
             cursor: pointer;
         }
@@ -123,15 +106,22 @@
 
 
         </div>
+
+         {{-- <div class="row justify-content-center pb-2"> 
+            <div class="col-12">
+                {{ $tnas->links() }}
+            </div> 
+        </div> --}}
+
         <table class="table table-bordered table-hover text-center text-nowrap" style="font-size: 12px;"
             id="PrintTable">
             <thead class="thead-dark"
                 style="font-size: 12px; text-align: center; vertical-align: middle;position: sticky;top: 0;z-index: 1;">
                 <tr>
-                    <th rowspan="2" style="width: 70px;">Action</th>
-                    <th rowspan="2" style="width: 150px;">Buyer</th>
-                    <th rowspan="2" style="width: 250px;">Style</th>
-                    <th rowspan="2" style="width: 100px;">PO Number</th>
+                    <th rowspan="2">Action</th>
+                    <th rowspan="2">Buyer</th>
+                    <th rowspan="2">Style</th>
+                    <th rowspan="2">PO Number</th>
                     <th rowspan="2">Item</th>
                     <th>Qty (pcs)</th>
                     <th>PO Receive Date</th>
@@ -200,7 +190,7 @@
                     {{-- @dd($tna) --}}
                     <tr>
                         @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                            <td style="width: 70px;">
+                            <td>
                                 <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                                     data-toggle="tooltip" data-placement="top" title="show">
                                     <i class="fas fa-eye"></i>{{ $sl++ }}
@@ -216,22 +206,22 @@
                             @endphp
                             @if ($privileges > 0)
                                 {{-- @dd($tna->buyer) --}}
-                                <td style="width: 70px;">
+                                <td>
                                     <a href="{{ route('tnas.show', $tna->id) }}" class="btn btn-sm btn-outline-success"
                                         data-toggle="tooltip" data-placement="top" title="show">
                                         <i class="fas fa-eye"></i>{{ $sl++ }}
                                     </a>
                                 </td>
                             @else
-                                <td style="width: 70px;">{{ $sl++ }}</td>
+                                <td>{{ $sl++ }}</td>
                             @endif
                         @else
-                            <td style="width: 70px;">{{ $sl++ }}</td>
+                            <td>{{ $sl++ }}</td>
                         @endif
 
-                        <td style="width: 150px;">{{ $tna->buyer }}</td>
-                        <td style="width: 250px;">{{ $tna->style }}</td>
-                        <td style="width: 100px;">{{ $tna->po }}</td>
+                        <td>{{ $tna->buyer }}</td>
+                        <td>{{ $tna->style }}</td>
+                        <td>{{ $tna->po }}</td>
                         <td>{{ $tna->item }}</td>
                         <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
                         <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>
@@ -358,7 +348,9 @@
                 @endforelse
             </tbody>
             {{-- {{ $tnas->links() }} --}}
+
         </table>
+
     </div> <!-- container -->
 
     </div>
@@ -408,6 +400,35 @@
     <!-- Add jQuery and Bootstrap JS -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.querySelector('#PrintTable');
+            const headers = table.querySelectorAll('thead th');
+            const rows = table.querySelectorAll('tbody tr');
+
+            // Calculate cumulative widths of columns
+            function updateStickyColumns() {
+                let cumulativeWidth = 0;
+                headers.forEach((header, index) => {
+                    if (index < 4) { // Adjust if more columns need to be sticky
+                        const width = header.offsetWidth;
+                        const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
+                        cells.forEach(cell => {
+                            cell.style.left = `${cumulativeWidth}px`;
+                        });
+                        cumulativeWidth += width;
+                    }
+                });
+            }
+
+            // Update sticky columns when the page loads or when the table size changes
+            updateStickyColumns();
+            window.addEventListener('resize', updateStickyColumns);
+        });
+    </script>
+
+
     <script>
         function openModal(cell) {
             const id = cell.getAttribute('data-id');
@@ -623,37 +644,37 @@
             $('[data-toggle="tooltip"]').tooltip();
         });
 
-        //download table data in excel format with table style 
         function downloadExcel() {
             var tab_text = "<table border='2px'><tr bgcolor='#87AFC6'>";
-            var textRange;
-            var j = 0;
-            tab = document.getElementById('PrintTable'); // id of table
+            var tab = document.getElementById('PrintTable'); // ID of the table
 
-            for (j = 0; j < tab.rows.length; j++) {
-                tab_text = tab_text + tab.rows[j].innerHTML + "</tr>";
-                //tab_text=tab_text+"</tr>";
+            // Loop through each row in the table
+            for (var j = 0; j < tab.rows.length; j++) {
+                tab_text += "<tr>" + tab.rows[j].innerHTML + "</tr>";
             }
 
-            tab_text = tab_text + "</table>";
-            tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, ""); //remove if u want links in your table
-            tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
-            tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+            tab_text += "</table>";
+            tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, ""); // Remove links
+            tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // Remove images
+            tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // Remove inputs
 
-            var ua = window.navigator.userAgent;
-            var msie = ua.indexOf("MSIE ");
+            // Create a Blob with the table data
+            var blob = new Blob([tab_text], {
+                type: 'application/vnd.ms-excel'
+            });
 
-            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) // If Internet Explorer
-            {
-                txtArea1.document.open("txt/html", "replace");
-                txtArea1.document.write(tab_text);
-                txtArea1.document.close();
-                txtArea1.focus();
-                sa = txtArea1.document.execCommand("SaveAs", true, "Say Thanks to Sumit.xls");
-            } else //other browser not tested on IE 11
-                sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+            // Create a link element
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
 
-            return (sa);
+            link.download = 'table-data.xls'; // Filename for the downloaded file
+
+            // Append the link to the body and trigger the download
+            document.body.appendChild(link);
+            link.click();
+
+            // Clean up
+            document.body.removeChild(link);
         }
     </script>
 

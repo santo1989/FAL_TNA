@@ -16,6 +16,20 @@
                                  class="fas fa-user"></i> TNA Pending List</a>
                      </div>
                      <div class="col-6 text-end">
+                        @php
+                            $marchent_buyer_assigns = App\Models\BuyerAssign::where('user_id', auth()->user()->id)->where('buyer_id', 11)->count();
+                            // dd($marchent_buyer_assigns )
+                        @endphp
+                        @if ($marchent_buyer_assigns > 0 || auth()->user()->id == 1)
+                             <!-- Button trigger modal of update_actual_TEX_EBO-->
+                         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                             data-bs-target="#staticBackdrop">
+                             Update Common Date
+                         </button>
+                        @endif
+
+                        
+
                          <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-success"> <i
                                  class="fas fa-tachometer-alt"></i> TNA Dashboard</a>
 
@@ -81,8 +95,11 @@
                                              <td>
                                                  <a href="{{ route('tnas.show', $tna->id) }}"
                                                      class="btn btn-outline-info"><i class="fas fa-eye"></i>show</a>
-                                                 <a href="{{ route('tnas.copy_tna', $tna->id) }}"
-                                                     class="btn btn-outline-primary"><i class="fas fa-copy"></i>Copy</a>
+                                                 @if ($tna->buyer_id == 11)
+                                                     <a href="{{ route('tnas.copy_tna', $tna->id) }}"
+                                                         class="btn btn-outline-primary"><i
+                                                             class="fas fa-copy"></i>Copy</a>
+                                                 @endif
 
                                                  @can('TNA-CURD')
                                                      <a href="{{ route('tnas.edit', $tna->id) }}"
@@ -126,6 +143,53 @@
              </div>
          </div>
      </div>
+
+     <!--update_actual_TEX_EBO Modal start-->
+     <!-- Modal -->
+     <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+         aria-labelledby="staticBackdropLabel" aria-hidden="true">
+         <div class="modal-dialog">
+             <div class="modal-content">
+                 <div class="modal-header">
+                     <h1 class="modal-title fs-5" id="staticBackdropLabel">Update Common Date</h1>
+                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                 </div>
+                 <div class="modal-body">
+                     <form method="POST" action="{{ route('update_actual_TEX_EBO') }}" enctype="multipart/form-data">
+                         @csrf
+                         @method('POST')
+                         <table class="table">
+                             <tbody>
+                                 <tr>
+                                     <td class="create_label_column">Buyer</td>
+                                     <td class="create_input_column">
+                                         @php
+                                             $buyer = DB::table('buyers')->where('id', 11)->first();
+                                         @endphp
+                                         <input type="hidden" name="buyer_id" id="buyer_id" class="form-control"
+                                             required value="11">
+                                         {{ $buyer->name }}
+                                     </td>
+                                     <td class="create_label_column">Shipment Month</td>
+                                     <td class="create_input_column">
+                                         <input type="month" name="shipment_etd" id="shipment_etd"
+                                             class="form-control" required>
+                                     </td>
+                                 </tr>
+                             </tbody>
+                         </table>
+                 </div>
+                 <div class="modal-footer">
+                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                     <button type="submit" class="btn btn-outline-success"><i class="fas fa-save"></i>
+                         Search TNA</button>
+                 </div>
+                 </form>
+             </div>
+         </div>
+     </div>
+     <!--update_actual_TEX_EBO Modal End-->
+
 
      <script>
          $(document).ready(function() {

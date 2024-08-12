@@ -12,8 +12,16 @@ class ShipmentController extends Controller
 {
     public function index()
     {
-        $shipments = Shipment::all();
-        return view('backend.OMS.shipments.index', compact('shipments'));
+        $shipped_qty = Shipment::select(
+            'job_no',
+            'color',
+            'size',
+            DB::raw('SUM(shipped_qty) as total_shipped_qty'),
+            DB::raw('SUM(shipped_value) as total_shipped_value'),
+            DB::raw('SUM(excess_short_shipment_qty) as total_excess_short_shipment_qty'),
+            DB::raw('SUM(excess_short_shipment_value) as total_excess_short_shipment_value'),
+        )->groupBy('job_no', 'color', 'size')->get();
+        return view('backend.OMS.shipments.index', compact('shipped_qty'));
     }
 
     public function create(Request $request, $job_no)

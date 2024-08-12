@@ -164,6 +164,10 @@ Route::middleware('auth')->group(function () {
     Route::post('/update-actual-date/{tnas}', [TNAController::class, 'updateActualDate'])->name('tnas.update_actual_date');
     //tnas.copy_tna
     Route::get('/tnas/{tna}/copy_tna', [TNAController::class, 'copy_tna'])->name('tnas.copy_tna');
+    //update_actual_TEX_EBO
+    Route::post('/update_actual_TEX_EBO', [TNAController::class, 'update_actual_TEX_EBO'])->name('update_actual_TEX_EBO');
+    //tnas_update
+    Route::post('/tnas_update_TEX_EBO', [TNAController::class, 'tnas_update_TEX_EBO'])->name('tnas_update_TEX_EBO');
 
     //tnas_dashboard
     Route::get('/tnas_dashboard', [TNAController::class, 'tnas_dashboard'])->name('tnas_dashboard');
