@@ -35,7 +35,7 @@
     <div class="card mx-5 my-5" style="background-color: white; overflow-x: auto;">
         <div class="container-fluid pt-2">
             <h4 class="text-center">Buyer-Wise Pending Tasks Summary</h4>
-            <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary">
+            <a href="{{ route('jobs.index') }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Close
             </a>
             <table class="table table-bordered table-hover text-center text-wrap" style="font-size: 12px;">

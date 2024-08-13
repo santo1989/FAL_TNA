@@ -152,15 +152,6 @@
 
                                 </div>
 
-                                 <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
-                                        href="{{ route('jobs.index') }}">
-                                        <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
-                                        OMS
-                                    </a>
-
-                                </div>
-
 
                             </div>
                         @endcan
@@ -222,7 +213,7 @@
                         @endcan
                         @can('SuperVisor')
                             <div class="row justify-content-center">
-                                <div class="col-3 pt-1 pb-1">
+                                 <div class="col-3 pt-1 pb-1">
                                     <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
                                         href="{{ route('buyers.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-atlas"></i></div>
@@ -253,14 +244,6 @@
                                     </a>
 
                                 </div>
-                                <div class="col-3 pt-1 pb-1">
-                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
-                                        href="{{ route('jobs.index') }}">
-                                        <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
-                                        OMS
-                                    </a>
-
-                                </div>
                             </div>
                         </div>
                     @endcan
@@ -278,40 +261,24 @@
                 <div class="row justify-content-center">
                     <div class="col-3 pt-1 pb-1">
                         <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
-                            href="{{ route('tnas_dashboard') }}" target="_blank">
+                            href="{{ route('tnas_dashboard') }}">
                             <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
                             TNA Dashboard
                         </a>
 
                     </div>
-                    @if (Auth()->user()->role_id == 1 || Auth()->user()->role_id == 4)
-                        
-                  
-                    <div class="col-3 pt-1 pb-1">
-                        <a href="{{ route('monthly_order_summary') }}" class="btn btn-sm btn-outline-primary"
-                            style="width: 10rem;" target="_blank">
-                            <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
-                            Monthly Order Summary</a>
+                    {{-- <div class="col-3 pt-1 pb-1">
+                        <a href="{{ url('/products') }}" class="btn btn-sm btn-outline-primary"
+                            style="width: 10rem;">Products</a>
                     </div>
                     <div class="col-3 pt-1 pb-1">
-                        <a href="{{ route('quantity_wise_summary') }}" class="btn btn-sm btn-outline-primary"
-                            style="width: 10rem;" target="_blank">
-                            <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
-                            Quantity wise Summary</a>
+                        <a href="{{ url('/products') }}" class="btn btn-sm btn-outline-primary"
+                            style="width: 10rem;">Products</a>
                     </div>
                     <div class="col-3 pt-1 pb-1">
-                        <a href="{{ route('item_wise_summary') }}" class="btn btn-sm btn-outline-primary"
-                            style="width: 10rem;" target="_blank">
-                            <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
-                            Item wise Summary</a>
-                    </div>
-                    <div class="col-3 pt-1 pb-1">
-                        <a href="{{ route('delivery_summary') }}" class="btn btn-sm btn-outline-primary"
-                            style="width: 10rem;" target="_blank">
-                            <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
-                            Delivery Summary</a>
-                    </div>
-                  @endif
+                        <a href="{{ url('/products') }}" class="btn btn-sm btn-outline-primary"
+                            style="width: 10rem;">Products</a>
+                    </div> --}}
                 </div>
             </div>
         </div>

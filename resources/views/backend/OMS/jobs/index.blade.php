@@ -10,19 +10,18 @@
                          <a href=" {{ route('home') }} " class="btn btn-outline-secondary"><i
                                  class="fas fa-arrow-left"></i>
                              Close</a>
-                         <a href="{{ route('archives') }}" class="btn btn-outline-secondary"> <i
-                                 class="fas fa-archive"></i> Job Archives</a>
+
                      </div>
                      <div class="col-6 text-end">
-                        <button type="button" class="btn btn-outline-success"
-                                                     data-toggle="modal" data-target="#ReportModal">
-                                                     Report
-                                                 </button>
-                    
-                         
-                                  <a href="{{ route('sewing_balances.index') }}" class="btn btn-outline-info"> <i
+                         <button type="button" class="btn btn-outline-success" data-toggle="modal"
+                             data-target="#ReportModal">
+                             Report
+                         </button>
+
+
+                         <a href="{{ route('sewing_balances.index') }}" class="btn btn-outline-info"> <i
                                  class="fas fa-tachometer-alt"></i> Sewing History</a>
-                                  <a href="{{ route('shipments.index') }}" class="btn btn-outline-warning"> <i
+                         <a href="{{ route('shipments.index') }}" class="btn btn-outline-warning"> <i
                                  class="fas fa-tachometer-alt"></i> Shipment History</a>
 
 
@@ -153,9 +152,9 @@
          </div>
      </div>
 
-       <!-- ReportModal Start-->
-     <div class="modal fade text-center" id="ReportModal" tabindex="-1" role="dialog" aria-labelledby="ReportModalLabel"
-         aria-hidden="true">
+     <!-- ReportModal Start-->
+     <div class="modal fade text-center" id="ReportModal" tabindex="-1" role="dialog"
+         aria-labelledby="ReportModalLabel" aria-hidden="true">
          <div class="modal-dialog  modal-lg" role="document">
              <div class="modal-content">
                  <div class="modal-header">
@@ -167,13 +166,14 @@
                      </button>
                  </div>
                  <div class="modal-body justify-content-center">
-                        <a href="{{ route('quantity_wise_summary') }}" class="btn btn-outline-info"><i
-                                class="fas fa-eye"></i> Quantity-Wise Summary</a>
-                        <a href="{{ route('item_wise_summary') }}" class="btn btn-outline-primary"><i
-                                class="fas fa-edit"></i> Item-Wise Summary</a>
-                        <a href="{{ route('monthly_order_summary') }}" class="btn btn-outline-secondary"><i
-                                class="fas fa-boxes"></i> Monthly Order Summary</a>
-                        <a href="{{ route('delivery_summary') }}" class="btn btn-outline-primary"><i class="fas fa-ship"></i> On-time Delivery Summary</a>
+                     <a href="{{ route('quantity_wise_summary') }}" class="btn btn-outline-info"><i
+                             class="fas fa-eye"></i> Quantity-Wise Summary</a>
+                     <a href="{{ route('item_wise_summary') }}" class="btn btn-outline-primary"><i
+                             class="fas fa-edit"></i> Item-Wise Summary</a>
+                     <a href="{{ route('monthly_order_summary') }}" class="btn btn-outline-secondary"><i
+                             class="fas fa-boxes"></i> Monthly Order Summary</a>
+                     <a href="{{ route('delivery_summary') }}" class="btn btn-outline-primary"><i
+                             class="fas fa-ship"></i> On-time Delivery Summary</a>
                  </div>
              </div>
          </div>
@@ -194,7 +194,8 @@
                      </button>
                  </div>
                  <div class="modal-body justify-content-center">
-                     <a href="#" id="viewJobLink" class="btn btn-outline-info"><i class="fas fa-eye"></i> View</a>
+                     <a href="#" id="viewJobLink" class="btn btn-outline-info"><i class="fas fa-eye"></i>
+                         View</a>
                      @can('TNA-CURD')
                          <a href="#" id="editJobLink" class="btn btn-outline-primary"><i class="fas fa-edit"></i>
                              Edit</a>
@@ -256,6 +257,7 @@
                                      <th>Color</th>
                                      <th>Size</th>
                                      <th>Order Qty</th>
+                                     <th>Total Sewing QTY</th>
                                      <th>Total Sewing Balance</th>
                                      <th>Total Production Min Balance</th>
                                      <th>Action</th>
@@ -276,6 +278,8 @@
                                          <td>{{ $order_qty }}</td>
                                          <td>{{ $balance->total_sewing_balance }}
                                          </td>
+                                         <td>{{ $order_qty - $balance->total_sewing_balance }}
+
                                          <td>{{ $balance->total_production_min_balance }}
                                          </td>
                                          <td>
@@ -313,6 +317,7 @@
                  </div>
                  <div class="modal-body">
                      @php
+                         // Fetch shipped quantities and values
                          $shipped_qty = App\Models\Shipment::select(
                              'job_no',
                              'color',
@@ -338,26 +343,38 @@
                                      <th>Order Qty</th>
                                      <th>Total Shipped Qty</th>
                                      <th>Total Shipped Value</th>
-                                     <th>Total Excess/Short Shipment Qty</th>
-                                     <th>Total Excess/Short Shipment Value</th>
+                                     <th>Total Short Shipment Qty</th>
+                                     <th>Total Short Shipment Value</th>
+                                     <th>Total Excess Qty</th>
+                                     <th>Total Excess Value</th>
                                      <th>Action</th>
                                  </tr>
                              </thead>
                              <tbody>
                                  @forelse ($shipped_qty as $balance)
+                                     @php
+                                         // Fetch the order quantity and unit price
+                                         $job = App\Models\Job::where('job_no', $balance->job_no)
+                                             ->where('color', $balance->color)
+                                             ->where('size', $balance->size)
+                                             ->first();
+
+                                         $order_qty = $job->color_quantity ?? 0;
+                                         $unit_price = $job->unit_price ?? 0;
+
+                                         // Calculate total_short_qty and total_short_value
+                                         $total_short_qty = $order_qty - $balance->total_shipped_qty;
+                                         $total_short_value = $total_short_qty * $unit_price;
+                                     @endphp
                                      <tr>
                                          <td>{{ $balance->job_no }}</td>
                                          <td>{{ $balance->color }}</td>
                                          <td>{{ $balance->size }}</td>
-                                         @php
-                                             $order_qty = App\Models\Job::where('job_no', $balance->job_no)
-                                                 ->where('color', $balance->color)
-                                                 ->where('size', $balance->size)
-                                                 ->first()->color_quantity;
-                                         @endphp
                                          <td class="order_qty">{{ $order_qty }}</td>
                                          <td class="total_shipped_qty">{{ $balance->total_shipped_qty }}</td>
                                          <td class="total_shipped_value">{{ $balance->total_shipped_value }}</td>
+                                         <td class="total_short_qty">{{ $total_short_qty }}</td>
+                                         <td class="total_short_value">{{ $total_short_value }}</td>
                                          <td class="total_excess_short_shipment_qty">
                                              {{ $balance->total_excess_short_shipment_qty }}</td>
                                          <td class="total_excess_short_shipment_value">
@@ -365,13 +382,13 @@
                                          <td>
                                              <a href="{{ route('sewing_balances.show', $balance->job_no) }}"
                                                  class="btn btn-outline-info">
-                                                 <i class="fas fa-eye"></i> show
+                                                 <i class="fas fa-eye"></i> Show
                                              </a>
                                          </td>
                                      </tr>
                                  @empty
                                      <tr>
-                                         <td colspan="9" class="text-center">No Sewing Balance Found</td>
+                                         <td colspan="11" class="text-center">No Sewing Balance Found</td>
                                      </tr>
                                  @endforelse
                                  <tr>
@@ -379,6 +396,8 @@
                                      <th class="text-center" id="total_order_qty"></th>
                                      <th class="text-center" id="total_shipped_qty"></th>
                                      <th class="text-center" id="total_shipped_value"></th>
+                                     <th class="text-center" id="total_short_qty"></th>
+                                     <th class="text-center" id="total_short_value"></th>
                                      <th class="text-center" id="total_excess_short_shipment_qty"></th>
                                      <th class="text-center" id="total_excess_short_shipment_value"></th>
                                  </tr>
@@ -391,6 +410,8 @@
                              var total_order_qty = 0;
                              var total_shipped_qty = 0;
                              var total_shipped_value = 0;
+                             var total_short_qty = 0;
+                             var total_short_value = 0;
                              var total_excess_short_shipment_qty = 0;
                              var total_excess_short_shipment_value = 0;
 
@@ -400,6 +421,8 @@
                                      total_order_qty += parseInt($(this).find('.order_qty').text()) || 0;
                                      total_shipped_qty += parseInt($(this).find('.total_shipped_qty').text()) || 0;
                                      total_shipped_value += parseInt($(this).find('.total_shipped_value').text()) || 0;
+                                     total_short_qty += parseInt($(this).find('.total_short_qty').text()) || 0;
+                                     total_short_value += parseInt($(this).find('.total_short_value').text()) || 0;
                                      total_excess_short_shipment_qty += parseInt($(this).find(
                                          '.total_excess_short_shipment_qty').text()) || 0;
                                      total_excess_short_shipment_value += parseInt($(this).find(
@@ -410,12 +433,14 @@
                              $('#total_order_qty').text(total_order_qty);
                              $('#total_shipped_qty').text(total_shipped_qty);
                              $('#total_shipped_value').text(total_shipped_value);
+                             $('#total_short_qty').text(total_short_qty);
+                             $('#total_short_value').text(total_short_value);
                              $('#total_excess_short_shipment_qty').text(total_excess_short_shipment_qty);
                              $('#total_excess_short_shipment_value').text(total_excess_short_shipment_value);
                          });
                      </script>
-
                  </div>
+
              </div>
          </div>
      </div>

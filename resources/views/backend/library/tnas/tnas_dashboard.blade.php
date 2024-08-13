@@ -1,7 +1,7 @@
 <x-backend.layouts.report_master>
 
 
-    <style>
+    {{-- <style>
         .bg-red {
             background-color: red !important;
             color: white;
@@ -72,7 +72,68 @@
             background-color: #f90303;
             /* Light background on hover */
         }
-    </style>
+    </style> --}}
+<style>
+    .bg-red {
+        background-color: red !important;
+        color: white;
+        font-weight: bold;
+    }
+
+    .bg-yellow {
+        background-color: yellow !important;
+        color: black;
+        font-weight: bold;
+    }
+
+    /* Make all table headers sticky horizontally */
+    thead th {
+        position: sticky;
+        top: 0;
+        background: #343a40;
+        color: white;
+        z-index: 20;
+    }
+
+    /* Make the first 4 columns sticky vertically with fixed widths and z-index */
+    tbody td:nth-child(1),
+    tbody td:nth-child(2),
+    tbody td:nth-child(3),
+    tbody td:nth-child(4) {
+        position: sticky;
+        background: #494747;
+        color: white;
+        padding: 5px;
+        z-index: 10;
+    }
+
+    /* Hover effect on table rows */
+    #PrintTable tbody tr:hover td {
+        background-color: #ffffff00;
+    }
+
+    /* Change background color for the first 4 columns on hover */
+    #PrintTable tbody tr:hover td:nth-child(-n+4) {
+        background-color: #ffcc00;
+    }
+
+    /* Define column widths for the headers */
+    thead th:nth-child(1),
+    thead th:nth-child(2),
+    thead th:nth-child(3),
+    thead th:nth-child(4) {
+        width: 150px; /* Default width for first 4 columns */
+    }
+
+    /* Sortable column styles */
+    .sortable {
+        cursor: pointer;
+    }
+
+    .sortable:hover {
+        background-color: #f90303;
+    }
+</style>
 
 
     <div class="container-fluid pt-2">
@@ -402,30 +463,75 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const table = document.querySelector('#PrintTable');
-            const headers = table.querySelectorAll('thead th');
-            const rows = table.querySelectorAll('tbody tr');
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const table = document.querySelector('#PrintTable');
+        //     const headers = table.querySelectorAll('thead th');
+        //     const rows = table.querySelectorAll('tbody tr');
 
-            // Calculate cumulative widths of columns
-            function updateStickyColumns() {
-                let cumulativeWidth = 0;
-                headers.forEach((header, index) => {
-                    if (index < 4) { // Adjust if more columns need to be sticky
-                        const width = header.offsetWidth;
-                        const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
-                        cells.forEach(cell => {
-                            cell.style.left = `${cumulativeWidth}px`;
-                        });
-                        cumulativeWidth += width;
+        //     // Calculate cumulative widths of columns
+        //     function updateStickyColumns() {
+        //         let cumulativeWidth = 0;
+        //         headers.forEach((header, index) => {
+        //             if (index < 4) { // Adjust if more columns need to be sticky
+        //                 const width = header.offsetWidth;
+        //                 const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
+        //                 cells.forEach(cell => {
+        //                     cell.style.left = `${cumulativeWidth}px`;
+        //                 });
+        //                 cumulativeWidth += width;
+        //             }
+        //         });
+        //     }
+
+        //     // Update sticky columns when the page loads or when the table size changes
+        //     updateStickyColumns();
+        //     window.addEventListener('resize', updateStickyColumns);
+        // });
+        document.addEventListener('DOMContentLoaded', function() {
+    const table = document.querySelector('#PrintTable');
+    const headers = table.querySelectorAll('thead th');
+    const rows = table.querySelectorAll('tbody tr');
+
+    // Function to calculate the maximum width of each column
+    function calculateColumnWidths() {
+        let columnWidths = Array.from(headers).map(header => header.offsetWidth);
+
+        // Update column widths based on the maximum content width
+        rows.forEach(row => {
+            row.querySelectorAll('td').forEach((cell, index) => {
+                if (index < columnWidths.length) {
+                    const cellWidth = cell.scrollWidth;
+                    if (cellWidth > columnWidths[index]) {
+                        columnWidths[index] = cellWidth;
                     }
+                }
+            });
+        });
+
+        return columnWidths;
+    }
+
+    // Function to set sticky column widths
+    function updateStickyColumnWidths() {
+        const columnWidths = calculateColumnWidths();
+
+        headers.forEach((header, index) => {
+            if (index < 4) { // Adjust if more columns need to be sticky
+                header.style.width = `${columnWidths[index]}px`;
+                const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
+                cells.forEach(cell => {
+                    cell.style.width = `${columnWidths[index]}px`;
+                    cell.style.left = `${columnWidths.slice(0, index).reduce((a, b) => a + b, 0)}px`;
                 });
             }
-
-            // Update sticky columns when the page loads or when the table size changes
-            updateStickyColumns();
-            window.addEventListener('resize', updateStickyColumns);
         });
+    }
+
+    // Update sticky columns when the page loads or when the table size changes
+    updateStickyColumnWidths();
+    window.addEventListener('resize', updateStickyColumnWidths);
+});
+
     </script>
 
 
@@ -628,7 +734,7 @@
                     console.error('Ajax error:', error);
                 }
             });
-        }, 50000);
+        }, 500000);
 
         // On page load, check for stored buyer and filter if present
         window.onload = function() {

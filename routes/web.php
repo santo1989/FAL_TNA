@@ -56,6 +56,15 @@ Route::middleware('auth')->group(function () {
         return view('backend.home');
     })->name('home');
 
+    Route::get('/tna_home', function () {
+        return view('layouts.tna_home');
+    })->name('tna_home');
+
+    Route::get('/oms_home', function () {
+        return view('layouts.oms_home');
+    })->name('oms_home');
+
+
     //role
 
     Route::get('/roles', [RoleController::class, 'index'])->name('roles.index');

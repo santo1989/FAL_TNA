@@ -8,15 +8,14 @@
                         <a href="{{ route('home') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Close
                         </a>
-                        <a href="{{ route('archives') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-archive"></i> Job Archives
-                        </a>
+
                     </div>
                     <div class="col-6 text-end">
-                        <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-success">
-                            <i class="fas fa-tachometer-alt"></i> Job Dashboard
+                        <a href="{{ route('home') }}" class="btn btn-outline-success">
+                            <i class="fas fa-tachometer-alt"></i> Home
                         </a>
-                         
+
+
                     </div>
                 </div>
             </div>
@@ -68,7 +67,8 @@
                                                     class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-pencil"></i> Edit
                                                 </a>
-                                                <form action="{{ route('sewing_balances.destroy', $balance->id) }}" method="POST"
+                                                <form action="{{ route('sewing_balances.destroy', $balance->id) }}"
+                                                    method="POST"
                                                     onsubmit="return confirm('Are you sure you want to delete this sewing balance?');">
                                                     @csrf
                                                     @method('DELETE')

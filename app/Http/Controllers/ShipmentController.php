@@ -12,6 +12,7 @@ class ShipmentController extends Controller
 {
     public function index()
     {
+        // Fetch shipped quantities and values
         $shipped_qty = Shipment::select(
             'job_no',
             'color',
@@ -20,20 +21,22 @@ class ShipmentController extends Controller
             DB::raw('SUM(shipped_value) as total_shipped_value'),
             DB::raw('SUM(excess_short_shipment_qty) as total_excess_short_shipment_qty'),
             DB::raw('SUM(excess_short_shipment_value) as total_excess_short_shipment_value'),
-        )->groupBy('job_no', 'color', 'size')->get();
+        )
+            ->groupBy('job_no', 'color', 'size')
+            ->get();
         return view('backend.OMS.shipments.index', compact('shipped_qty'));
     }
 
     public function create(Request $request, $job_no)
     {
         $color_sizes_qties = SewingBlance::where('job_no', $job_no)
-        ->select(
-            'job_id',
-            'job_no',
-            'color',
-            'size',
-            DB::raw('SUM(sewing_balance) as total_sewing_balance')
-        )
+            ->select(
+                'job_id',
+                'job_no',
+                'color',
+                'size',
+                DB::raw('SUM(sewing_balance) as total_sewing_balance')
+            )
             ->groupBy('job_id', 'job_no', 'color', 'size')
             ->get();
 
@@ -45,7 +48,7 @@ class ShipmentController extends Controller
 
         // Return a response or redirect as needed
 
-        return view('backend.OMS.shipments.create', compact('color_sizes_qties', 'basic_info', 'old_shipments_entries', 'jobs_no')); 
+        return view('backend.OMS.shipments.create', compact('color_sizes_qties', 'basic_info', 'old_shipments_entries', 'jobs_no'));
     }
 
 
@@ -120,8 +123,4 @@ class ShipmentController extends Controller
         // Redirect back with a success message
         return redirect()->route('jobs.index')->with('message', 'Sewing balances saved successfully.');
     }
-
-
-
-   
 }

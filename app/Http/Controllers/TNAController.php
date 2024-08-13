@@ -665,6 +665,7 @@ class TNAController extends Controller
     {
         // Retrieve parameters from the request
         $buyer_id = $request->input('buyer_id');
+        $style = $request->input('style');
         $shipment_etd = $request->input('shipment_etd');
 
         // Convert shipment_etd to a Carbon instance to filter by month
@@ -672,6 +673,7 @@ class TNAController extends Controller
 
         // Fetch TNA records based on buyer_id and shipment month
         $tnas = TNA::where('buyer_id', $buyer_id)
+            ->where('style', $style)
             ->whereMonth('shipment_etd', $shipmentDate->month)
             ->whereYear('shipment_etd', $shipmentDate->year)
             ->get();
@@ -681,7 +683,7 @@ class TNAController extends Controller
 
         // Check if $tnas is empty
         if ($tnas->isEmpty()) {
-            return back()->with('error', 'No TNA found for the selected buyer and shipment month.');
+            return back()->withErrors('No TNA found for the selected buyer and shipment month.');
         }
 
         // Return the view with the required data

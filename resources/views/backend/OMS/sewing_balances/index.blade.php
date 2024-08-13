@@ -8,15 +8,14 @@
                         <a href="{{ route('jobs.index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Close
                         </a>
-                        <a href="{{ route('archives') }}" class="btn btn-outline-secondary">
-                            <i class="fas fa-archive"></i> Job Archives
-                        </a>
+
                     </div>
                     <div class="col-6 text-end">
-                        <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-success">
-                            <i class="fas fa-tachometer-alt"></i> Job Dashboard
+                        <a href="{{ route('home') }}" class="btn btn-outline-success">
+                            <i class="fas fa-tachometer-alt"></i> Home
                         </a>
-                         
+
+
                     </div>
                 </div>
             </div>

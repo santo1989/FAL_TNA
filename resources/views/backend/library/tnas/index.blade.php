@@ -16,19 +16,21 @@
                                  class="fas fa-user"></i> TNA Pending List</a>
                      </div>
                      <div class="col-6 text-end">
-                        @php
-                            $marchent_buyer_assigns = App\Models\BuyerAssign::where('user_id', auth()->user()->id)->where('buyer_id', 11)->count();
-                            // dd($marchent_buyer_assigns )
-                        @endphp
-                        @if ($marchent_buyer_assigns > 0 || auth()->user()->id == 1)
+                         @php
+                             $marchent_buyer_assigns = App\Models\BuyerAssign::where('user_id', auth()->user()->id)
+                                 ->where('buyer_id', 11)
+                                 ->count();
+                             // dd($marchent_buyer_assigns )
+                         @endphp
+                         @if ($marchent_buyer_assigns > 0 || auth()->user()->id == 1)
                              <!-- Button trigger modal of update_actual_TEX_EBO-->
-                         <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
-                             data-bs-target="#staticBackdrop">
-                             Update Common Date
-                         </button>
-                        @endif
+                             <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                                 data-bs-target="#staticBackdrop">
+                                 Update Common Date
+                             </button>
+                         @endif
 
-                        
+
 
                          <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-success"> <i
                                  class="fas fa-tachometer-alt"></i> TNA Dashboard</a>
@@ -148,7 +150,7 @@
      <!-- Modal -->
      <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
          aria-labelledby="staticBackdropLabel" aria-hidden="true">
-         <div class="modal-dialog">
+         <div class="modal-dialog modal-lg">
              <div class="modal-content">
                  <div class="modal-header">
                      <h1 class="modal-title fs-5" id="staticBackdropLabel">Update Common Date</h1>
@@ -165,10 +167,27 @@
                                      <td class="create_input_column">
                                          @php
                                              $buyer = DB::table('buyers')->where('id', 11)->first();
+                                             $style_lists = DB::table('t_n_a_s')
+                                                 ->where('buyer_id', 11)
+                                                 ->distinct()
+                                                 ->pluck('style');
+
                                          @endphp
                                          <input type="hidden" name="buyer_id" id="buyer_id" class="form-control"
                                              required value="11">
                                          {{ $buyer->name }}
+                                     </td>
+                                     <td class="create_label_column">Style</td>
+                                     <td class="create_input_column">
+                                         <select class="form-select form-select-sm" aria-label="Small select example"
+                                             id="style" name="style" required>
+                                             <option selected>Select Style</option>
+                                             @forelse ($style_lists as $style_list)
+                                                 <option value="{{ $style_list }}">{{ $style_list }}</option>
+                                             @empty
+                                                 <option value="">No Style Found</option>
+                                             @endforelse
+                                         </select>
                                      </td>
                                      <td class="create_label_column">Shipment Month</td>
                                      <td class="create_input_column">
