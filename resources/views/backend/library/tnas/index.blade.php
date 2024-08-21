@@ -82,8 +82,8 @@
                                      @forelse ($tnas as $tna)
                                          <tr>
                                              <td>{{ $tna->buyer }}</td>
-                                             <td>{{ $tna->style }}</td>
-                                             <td>{{ $tna->po }}</td>
+                                             <td class="text-wrap">{{ $tna->style }}</td>
+                                             <td class="text-wrap">{{ $tna->po }}</td>
                                              <td>{{ $tna->item }}</td>
                                              {{-- <td>{{ $tna->color }}</td>
                                               <td><img src="{{ asset('storage/tna/' . $tna->picture) }}" alt="Picture"

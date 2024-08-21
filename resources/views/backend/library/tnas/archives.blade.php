@@ -43,7 +43,7 @@
 
                      <div class="card-body">
                          <div class="table-responsive">
-                             <table class="table table-bordered table-striped text-nowrap" id="datatablesSimple"
+                             <table class="table table-bordered table-striped text-wrap" id="datatablesSimple"
                                  style="overflow-x: auto;">
                                  <thead>
                                      <tr>
@@ -60,7 +60,7 @@
                                          <th>Action</th>
                                      </tr>
                                  </thead>
-                                 <tbody class="text-nowrap">
+                                 <tbody class="text-wrap">
                                      @forelse ($tnas as $tna)
                                          <tr>
                                              <td>{{ $tna->buyer }}</td>
@@ -90,6 +90,13 @@
                                                                  class="fas fa-times"></i></button>
                                                      </form> @endcan --}}
                                                      @if (auth()->user()->role_id == 1)
+                                                      <form action="{{ route('tnas_open', ['tna' => $tna->id]) }}"
+                                                         method="POST" style="display:inline-block;">
+                                                         @csrf
+                                                         <input type="hidden" name="tna_id" value="{{ $tna->id }}">
+                                                         <button type="submit" class="btn btn-outline-danger"><i
+                                                                 class="fas fa-box-open"></i></button>
+                                                     </form>
                                                          <form action="{{ route('tnas.destroy', $tna->id) }}"
                                                              method="POST" style="display:inline-block;">
                                                              @csrf

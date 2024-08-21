@@ -46,6 +46,20 @@ Route::get('/get-company-designation/{divisionId}', [CompanyController::class, '
 
 Route::get('/get-department/{company_id}', [CompanyController::class, 'getdepartments'])->name('get_departments');
 
+// Report for sir 
+
+// Route::get('/fal-mos', [JobController::class, 'monthlyOrderSummary'])->name('fal-mos');
+// Route::get('/fal-qws', [JobController::class, 'quantityWiseSummary'])->name('quantity_wise_summary');
+// Route::get('/fal-iws', [JobController::class, 'itemWiseSummary'])->name('item_wise_summary');
+// Route::get('/fal-ds', [JobController::class, 'deliverySummary'])->name('delivery_summary');
+Route::get('/fal-bws', [TNAController::class, 'FAL_BuyerWiseTnaSummary'])->name('FAL_BuyerWiseTnaSummary');
+//fal_tnas_dashboard
+Route::get('/fal-tnas', [TNAController::class, 'fal_tnas_dashboard'])->name('fal_tnas_dashboard');
+// tnas_dashboard_update 
+Route::get('/fal-tnas-update', [TNAController::class, 'fal_tnas_dashboard_update'])->name('fal_tnas_dashboard_update');
+
+Route::get('/MailBuyerWiseTnaSummary', [TNAController::class, 'MailBuyerWiseTnaSummary'])->name('MailBuyerWiseTnaSummary');
+
 
 Route::middleware('auth')->group(function () {
     // Route::get('/check', function () {
@@ -184,6 +198,8 @@ Route::middleware('auth')->group(function () {
     Route::get('/tnas_dashboard_update', [TNAController::class, 'tnas_dashboard_update'])->name('tnas_dashboard_update');
     //tnas_close
     Route::post('/tnas_close/{tna}', [TNAController::class, 'tnas_close'])->name('tnas_close');
+    //tnas_open
+    Route::post('/tnas_open/{tna}', [TNAController::class, 'tnas_open'])->name('tnas_open');
     // archives
     Route::get('/archives', [TNAController::class, 'archives'])->name('archives');
     // archives_dashboard
@@ -214,6 +230,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/item-wise-summary', [JobController::class, 'itemWiseSummary'])->name('item_wise_summary');
     Route::get('/delivery-summary', [JobController::class, 'deliverySummary'])->name('delivery_summary');
 
+    
 
 
 
