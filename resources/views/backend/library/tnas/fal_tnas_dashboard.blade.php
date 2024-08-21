@@ -660,7 +660,8 @@
 
 
 
-        <table class="table table-bordered table-hover text-center text-nowrap" style="font-size: 12px;" id="PrintTable">
+        <table class="table table-bordered table-hover text-center text-nowrap" style="font-size: 12px;"
+            id="PrintTable">
             <thead class="thead-dark"
                 style="font-size: 12px; text-align: center; vertical-align: middle;position: sticky;top: 0;z-index: 1;">
                 <tr>
@@ -853,89 +854,91 @@
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
     <script>
-      document.addEventListener('DOMContentLoaded', function() {
-    const table = document.querySelector('#PrintTable');
-    const headerCells = table.querySelectorAll('thead th');
-    const rows = table.querySelectorAll('tbody tr');
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.querySelector('#PrintTable');
+            const headerCells = table.querySelectorAll('thead th');
+            const rows = table.querySelectorAll('tbody tr');
 
-    // Function to calculate the maximum width of each of the first 4 columns
-    function calculateColumnWidths() {
-        const columnWidths = [];
+            // Function to calculate the maximum width of each of the first 4 columns
+            function calculateColumnWidths() {
+                const columnWidths = [];
 
-        // Measure the header cells
-        headerCells.forEach((header, index) => {
-            if (index < 4) {
-                columnWidths[index] = header.offsetWidth;
-            }
-        });
-
-        // Measure the cells in the body for the first 4 columns
-        rows.forEach(row => {
-            row.querySelectorAll('td').forEach((cell, index) => {
-                if (index < 4) {
-                    const cellWidth = cell.scrollWidth;
-                    if (cellWidth > columnWidths[index]) {
-                        columnWidths[index] = cellWidth;
+                // Measure the header cells
+                headerCells.forEach((header, index) => {
+                    if (index < 4) {
+                        columnWidths[index] = header.offsetWidth;
                     }
-                }
-            });
-        });
+                });
 
-        return columnWidths;
-    }
+                // Measure the cells in the body for the first 4 columns
+                rows.forEach(row => {
+                    row.querySelectorAll('td').forEach((cell, index) => {
+                        if (index < 4) {
+                            const cellWidth = cell.scrollWidth;
+                            if (cellWidth > columnWidths[index]) {
+                                columnWidths[index] = cellWidth;
+                            }
+                        }
+                    });
+                });
 
-    // Function to set the widths for sticky columns and align header and body
-    function updateStickyColumnWidths() {
-        const columnWidths = calculateColumnWidths();
-
-        // Set the header cell widths and left positions
-        headerCells.forEach((header, index) => {
-            if (index < 4) { // Apply only for the first 4 columns
-                header.style.width = `${columnWidths[index]}px`;
-                header.style.position = 'sticky';
-                header.style.left = `${columnWidths.slice(0, index).reduce((a, b) => a + b, 0)}px`;
-                header.style.backgroundColor = '#343a40'; // Match the header background
-                header.style.zIndex = '2'; // Ensure header is above the body cells
+                return columnWidths;
             }
-        });
 
-        // Set the body cell widths and left positions
-        rows.forEach(row => {
-            row.querySelectorAll('td').forEach((cell, index) => {
-                if (index < 4) {
-                    cell.style.width = `${columnWidths[index]}px`;
-                    cell.style.position = 'sticky'; 
-                    cell.style.left = `${columnWidths.slice(0, index).reduce((a, b) => a + b, 0)}px`;
-                    cell.style.backgroundColor = '#494747'; // Background to match header
-                    cell.style.zIndex = '1'; // Ensure cells are below the header
-                }
-            });
-        });
-    }
+            // Function to set the widths for sticky columns and align header and body
+            function updateStickyColumnWidths() {
+                const columnWidths = calculateColumnWidths();
 
-    // Update sticky columns when the page loads or when the table size changes
-    updateStickyColumnWidths();
-    window.addEventListener('resize', updateStickyColumnWidths);
+                // Set the header cell widths and left positions
+                headerCells.forEach((header, index) => {
+                    if (index < 4) { // Apply only for the first 4 columns
+                        header.style.width = `${columnWidths[index]}px`;
+                        header.style.position = 'sticky';
+                        header.style.left = `${columnWidths.slice(0, index).reduce((a, b) => a + b, 0)}px`;
+                        header.style.backgroundColor = '#343a40'; // Match the header background
+                        header.style.zIndex = '2'; // Ensure header is above the body cells
+                    }
+                });
 
-    // Function to handle horizontal scrolling synchronization
-    const tableContainer = table.parentElement;
-    tableContainer.addEventListener('scroll', () => {
-        headerCells.forEach((header, index) => {
-            if (index < 4) {
-                header.style.transform = `translateX(${tableContainer.scrollLeft}px)`;
+                // Set the body cell widths and left positions
+                rows.forEach(row => {
+                    row.querySelectorAll('td').forEach((cell, index) => {
+                        if (index < 4) {
+                            cell.style.width = `${columnWidths[index]}px`;
+                            cell.style.position = 'sticky';
+                            cell.style.left =
+                                `${columnWidths.slice(0, index).reduce((a, b) => a + b, 0)}px`;
+                            cell.style.backgroundColor = '#494747'; // Background to match header
+                            cell.style.zIndex = '1'; // Ensure cells are below the header
+                        }
+                    });
+                });
             }
-        });
-        rows.forEach(row => {
-            row.querySelectorAll('td').forEach((cell, index) => {
-                if (index < 4) {
-                    cell.style.transform = `translateX(${tableContainer.scrollLeft}px)`;
-                }
+
+            // Update sticky columns when the page loads or when the table size changes
+            updateStickyColumnWidths();
+            window.addEventListener('resize', updateStickyColumnWidths);
+
+            // Function to handle horizontal scrolling synchronization
+            const tableContainer = table.parentElement;
+            tableContainer.addEventListener('scroll', () => {
+                headerCells.forEach((header, index) => {
+                    if (index < 4) {
+                        header.style.transform = `translateX(${tableContainer.scrollLeft}px)`;
+                    }
+                });
+                rows.forEach(row => {
+                    row.querySelectorAll('td').forEach((cell, index) => {
+                        if (index < 4) {
+                            cell.style.transform =
+                                `translateX(${tableContainer.scrollLeft}px)`;
+                        }
+                    });
+                });
             });
         });
-    });
-});
 
-   
+
         function openModal(cell) {
             const id = cell.getAttribute('data-id');
             const task = cell.getAttribute('data-task');
@@ -1047,7 +1050,7 @@
 
             // Calculate average order free time and show ceil value
             document.getElementById('AvgOrderFreeTime').textContent = Math.ceil(totalOrderFreeTime / visibleRows
-            .length);
+                .length);
         }
 
         // Function to filter by buyer and recalculate totals and averages
@@ -1127,7 +1130,7 @@
                         const buyer = localStorage.getItem('buyer');
                         if (buyer) {
                             filterByBuyer(buyer);
-                            
+
 
                         } else {
                             calculateTotalsAndAverages();
@@ -1140,7 +1143,7 @@
                     console.error('Ajax error:', error);
                 }
             });
-        }, 50000);
+        }, 500000);
 
         // On page load, check for stored buyer and filter if present
         window.onload = function() {
@@ -1187,8 +1190,8 @@
 
             // Clean up
             document.body.removeChild(link);
-        } 
-        </script>
+        }
+    </script>
 
 
-        </x-backend.layouts.report_master>
+</x-backend.layouts.report_master>
