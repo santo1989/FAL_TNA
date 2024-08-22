@@ -87,5 +87,8 @@ class AuthServiceProvider extends ServiceProvider
         Gate::define('TNA-CURD', function ($user) {
             return in_array($user->role->name, ['SuperVisor', 'Admin', 'Marchendiser']);
         });
+        Gate::define('TNA-Factory', function ($user) {
+            return in_array($user->role->name, ['SuperVisor', 'Admin', 'Factory Merchandise']);
+        });
     }
 }

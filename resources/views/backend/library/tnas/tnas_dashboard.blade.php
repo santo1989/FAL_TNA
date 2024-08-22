@@ -141,8 +141,20 @@
                 width="70px">
             TNA Dashboard</h4>
         <div class="row justify-content-center pb-2">
-            @php
-                $buyerList = DB::table('t_n_a_s')->where('order_close', 0)->select('buyer')->distinct()->get();
+              @php
+                // Retrieve the user's role and assigned buyers
+$user = auth()->user();
+$buyerIds = DB::table('buyer_assigns')
+    ->where('user_id', $user->id)
+    ->pluck('buyer_id');
+
+// Query TNAs based on the user's role and assigned buyers
+                $query = DB::table('t_n_a_s')->where('order_close', '0');
+
+                if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
+                    $query->whereIn('buyer_id', $buyerIds);
+                }
+                $buyerList = $query->select('buyer')->distinct()->get();
             @endphp
 
             <div class="col-12">
@@ -281,8 +293,10 @@
                         @endif
 
                         <td>{{ $tna->buyer }}</td>
-                        <td>{{ $tna->style }}</td>
-                        <td>{{ $tna->po }}</td>
+                        {{-- <td>{{ $tna->style }}</td>
+                        <td>{{ $tna->po }}</td> --}}
+                        <td class="text-wrap"> {{ str_replace(',', ' ', $tna->style) }}</td>
+                        <td class="text-wrap"> {{ str_replace(',', ' ', $tna->po) }}</td>
                         <td>{{ $tna->item }}</td>
                         <td id="qty_pcs">{{ $tna->qty_pcs }}</td>
                         <td>{{ \Carbon\Carbon::parse($tna->po_receive_date)->format('d-M-y') ?? '' }}</td>

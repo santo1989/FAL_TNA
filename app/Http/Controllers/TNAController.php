@@ -10,6 +10,7 @@ use App\Models\SOP;
 use App\Models\TNA;
 use App\Models\TnaExplanation;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
@@ -361,7 +362,7 @@ class TNAController extends Controller
         // dd($tnas);
         return view('backend.library.tnas.edit', compact('buyers', 'tnas'));
     }
-    
+
 
     public function destroy($id)
     {
@@ -431,31 +432,26 @@ class TNAController extends Controller
     }
 
 
-
-
     public function fetchTnasData()
     {
-        // Retrieve the user's role and assigned buyers
         $user = auth()->user();
         $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
 
-        // Query TNAs based on the user's role and assigned buyers
-        $query = TNA::where('order_close', '0')
-        ->orderBy('shipment_etd', 'asc');
+        // Check if the data is cached
+        $cacheKey = 'tnas_data_user_' . $user->id;
+        $query = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($user, $buyerIds) {
+            $query = TNA::where('order_close', '0')
+            ->orderBy('shipment_etd', 'asc');
 
-        if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
-            $query->whereIn('buyer_id', $buyerIds);
-        }
+            if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
+                $query->whereIn('buyer_id', $buyerIds);
+            }
 
-        $query = $query->get();
+            return $query->get();
+        });
 
         return $query;
-
-        // // // Return the query builder for pagination
-        // // Paginate results, 30 per page
-        // return $query->paginate(30);
     }
-
 
     public function tnas_dashboard()
     {
@@ -466,8 +462,12 @@ class TNAController extends Controller
     public function tnas_dashboard_update()
     {
         $tnas = $this->fetchTnasData();
-        return view('backend.library.tnas.tnas_table_body', compact('tnas'));
+        // return view('backend.library.tnas.tnas_table_body', compact('tnas'));
+        return view('backend.library.tnas.tnas_dashboard', compact('tnas'));
     }
+
+
+    
 
     public function tnas_close(Request $request, $id)
     {
@@ -484,7 +484,7 @@ class TNAController extends Controller
         }
     }
 
-    
+
 
     public function tnas_open(Request $request, $id)
     {
@@ -631,11 +631,21 @@ class TNAController extends Controller
     {
         // Get current date
         $currentDate = Carbon::now()->format('Y-m-d');
+        // Retrieve the user's role and assigned buyers
+        $user = auth()->user();
+        $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
+
+        // Query TNAs based on the user's role and assigned buyers
+        $query =
+            Tna::where('order_close', '0')
+            ->orderBy('shipment_etd', 'asc');
+
+        if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
+            $query->whereIn('buyer_id', $buyerIds);
+        }
 
         // Fetch data from t_n_a_s table
-        $tnaData = Tna::where('order_close', '0')
-        ->orderBy('shipment_etd', 'asc') // Sort by shipment_etd in ascending order
-            ->get();
+        $tnaData = $query->get();
 
 
         // Process data to get counts
@@ -763,7 +773,7 @@ class TNAController extends Controller
 
         // Fetch data from t_n_a_s table
         $tnaData = Tna::where('order_close', '0')
-        ->orderBy('shipment_etd', 'asc') // Sort by shipment_etd in ascending order
+            ->orderBy('shipment_etd', 'asc') // Sort by shipment_etd in ascending order
             ->get();
 
 
@@ -817,36 +827,123 @@ class TNAController extends Controller
     }
 
 
-        public function fal_tnas_dashboard()
-        {
-            $tnas = $this->falfetchTnasData();
-            // dd($tnas);
-            return view('backend.library.tnas.fal_tnas_dashboard', compact('tnas')); 
-        }
+    public function fal_tnas_dashboard()
+    {
+        $tnas = $this->falfetchTnasData();
+        // dd($tnas);
+        return view('backend.library.tnas.fal_tnas_dashboard', compact('tnas'));
+    }
 
-        public function fal_tnas_dashboard_update()
-        {
-            $tnas = $this->falfetchTnasData();
-            return view('backend.library.tnas.fal_tnas_table_body', compact('tnas'));
-        }
+    public function fal_tnas_dashboard_update()
+    {
+        $tnas = $this->falfetchTnasData();
+        return view('backend.library.tnas.fal_tnas_table_body', compact('tnas'));
+    }
 
-        public function falfetchTnasData()
-        {
-            $tnas = TNA::where('order_close', '0')
-                ->select('id',
-                'buyer_id',  'buyer', 'style', 'po', 'item', 'color', 'qty_pcs', 'po_receive_date', 'shipment_etd', 'total_lead_time', 'order_free_time', 'lab_dip_submission_plan', 'lab_dip_submission_actual', 'fabric_booking_plan', 'fabric_booking_actual', 'fit_sample_submission_plan', 'fit_sample_submission_actual', 'print_strike_off_submission_plan', 'print_strike_off_submission_actual', 'bulk_accessories_booking_plan', 'bulk_accessories_booking_actual', 'fit_comments_plan', 'fit_comments_actual', 'bulk_yarn_inhouse_plan', 'bulk_yarn_inhouse_actual',
-                'bulk_accessories_inhouse_plan',
-                'bulk_accessories_inhouse_actual','pp_sample_submission_plan', 'pp_sample_submission_actual', 'bulk_fabric_knitting_plan', 'bulk_fabric_knitting_actual', 'pp_comments_receive_plan', 'pp_comments_receive_actual', 'bulk_fabric_dyeing_plan', 'bulk_fabric_dyeing_actual', 'bulk_fabric_delivery_plan', 'bulk_fabric_delivery_actual', 'pp_meeting_plan', 'pp_meeting_actual', 'etd_plan', 'etd_actual', 'assign_date', 'assign_by', 'remarks', 'order_close')
-                ->groupBy('id',
-                'buyer_id', 'buyer', 'style', 'po', 'item', 'color', 'qty_pcs', 'po_receive_date', 'shipment_etd', 'total_lead_time', 'order_free_time', 'lab_dip_submission_plan', 'lab_dip_submission_actual', 'fabric_booking_plan', 'fabric_booking_actual', 'fit_sample_submission_plan', 'fit_sample_submission_actual', 'print_strike_off_submission_plan', 'print_strike_off_submission_actual', 'bulk_accessories_booking_plan', 'bulk_accessories_booking_actual', 'fit_comments_plan', 'fit_comments_actual', 'bulk_yarn_inhouse_plan', 'bulk_yarn_inhouse_actual',
+    public function falfetchTnasData()
+    {
+        $tnas = TNA::where('order_close', '0')
+            ->select(
+                'id',
+                'buyer_id',
+                'buyer',
+                'style',
+                'po',
+                'item',
+                'color',
+                'qty_pcs',
+                'po_receive_date',
+                'shipment_etd',
+                'total_lead_time',
+                'order_free_time',
+                'lab_dip_submission_plan',
+                'lab_dip_submission_actual',
+                'fabric_booking_plan',
+                'fabric_booking_actual',
+                'fit_sample_submission_plan',
+                'fit_sample_submission_actual',
+                'print_strike_off_submission_plan',
+                'print_strike_off_submission_actual',
+                'bulk_accessories_booking_plan',
+                'bulk_accessories_booking_actual',
+                'fit_comments_plan',
+                'fit_comments_actual',
+                'bulk_yarn_inhouse_plan',
+                'bulk_yarn_inhouse_actual',
                 'bulk_accessories_inhouse_plan',
                 'bulk_accessories_inhouse_actual',
-                'pp_sample_submission_plan', 'pp_sample_submission_actual', 'bulk_fabric_knitting_plan', 'bulk_fabric_knitting_actual', 'pp_comments_receive_plan', 'pp_comments_receive_actual', 'bulk_fabric_dyeing_plan', 'bulk_fabric_dyeing_actual', 'bulk_fabric_delivery_plan', 'bulk_fabric_delivery_actual', 'pp_meeting_plan', 'pp_meeting_actual', 'etd_plan', 'etd_actual', 'assign_date', 'assign_by', 'remarks', 'order_close'); 
-                $tnas = $tnas->orderBy('shipment_etd', 'asc')->get();
-          
-    //  dd($tnas);
-            return $tnas;
-        }
+                'pp_sample_submission_plan',
+                'pp_sample_submission_actual',
+                'bulk_fabric_knitting_plan',
+                'bulk_fabric_knitting_actual',
+                'pp_comments_receive_plan',
+                'pp_comments_receive_actual',
+                'bulk_fabric_dyeing_plan',
+                'bulk_fabric_dyeing_actual',
+                'bulk_fabric_delivery_plan',
+                'bulk_fabric_delivery_actual',
+                'pp_meeting_plan',
+                'pp_meeting_actual',
+                'etd_plan',
+                'etd_actual',
+                'assign_date',
+                'assign_by',
+                'remarks',
+                'order_close'
+            )
+            ->groupBy(
+                'id',
+                'buyer_id',
+                'buyer',
+                'style',
+                'po',
+                'item',
+                'color',
+                'qty_pcs',
+                'po_receive_date',
+                'shipment_etd',
+                'total_lead_time',
+                'order_free_time',
+                'lab_dip_submission_plan',
+                'lab_dip_submission_actual',
+                'fabric_booking_plan',
+                'fabric_booking_actual',
+                'fit_sample_submission_plan',
+                'fit_sample_submission_actual',
+                'print_strike_off_submission_plan',
+                'print_strike_off_submission_actual',
+                'bulk_accessories_booking_plan',
+                'bulk_accessories_booking_actual',
+                'fit_comments_plan',
+                'fit_comments_actual',
+                'bulk_yarn_inhouse_plan',
+                'bulk_yarn_inhouse_actual',
+                'bulk_accessories_inhouse_plan',
+                'bulk_accessories_inhouse_actual',
+                'pp_sample_submission_plan',
+                'pp_sample_submission_actual',
+                'bulk_fabric_knitting_plan',
+                'bulk_fabric_knitting_actual',
+                'pp_comments_receive_plan',
+                'pp_comments_receive_actual',
+                'bulk_fabric_dyeing_plan',
+                'bulk_fabric_dyeing_actual',
+                'bulk_fabric_delivery_plan',
+                'bulk_fabric_delivery_actual',
+                'pp_meeting_plan',
+                'pp_meeting_actual',
+                'etd_plan',
+                'etd_actual',
+                'assign_date',
+                'assign_by',
+                'remarks',
+                'order_close'
+            );
+        $tnas = $tnas->orderBy('shipment_etd', 'asc')->get();
+
+        //  dd($tnas);
+        return $tnas;
+    }
 
     public function MailBuyerWiseTnaSummary()
     {
@@ -855,8 +952,8 @@ class TNAController extends Controller
 
         // Fetch data from t_n_a_s table
         $tnaData = Tna::where('order_close', '0')
-        ->orderBy('shipment_etd', 'asc')
-        ->get();
+            ->orderBy('shipment_etd', 'asc')
+            ->get();
 
         $marchendiser_wise_buyer = DB::table('buyer_assigns')->select(array('buyer_id', 'user_id'))->get();
 
@@ -913,10 +1010,55 @@ class TNAController extends Controller
 
 
         return view('backend.OMS.reports.buyer_wise_tna_summary', [
-                'buyers' => $buyers,
-                'columns' => $columns
-            ]);
+            'buyers' => $buyers,
+            'columns' => $columns
+        ]);
     }
 
-    
+    public function Cutting_Plan(Request $request)
+    {
+        // dd($request->all());
+        // Validate request
+        $request->validate([
+            'tna_id' => 'required',
+            'cutting_plan_date' =>
+            'required|date', // Ensure it's a valid date
+        ]);
+
+        DB::transaction(function () use ($request) {
+            // Calculate total lead time in days
+            $cutting_Plan = $request->cutting_plan_date;
+
+            // Create a new TNA entry
+            $tna = TNA::where('id', $request->tna_id)->first();
+
+            $tna->cutting_Plan = $cutting_Plan;
+            $tna->save();
+        });
+
+        return redirect()->route('tnas.index')->withMessage('TNA Cutting Plan updated successfully');
+    }
+
+    public function Cutting_actual(Request $request)
+    {
+        // dd($request->all());
+        // Validate request
+        $request->validate([
+            'tna_id' => 'required',
+            'actual_date' =>
+            'required|date', // Ensure it's a valid date
+        ]);
+
+        DB::transaction(function () use ($request) {
+            // Calculate total lead time in days
+            $cutting_actual = $request->actual_date;
+
+            // Create a new TNA entry
+            $tna = TNA::where('id', $request->tna_id)->first();
+            $tna->cutting_actual = $cutting_actual;
+            $tna->save();
+        });
+
+        return redirect()->route('tnas.index')->withMessage('TNA Cutting Plan updated successfully');
+    }
 }

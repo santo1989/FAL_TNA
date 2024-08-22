@@ -191,6 +191,9 @@ Route::middleware('auth')->group(function () {
     Route::post('/update_actual_TEX_EBO', [TNAController::class, 'update_actual_TEX_EBO'])->name('update_actual_TEX_EBO');
     //tnas_update
     Route::post('/tnas_update_TEX_EBO', [TNAController::class, 'tnas_update_TEX_EBO'])->name('tnas_update_TEX_EBO');
+    //Cutting_TNA
+    Route::post('/Cutting_actual', [TNAController::class, 'Cutting_actual'])->name('actual_cutting'); 
+    Route::post('/Cutting_plan', [TNAController::class, 'Cutting_plan'])->name('Cutting_plan');
 
     //tnas_dashboard
     Route::get('/tnas_dashboard', [TNAController::class, 'tnas_dashboard'])->name('tnas_dashboard');

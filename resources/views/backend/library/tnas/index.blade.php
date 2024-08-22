@@ -80,6 +80,7 @@
                                  </thead>
                                  <tbody class="text-nowrap">
                                      @forelse ($tnas as $tna)
+                                     {{-- @dd($tna) --}}
                                          <tr>
                                              <td>{{ $tna->buyer }}</td>
                                              <td class="text-wrap">{{ $tna->style }}</td>
@@ -112,111 +113,215 @@
                                                              class="btn btn-outline-primary"><i
                                                                  class="fas fa-calendar"></i>Plan</a>
                                                      @endif
-                                                     <form action="{{ route('tnas_close', ['tna' => $tna->id]) }}"
-                                                         method="POST" style="display:inline-block;">
-                                                         @csrf
-                                                         <input type="hidden" name="tna_id" value="{{ $tna->id }}">
-                                                         <button type="submit" class="btn btn-outline-danger"><i
-                                                                 class="fas fa-times"></i>close</button>
 
-                                                     </form>
-                                                     @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                                                         <form action="{{ route('tnas.destroy', $tna->id) }}"
-                                                             method="POST" style="display:inline-block;">
-                                                             @csrf
-                                                             @method('DELETE')
-                                                             <button type="submit" class="btn btn-outline-danger"><i
-                                                                     class="fas fa-trash"></i></button>
-                                                         </form>
-                                                     @endif
-                                                 @endcan
-                                             </td>
+                                                     @can('TNA-Factory')
+                                                       @if($tna->cutting_plan == null)
+                                                         <!--modal for creating a new Cutting plan date -->
+                                                         <button type="button" class="btn btn-outline-primary"
+                                                             data-bs-toggle="modal"
+                                                             data-bs-target="#staticBackdrop{{ $tna->id }}"><i
+                                                                 class='far fa-hand-scissors'></i>
+                                                             Cutting Plan
+                                                         </button>
+                                                         @endif
+                                                         @if($tna->cutting_actual == null)
+                                                         <!--modal for creating a new Cutting actual date -->
+                                                         <button type="button" class="btn btn-outline-secondary"
+                                                             data-bs-toggle="modal"
+                                                             data-bs-target="#staticBackdropActual{{ $tna->id }}">
+                                                             <i class='far fa-hand-scissors text-info'></i>
+                                                             Cutting Actual
+                                                         </button>
+                                                         @endif
+                                                         <!--modal for creating a new Cutting plan date Start -->
+                                                         <div class="modal fade" id="staticBackdrop{{ $tna->id }}"
+                                                             tabindex="-1" role="dialog" aria-labelledby="staticBackdropLabel"
+                                                             aria-hidden="true">
+                                                             <div class="modal-dialog modal-dialog-centered" role="document">
+                                                                 <div class="modal-content">
+                                                                     <div class="modal-header">
+                                                                         <h5 class="modal-title" id="staticBackdropLabel">
+                                                                             Create Cutting Plan</h5>
+                                                                         <button type="button" class="close"
+                                                                             data-bs-dismiss="modal" aria-label="Close">
+                                                                             <span aria-hidden="true">&times;</span>
+                                                                         </button>
+                                                                     </div>
+                                                                     <div class="modal-body">
+                                                                         <form action="{{ route('Cutting_plan') }}" method="POST" enctype="multipart/form-data">
+                                                                             @csrf
+                                                                             <input type="hidden" name="tna_id"
+                                                                                 value="{{ $tna->id }}">
+                                                                             <div class="form-group">
+                                                                                 <label for="cutting_plan_date">Cutting Plan
+                                                                                     Date</label>
+                                                                                 <input type="date" class="form-control"
+                                                                                     id="cutting_plan_date"
+                                                                                     name="cutting_plan_date" required>
+                                                                             </div>
+                                                                             <button type="submit"
+                                                                                 class="btn btn-primary">Submit</button>
+                                                                         </form>
+                                                                     </div>
+                                                                     <div class="modal-footer">
+                                                                         <button type="button" class="btn btn-secondary"
+                                                                             data-bs-dismiss="modal">Close</button>
+                                                                     </div>
+                                                                 </div>
+                                                             </div>
+                                                         </div>
+                                                         <!--modal for creating a new Cutting plan date End -->
+                                                         <!--modal for creating a new Cutting actual date start-->
+                                                         <div class="modal fade" id="staticBackdropActual{{ $tna->id }}"
+                                                             tabindex="-1" role="dialog"
+                                                             aria-labelledby="staticBackdropLabel" aria-hidden="true">
+                                                             <div class="modal-dialog modal-dialog-centered" role="document">
+                                                                 <div class="modal-content">
+                                                                     <div class="modal-header">
+                                                                         <h5 class="modal-title" id="staticBackdropLabel">
+                                                                             Create Actual Date</h5>
+                                                                         <button type="button" class="close"
+                                                                             data-bs-dismiss="modal" aria-label="Close">
+                                                                             <span aria-hidden="true">&times;</span>
+                                                                         </button>
+                                                                     </div>
+                                                                     <div class="modal-body">
+                                                                         <form action="{{ route('actual_cutting') }}" method="POST" enctype="multipart/form-data">
+                                                                             @csrf
+                                                                             <input type="hidden" name="tna_id"
+                                                                                 value="{{ $tna->id }}">
+                                                                             <div class="form-group">
+                                                                                 <label for="actual_date">Actual
+                                                                                     Date</label>
+                                                                                 <input type="date" class="form-control"
+                                                                                     id="actual_date" name="actual_date"
+                                                                                     required max="{{ date('Y-m-d') }}">
+                                                                             </div>
+                                                                             <button type="submit"
+                                                                                 class="btn btn-primary">Submit</button>
+                                                                         </form>
+                                                                     </div>
+                                                                     <div class="modal-footer">
+                                                                         <button type="button" class="btn btn-secondary"
+                                                                             data-bs-dismiss="modal">Close</button>
+                                                                     </div>
+                                                                 </div>
+                                                             </div>
+                                                         </div>
+                                                         <!--modal for creating a new Cutting actual date End-->
+
+
+
+                                             @endif
+                                             <form action="{{ route('tnas_close', ['tna' => $tna->id]) }}" method="POST"
+                                                 style="display:inline-block;">
+                                                 @csrf
+                                                 <input type="hidden" name="tna_id" value="{{ $tna->id }}">
+                                                 <button type="submit" class="btn btn-outline-danger"><i
+                                                         class="fas fa-times"></i>close</button>
+
+                                             </form>
+                                             @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
+                                                 <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST"
+                                                     style="display:inline-block;">
+                                                     @csrf
+                                                     @method('DELETE')
+                                                     <button type="submit" class="btn btn-outline-danger"><i
+                                                             class="fas fa-trash"></i></button>
+                                                 </form>
+                                             @endif
+                                         @endcan
+                                         </td>
                                          </tr>
                                      @empty
                                          <tr>
                                              <td colspan="10" class="text-center">No TNA Found</td>
                                          </tr>
-                                     @endforelse
-                                 </tbody>
-                             </table>
+                                         @endforelse
+                                     </tbody>
+                                 </table>
+                             </div>
                          </div>
                      </div>
                  </div>
              </div>
          </div>
-     </div>
 
-     <!--update_actual_TEX_EBO Modal start-->
-     <!-- Modal -->
-     <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
-         aria-labelledby="staticBackdropLabel" aria-hidden="true">
-         <div class="modal-dialog modal-lg">
-             <div class="modal-content">
-                 <div class="modal-header">
-                     <h1 class="modal-title fs-5" id="staticBackdropLabel">Update Common Date</h1>
-                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                 </div>
-                 <div class="modal-body">
-                     <form method="POST" action="{{ route('update_actual_TEX_EBO') }}" enctype="multipart/form-data">
-                         @csrf
-                         @method('POST')
-                         <table class="table">
-                             <tbody>
-                                 <tr>
-                                     <td class="create_label_column">Buyer</td>
-                                     <td class="create_input_column">
-                                         @php
-                                             $buyer = DB::table('buyers')->where('id', 11)->first();
-                                             $style_lists = DB::table('t_n_a_s')
-                                                 ->where('buyer_id', 11)
-                                                 ->distinct()
-                                                 ->pluck('style');
+         <!--update_actual_TEX_EBO Modal start-->
+         <!-- Modal -->
+         <div class="modal fade" id="staticBackdrop" data-bs-backdrop="static" data-bs-keyboard="false" tabindex="-1"
+             aria-labelledby="staticBackdropLabel" aria-hidden="true">
+             <div class="modal-dialog modal-lg">
+                 <div class="modal-content">
+                     <div class="modal-header">
+                         <h1 class="modal-title fs-5" id="staticBackdropLabel">Update Common Date</h1>
+                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                     </div>
+                     <div class="modal-body">
+                         <form method="POST" action="{{ route('update_actual_TEX_EBO') }}"
+                             enctype="multipart/form-data">
+                             @csrf
+                             @method('POST')
+                             <table class="table">
+                                 <tbody>
+                                     <tr>
+                                         <td class="create_label_column">Buyer</td>
+                                         <td class="create_input_column">
+                                             @php
+                                                 $buyer = DB::table('buyers')->where('id', 11)->first();
+                                                 $style_lists = DB::table('t_n_a_s')
+                                                     ->where('buyer_id', 11)
+                                                     ->distinct()
+                                                     ->pluck('style');
 
-                                         @endphp
-                                         <input type="hidden" name="buyer_id" id="buyer_id" class="form-control"
-                                             required value="11">
-                                         {{ $buyer->name }}
-                                     </td>
-                                     <td class="create_label_column">Style</td>
-                                     <td class="create_input_column">
-                                         <select class="form-select form-select-sm" aria-label="Small select example"
-                                             id="style" name="style" required>
-                                             <option selected>Select Style</option>
-                                             @forelse ($style_lists as $style_list)
-                                                 <option value="{{ $style_list }}">{{ $style_list }}</option>
-                                             @empty
-                                                 <option value="">No Style Found</option>
-                                             @endforelse
-                                         </select>
-                                     </td>
-                                     <td class="create_label_column">Shipment Month</td>
-                                     <td class="create_input_column">
-                                         <input type="month" name="shipment_etd" id="shipment_etd"
-                                             class="form-control" required>
-                                     </td>
-                                 </tr>
-                             </tbody>
-                         </table>
+                                             @endphp
+                                             <input type="hidden" name="buyer_id" id="buyer_id" class="form-control"
+                                                 required value="11">
+                                             {{ $buyer->name }}
+                                         </td>
+                                         <td class="create_label_column">Style</td>
+                                         <td class="create_input_column">
+                                             <select class="form-select form-select-sm" aria-label="Small select example"
+                                                 id="style" name="style" required>
+                                                 <option selected>Select Style</option>
+                                                 @forelse ($style_lists as $style_list)
+                                                     <option value="{{ $style_list }}">{{ $style_list }}</option>
+                                                 @empty
+                                                     <option value="">No Style Found</option>
+                                                 @endforelse
+                                             </select>
+                                         </td>
+                                         <td class="create_label_column">Shipment Month</td>
+                                         <td class="create_input_column">
+                                             <input type="month" name="shipment_etd" id="shipment_etd"
+                                                 class="form-control" required>
+                                         </td>
+                                     </tr>
+                                 </tbody>
+                             </table>
+                     </div>
+                     <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                         <button type="submit" class="btn btn-outline-success"><i class="fas fa-save"></i>
+                             Search TNA</button>
+                     </div>
+                     </form>
                  </div>
-                 <div class="modal-footer">
-                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                     <button type="submit" class="btn btn-outline-success"><i class="fas fa-save"></i>
-                         Search TNA</button>
-                 </div>
-                 </form>
              </div>
          </div>
-     </div>
-     <!--update_actual_TEX_EBO Modal End-->
+         <!--update_actual_TEX_EBO Modal End-->
 
 
-     <script>
-         $(document).ready(function() {
-             $('#buyer_assign_table').DataTable();
-         });
-     </script>
+         <script>
+             $(document).ready(function() {
+                 $('#buyer_assign_table').DataTable();
+             });
+
+             
+         </script>
 
 
 
 
- </x-backend.layouts.master>
+
+     </x-backend.layouts.master>
