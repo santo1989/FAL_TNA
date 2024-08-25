@@ -74,65 +74,41 @@
         }
     </style> --}}
 <style>
-    .bg-red {
-        background-color: red !important;
-        color: white;
-        font-weight: bold;
-    }
+            .bg-red {
+            background-color: red !important;
+            color: white;
+            font-weight: bold;
+        }
 
-    .bg-yellow {
-        background-color: yellow !important;
-        color: black;
-        font-weight: bold;
-    }
+        .bg-yellow {
+            background-color: yellow !important;
+            color: black;
+            font-weight: bold;
+        }
 
-    /* Make all table headers sticky horizontally */
-    thead th {
-        position: sticky;
-        top: 0;
-        background: #343a40;
-        color: white;
-        z-index: 20;
-    }
+         /* Sortable column styles */
+        .sortable {
+            cursor: pointer;
+        }
 
-    /* Make the first 4 columns sticky vertically with fixed widths and z-index */
-    tbody td:nth-child(1),
-    tbody td:nth-child(2),
-    tbody td:nth-child(3),
-    tbody td:nth-child(4) {
-        position: sticky;
-        background: #494747;
-        color: white;
-        padding: 5px;
-        z-index: 10;
-    }
+        .sortable:hover {
+            background-color: #f90303;
+        }
 
-    /* Hover effect on table rows */
-    #PrintTable tbody tr:hover td {
-        background-color: #ffffff00;
-    }
+ 
 
-    /* Change background color for the first 4 columns on hover */
-    #PrintTable tbody tr:hover td:nth-child(-n+4) {
-        background-color: #ffcc00;
-    }
 
-    /* Define column widths for the headers */
-    thead th:nth-child(1),
-    thead th:nth-child(2),
-    thead th:nth-child(3),
-    thead th:nth-child(4) {
-        width: auto; /* Default width for first 4 columns */
-    }
+        /* Hover effect on table rows */
+        #PrintTable tbody tr:hover td {
+            background-color: #ffffff00;
+        }
 
-    /* Sortable column styles */
-    .sortable {
-        cursor: pointer;
-    }
+        /* Change background color for the first 4 columns on hover */
+        #PrintTable tbody tr:hover td:nth-child(-n+4) {
+            background-color: #ffcc00;
+        }
 
-    .sortable:hover {
-        background-color: #f90303;
-    }
+
 </style>
 
 
@@ -158,7 +134,7 @@
                 </button>
                 @foreach ($buyerList as $buyer)
                     <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;"
-                        id="buyer-{{ $buyer->buyer }}-btn" onclick="filterByBuyer('{{ $buyer->buyer }}')">
+                        id="filter-buyer-btn" data-buyer="{{ $buyer->buyer }}">
 
                         {{ $buyer->buyer }}
                     </button>

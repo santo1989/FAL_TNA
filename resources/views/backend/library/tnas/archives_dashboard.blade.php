@@ -50,7 +50,7 @@
     <script src="{{ asset('js/push.min.js') }}"></script>
 
     <style>
-        .bg-red {
+            .bg-red {
             background-color: red !important;
             color: white;
             font-weight: bold;
@@ -61,6 +61,30 @@
             color: black;
             font-weight: bold;
         }
+
+         /* Sortable column styles */
+        .sortable {
+            cursor: pointer;
+        }
+
+        .sortable:hover {
+            background-color: #f90303;
+        }
+
+ 
+
+
+        /* Hover effect on table rows */
+        #PrintTable tbody tr:hover td {
+            background-color: #ffffff00;
+        }
+
+        /* Change background color for the first 4 columns on hover */
+        #PrintTable tbody tr:hover td:nth-child(-n+4) {
+            background-color: #ffcc00;
+        }
+
+
     </style>
 
 </head>
@@ -87,8 +111,8 @@
                 </button>
                 @foreach ($buyerList as $buyer)
                     <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;"
-                        id="buyer-{{ $buyer->buyer }}-btn" onclick="filterByBuyer('{{ $buyer->buyer }}')">
-                        {{-- <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div> --}}
+                        id="filter-buyer-btn" data-buyer="{{ $buyer->buyer }}">
+
                         {{ $buyer->buyer }}
                     </button>
                 @endforeach
@@ -331,7 +355,213 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
+ <script> 
+    document.addEventListener('DOMContentLoaded', function () {
+        const table = document.querySelector('#PrintTable');
+        const headers = table.querySelectorAll('thead th');
+        const rows = table.querySelectorAll('tbody tr');
+         const filterButtons = document.querySelectorAll('[data-buyer]');
+
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function () {
+            const buyer = this.getAttribute('data-buyer');
+            filterByBuyer(buyer); 
+            console.log(buyer);
+
+        });
+    });
+
+        // Function to calculate the maximum width of each visible column
+        function calculateColumnWidths() {
+            let columnWidths = Array.from(headers).map(header => header.offsetWidth);
+
+            // Update column widths based on the maximum content width of visible rows
+            rows.forEach(row => {
+                if (row.style.display !== 'none') { // Only consider visible rows
+                    row.querySelectorAll('td').forEach((cell, index) => {
+                        if (index < columnWidths.length) {
+                            const cellWidth = cell.scrollWidth;
+                            if (cellWidth > columnWidths[index]) {
+                                columnWidths[index] = cellWidth;
+                            }
+                        }
+                    });
+                }
+            });
+
+            return columnWidths;
+        }
+
+        // Function to set sticky column widths and positions
+        function updateStickyColumnWidths() {
+            const columnWidths = calculateColumnWidths();
+            let cumulativeWidth = 0;
+
+            headers.forEach((header, index) => {
+                if (index < 4) { // Adjust if more columns need to be sticky
+                    header.style.width = `${columnWidths[index]}px`;
+                    header.style.left = `${cumulativeWidth}px`;
+                    header.style.position = 'sticky';
+                    header.style.zIndex = '2';
+
+                    const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
+                    cells.forEach(cell => {
+                        if (cell.closest('tr').style.display !== 'none') { // Only update visible rows
+                            cell.style.width = `${columnWidths[index]}px`;
+                            cell.style.left = `${cumulativeWidth}px`;
+                            cell.style.position = 'sticky';
+                            cell.style.zIndex = '1';
+                            cell.style.background = '#fff';
+                        }
+                    });
+
+                    cumulativeWidth += columnWidths[index];
+                }
+            });
+        }
+
+        // Function to filter by buyer and update the sticky columns
+        function filterByBuyer(buyer) {
+            const allBuyersBtn = document.getElementById('all-buyers-btn');
+            allBuyersBtn.classList.remove('btn-primary');
+            allBuyersBtn.classList.add('btn-outline-primary');
+            allBuyersBtn.style.color = 'black';
+            allBuyersBtn.style.fontWeight = 'normal';
+
+            if (buyer === 'All Buyers') {
+                localStorage.removeItem('buyer');
+            } else {
+                localStorage.setItem('buyer', buyer);
+            }
+
+            const rows = document.querySelectorAll('#tnaTableBody tr');
+            rows.forEach(row => {
+                const buyerCell = row.querySelector('td:nth-child(2)');
+                if (buyer === 'All Buyers' || buyerCell.textContent === buyer) {
+                    row.style.display = '';
+                } else {
+                    row.style.display = 'none';
+                }
+            });
+
+            // Recalculate totals, averages, and update sticky columns
+            calculateTotalsAndAverages();
+            updateStickyColumnWidths();
+        }
+
+        // Initialize on page load
+        updateStickyColumnWidths();
+        window.addEventListener('resize', updateStickyColumnWidths);
+
+        // Event listener for "All Buyers" button
+        document.getElementById('all-buyers-btn').addEventListener('click', () => {
+            localStorage.removeItem('buyer');
+            const rows = document.querySelectorAll('#tnaTableBody tr');
+            rows.forEach(row => {
+                row.style.display = '';
+            });
+            calculateTotalsAndAverages();
+            updateStickyColumnWidths();
+        });
+
+        // On page load, check for stored buyer and filter if present
+        window.onload = function () {
+            const buyer = localStorage.getItem('buyer');
+            if (buyer) {
+                filterByBuyer(buyer);
+            } else {
+                calculateTotalsAndAverages();
+                updateStickyColumnWidths();
+            }
+        };
+    });
+</script> 
+
+
+
     <script>
+        function openModal(cell) {
+            const id = cell.getAttribute('data-id');
+            const task = cell.getAttribute('data-task');
+            const planDate = cell.getAttribute('data-plan-date');
+            document.getElementById('tnaId').value = id;
+            document.getElementById('taskName').value = task;
+
+            if (task === 'print_strike_off_submission_actual' || task === 'fit_sample_submission_actual') {
+                document.getElementById('dateInput').style.display = 'block';
+                document.getElementById('naCheckbox').style.display = 'block';
+            } else {
+                document.getElementById('dateInput').style.display = 'block';
+                document.getElementById('naCheckbox').style.display = 'none';
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('explanation').style.display = planDate && new Date(planDate) < new Date(today) ?
+                'block' : 'none';
+
+            $('#dateModal').modal('show');
+        }
+
+        function submitDate() {
+            const id = document.getElementById('tnaId').value;
+            const task = document.getElementById('taskName').value;
+            const date = document.getElementById('dateInput').value;
+            const naChecked = document.getElementById('naButton').checked;
+            const explanation = document.getElementById('explanation').value;
+
+            $.ajax({
+                url: '/update-tna-date', // Your route to handle the date update
+                type: 'POST',
+                data: {
+                    _token: $('input[name="_token"]').val(),
+                    id: id,
+                    task: task,
+                    date: naChecked ? 'N/A' : date,
+                    explanation: explanation
+                },
+                success: function(response) {
+                    // Optionally, update the cell content and class here without reloading
+                    location.reload();
+                }
+            });
+
+            $('#dateModal').modal('hide');
+        }
+
+        // Reset modal form on close
+        $('#dateModal').on('hidden.bs.modal', function() {
+            $('#dateForm').trigger('reset');
+        });
+    </script>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Make the "Shipment/ETD" column sortable
+            document.getElementById('shortablehead').addEventListener('click', function() {
+                sortTable(7); // Assuming this is the index of the column you want to sort
+            });
+        });
+
+        function sortTable(columnIndex) {
+            const table = document.getElementById('PrintTable');
+            const rows = Array.from(table.querySelectorAll('tbody tr'));
+
+            rows.sort((a, b) => {
+                const aText = a.children[columnIndex].textContent.trim();
+                const bText = b.children[columnIndex].textContent.trim();
+                return aText.localeCompare(bText, undefined, {
+                    numeric: true
+                });
+            });
+
+            rows.forEach(row => table.querySelector('tbody').appendChild(row));
+            calculateTotalsAndAverages(); // Recalculate after sorting
+        }
+
+
+
+
+
         // Function to calculate total quantity, average lead time, and average order free time
         function calculateTotalsAndAverages() {
             const visibleRows = document.querySelectorAll('#tnaTableBody tr:not([style*="display: none"])');
@@ -351,7 +581,7 @@
                 totalLeadTime += parseInt(leadTimeCell.textContent);
             });
 
-            // Calculate average lead time and show in celing format
+            // Calculate average lead time and show ceil value
             document.getElementById('AvgLeadTime').textContent = Math.ceil(totalLeadTime / visibleRows.length);
 
             // Calculate average order free time
@@ -361,125 +591,143 @@
                 totalOrderFreeTime += parseInt(orderFreeTimeCell.textContent);
             });
 
-            // Calculate average order free time and show in celing format
+            // Calculate average order free time and show ceil value
             document.getElementById('AvgOrderFreeTime').textContent = Math.ceil(totalOrderFreeTime / visibleRows.length);
         }
 
-        // Function to filter by buyer and recalculate totals and averages
-        function filterByBuyer(buyer) {
-            const allBuyersBtn = document.getElementById('all-buyers-btn');
-            allBuyersBtn.classList.remove('btn-primary');
-            allBuyersBtn.classList.add('btn-outline-primary');
-            allBuyersBtn.style.color = 'black';
-            allBuyersBtn.style.fontWeight = 'normal';
+        // // Function to filter by buyer and recalculate totals and averages
+        // function filterByBuyer(buyer) {
+        //     const allBuyersBtn = document.getElementById('all-buyers-btn');
+        //     allBuyersBtn.classList.remove('btn-primary');
+        //     allBuyersBtn.classList.add('btn-outline-primary');
+        //     allBuyersBtn.style.color = 'black';
+        //     allBuyersBtn.style.fontWeight = 'normal';
 
-            if (buyer === 'All Buyers') {
-                localStorage.removeItem('buyer');
-            } else {
-                localStorage.setItem('buyer', buyer);
-            }
+        //     if (buyer === 'All Buyers') {
+        //         localStorage.removeItem('buyer');
+        //     } else {
+        //         localStorage.setItem('buyer', buyer);
+        //     }
 
-            const rows = document.querySelectorAll('#tnaTableBody tr');
-            rows.forEach(row => {
-                if (buyer === 'All Buyers') {
-                    row.style.display = '';
-                } else {
-                    const buyerCell = row.querySelector('td:nth-child(2)');
-                    if (buyerCell.textContent !== buyer) {
-                        row.style.display = 'none';
-                    } else {
-                        row.style.display = '';
-                    }
-                }
-            });
+        //     const rows = document.querySelectorAll('#tnaTableBody tr');
+        //     rows.forEach(row => {
+        //         if (buyer === 'All Buyers') {
+        //             row.style.display = '';
+        //         } else {
+        //             const buyerCell = row.querySelector('td:nth-child(2)');
+        //             if (buyerCell.textContent !== buyer) {
+        //                 row.style.display = 'none';
+        //             } else {
+        //                 row.style.display = '';
+        //             }
+        //         }
+        //     });
 
-            // Recalculate totals and averages after filtering
-            calculateTotalsAndAverages();
+        //     // Recalculate totals and averages after filtering
+        //     calculateTotalsAndAverages();
+        //     // Update the sticky header and cells
+        //     updateStickyColumnWidths();
+        // }
+
+        // // Event listener for "All Buyers" button to show all rows
+        // document.getElementById('all-buyers-btn').addEventListener('click', () => {
+        //     localStorage.removeItem('buyer');
+        //     const rows = document.querySelectorAll('#tnaTableBody tr');
+        //     rows.forEach(row => {
+        //         row.style.display = '';
+        //     });
+        //     calculateTotalsAndAverages();
+
+        // });
+
+        // // Initial calculation
+        // calculateTotalsAndAverages();
+
+        // Function to generate a hash for the table's current content
+        function getTableHash() {
+            const tableContent = document.getElementById('tnaTableBody').innerHTML;
+            // Simple hash function for the content
+            return Array.from(tableContent).reduce((hash, char) => {
+                hash = ((hash << 5) - hash) + char.charCodeAt(0);
+                return hash & hash; // Convert to 32bit integer
+            }, 0);
         }
 
-        // Event listener for "All Buyers" button to show all rows
-        document.getElementById('all-buyers-btn').addEventListener('click', () => {
-            localStorage.removeItem('buyer');
-            const rows = document.querySelectorAll('#tnaTableBody tr');
-            rows.forEach(row => {
-                row.style.display = '';
-            });
-            calculateTotalsAndAverages();
-        });
-
-        // Initial calculation
-        calculateTotalsAndAverages();
+        // Initial hash of the table data
+        let currentTableHash = getTableHash();
 
         // Periodically update the table
         setInterval(() => {
             $.ajax({
-                url: "{{ route('archives_dashboard_update') }}",
+                url: "{{ route('tnas_dashboard_update') }}",
                 type: 'GET',
                 success: function(data) {
-                    // If localStorage has buyer name then show the buyer name data after page load else show all buyers data and calculateTotalsAndAverages function call to calculate total quantity, average lead time, and average order free time
-                    const buyer = localStorage.getItem('buyer');
+                    const newTableHash = getTableHash(data);
 
-                    // If after page load buyer name change then clean the localStorage and store the new buyer name for the next time page load to show the same buyer data
-                    if (buyer && !data.includes(buyer)) {
-                        localStorage.removeItem('buyer');
+                    // Update only if the new data is different
+                    if (currentTableHash !== newTableHash) {
+                        document.getElementById('tnaTableBody').innerHTML = data;
+                        currentTableHash = newTableHash;
+
+                        const buyer = localStorage.getItem('buyer');
+                        if (buyer) {
+                            filterByBuyer(buyer);
+                        } else {
+                            calculateTotalsAndAverages();
+                        }
                     }
-
-                    document.getElementById('tnaTableBody').innerHTML = data;
-
-                    if (buyer) {
-                        filterByBuyer(buyer);
-                    } else {
-                        calculateTotalsAndAverages();
-                    }
+                },
+                error: function(error) {
+                    console.error('Ajax error:', error);
                 }
             });
-        }, 5000);
+        }, 500000);
 
-        // On page load, check for stored buyer and filter if present
-        window.onload = function() {
-            const buyer = localStorage.getItem('buyer');
-            if (buyer) {
-                filterByBuyer(buyer);
-            } else {
-                calculateTotalsAndAverages();
-            }
-        };
+        // // On page load, check for stored buyer and filter if present
+        // window.onload = function() {
+        //     const buyer = localStorage.getItem('buyer');
+        //     if (buyer) {
+        //         filterByBuyer(buyer);
+        //     } else {
+        //         calculateTotalsAndAverages();
+        //     }
+        // };
 
         $(function() {
             $('[data-toggle="tooltip"]').tooltip();
         });
 
-        //download table data in excel format with table style 
         function downloadExcel() {
             var tab_text = "<table border='2px'><tr bgcolor='#87AFC6'>";
-            var textRange;
-            var j = 0;
-            tab = document.getElementById('PrintTable'); // id of table
+            var tab = document.getElementById('PrintTable'); // ID of the table
 
-            for (j = 0; j < tab.rows.length; j++) {
-                tab_text = tab_text + tab.rows[j].innerHTML + "</tr>";
-                //tab_text=tab_text+"</tr>";
+            // Loop through each row in the table
+            for (var j = 0; j < tab.rows.length; j++) {
+                tab_text += "<tr>" + tab.rows[j].innerHTML + "</tr>";
             }
 
-            tab_text = tab_text + "</table>";
-            tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, ""); //remove if u want links in your table
-            tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // remove if u want images in your table
-            tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // reomves input params
+            tab_text += "</table>";
+            tab_text = tab_text.replace(/<A[^>]*>|<\/A>/g, ""); // Remove links
+            tab_text = tab_text.replace(/<img[^>]*>/gi, ""); // Remove images
+            tab_text = tab_text.replace(/<input[^>]*>|<\/input>/gi, ""); // Remove inputs
 
-            var ua = window.navigator.userAgent;
-            var msie = ua.indexOf("MSIE ");
+            // Create a Blob with the table data
+            var blob = new Blob([tab_text], {
+                type: 'application/vnd.ms-excel'
+            });
 
-            if (msie > 0 || !!navigator.userAgent.match(/Trident.*rv\:11\./)) // If Internet Explorer
-            {
-                txtArea1.document.open("txt/html", "replace");
-                txtArea1.document.write(tab_text);
-                txtArea1.document.close();
-                txtArea1.focus();
-                sa = txtArea1.document.execCommand("SaveAs", true, "Say Thanks to Sumit.xls");
-            } else //other browser not tested on IE 11
-                sa = window.open('data:application/vnd.ms-excel,' + encodeURIComponent(tab_text));
+            // Create a link element
+            var link = document.createElement('a');
+            link.href = URL.createObjectURL(blob);
 
-            return (sa);
+            link.download = 'table-data.xls'; // Filename for the downloaded file
+
+            // Append the link to the body and trigger the download
+            document.body.appendChild(link);
+            link.click();
+
+            // Clean up
+            document.body.removeChild(link);
         }
     </script>
 
