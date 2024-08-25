@@ -73,67 +73,68 @@
             /* Light background on hover */
         }
     </style> --}}
-<style>
-    .bg-red {
-        background-color: red !important;
-        color: white;
-        font-weight: bold;
-    }
+    <style>
+        .bg-red {
+            background-color: red !important;
+            color: white;
+            font-weight: bold;
+        }
 
-    .bg-yellow {
-        background-color: yellow !important;
-        color: black;
-        font-weight: bold;
-    }
+        .bg-yellow {
+            background-color: yellow !important;
+            color: black;
+            font-weight: bold;
+        }
 
-    /* Make all table headers sticky horizontally */
-    thead th {
-        position: sticky;
-        top: 0;
-        background: #343a40;
-        color: white;
-        z-index: 20;
-    }
+        /* Make all table headers sticky horizontally */
+        thead th {
+            position: sticky;
+            top: 0;
+            background: #343a40;
+            color: white;
+            z-index: 20;
+        }
 
-    /* Make the first 4 columns sticky vertically with fixed widths and z-index */
-    tbody td:nth-child(1),
-    tbody td:nth-child(2),
-    tbody td:nth-child(3),
-    tbody td:nth-child(4) {
-        position: sticky;
-        background: #494747;
-        color: white;
-        padding: 5px;
-        z-index: 10;
-    }
+        /* Make the first 4 columns sticky vertically with fixed widths and z-index */
+        tbody td:nth-child(1),
+        tbody td:nth-child(2),
+        tbody td:nth-child(3),
+        tbody td:nth-child(4) {
+            position: sticky;
+            background: #494747;
+            color: white;
+            padding: 5px;
+            z-index: 10;
+        }
 
-    /* Hover effect on table rows */
-    #PrintTable tbody tr:hover td {
-        background-color: #ffffff00;
-    }
+        /* Hover effect on table rows */
+        #PrintTable tbody tr:hover td {
+            background-color: #ffffff00;
+        }
 
-    /* Change background color for the first 4 columns on hover */
-    #PrintTable tbody tr:hover td:nth-child(-n+4) {
-        background-color: #ffcc00;
-    }
+        /* Change background color for the first 4 columns on hover */
+        #PrintTable tbody tr:hover td:nth-child(-n+4) {
+            background-color: #ffcc00;
+        }
 
-    /* Define column widths for the headers */
-    thead th:nth-child(1),
-    thead th:nth-child(2),
-    thead th:nth-child(3),
-    thead th:nth-child(4) {
-        width: 150px; /* Default width for first 4 columns */
-    }
+        /* Define column widths for the headers */
+        thead th:nth-child(1),
+        thead th:nth-child(2),
+        thead th:nth-child(3),
+        thead th:nth-child(4) {
+            width: 150px;
+            /* Default width for first 4 columns */
+        }
 
-    /* Sortable column styles */
-    .sortable {
-        cursor: pointer;
-    }
+        /* Sortable column styles */
+        .sortable {
+            cursor: pointer;
+        }
 
-    .sortable:hover {
-        background-color: #f90303;
-    }
-</style>
+        .sortable:hover {
+            background-color: #f90303;
+        }
+    </style>
 
 
     <div class="container-fluid pt-2">
@@ -141,7 +142,7 @@
                 width="70px">
             TNA Dashboard</h4>
         <div class="row justify-content-center pb-2">
-              @php
+            @php
                 // Retrieve the user's role and assigned buyers
 $user = auth()->user();
 $buyerIds = DB::table('buyer_assigns')
@@ -180,7 +181,7 @@ $buyerIds = DB::table('buyer_assigns')
 
         </div>
 
-         {{-- <div class="row justify-content-center pb-2"> 
+        {{-- <div class="row justify-content-center pb-2"> 
             <div class="col-12">
                 {{ $tnas->links() }}
             </div> 
@@ -505,51 +506,51 @@ $buyerIds = DB::table('buyer_assigns')
         //     window.addEventListener('resize', updateStickyColumns);
         // });
         document.addEventListener('DOMContentLoaded', function() {
-    const table = document.querySelector('#PrintTable');
-    const headers = table.querySelectorAll('thead th');
-    const rows = table.querySelectorAll('tbody tr');
+            const table = document.querySelector('#PrintTable');
+            const headers = table.querySelectorAll('thead th');
+            const rows = table.querySelectorAll('tbody tr');
 
-    // Function to calculate the maximum width of each column
-    function calculateColumnWidths() {
-        let columnWidths = Array.from(headers).map(header => header.offsetWidth);
+            // Function to calculate the maximum width of each column
+            function calculateColumnWidths() {
+                let columnWidths = Array.from(headers).map(header => header.offsetWidth);
 
-        // Update column widths based on the maximum content width
-        rows.forEach(row => {
-            row.querySelectorAll('td').forEach((cell, index) => {
-                if (index < columnWidths.length) {
-                    const cellWidth = cell.scrollWidth;
-                    if (cellWidth > columnWidths[index]) {
-                        columnWidths[index] = cellWidth;
+                // Update column widths based on the maximum content width
+                rows.forEach(row => {
+                    row.querySelectorAll('td').forEach((cell, index) => {
+                        if (index < columnWidths.length) {
+                            const cellWidth = cell.scrollWidth;
+                            if (cellWidth > columnWidths[index]) {
+                                columnWidths[index] = cellWidth;
+                            }
+                        }
+                    });
+                });
+
+                return columnWidths;
+            }
+
+            // Function to set sticky column widths
+            function updateStickyColumnWidths() {
+                const columnWidths = calculateColumnWidths();
+
+                headers.forEach((header, index) => {
+                    if (index < script 4) { // Adjust if more columns need to be sticky
+                        header.style.width = `${columnWidths[index]}px`;
+                        const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
+                        cells.forEach(cell => {
+                            cell.style.width = `${columnWidths[index]}px`;
+                            cell.style.left =
+                                `${columnWidths.slice(0, index).reduce((a, b) => a + b, 0)}px`;
+                        });
                     }
-                }
-            });
-        });
-
-        return columnWidths;
-    }
-
-    // Function to set sticky column widths
-    function updateStickyColumnWidths() {
-        const columnWidths = calculateColumnWidths();
-
-        headers.forEach((header, index) => {
-            if (index < 4) { // Adjust if more columns need to be sticky
-                header.style.width = `${columnWidths[index]}px`;
-                const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
-                cells.forEach(cell => {
-                    cell.style.width = `${columnWidths[index]}px`;
-                    cell.style.left = `${columnWidths.slice(0, index).reduce((a, b) => a + b, 0)}px`;
                 });
             }
+
+            // Update sticky columns when the page loads or when the table size changes
+            updateStickyColumnWidths();
+            window.addEventListener('resize', updateStickyColumnWidths);
         });
-    }
-
-    // Update sticky columns when the page loads or when the table size changes
-    updateStickyColumnWidths();
-    window.addEventListener('resize', updateStickyColumnWidths);
-});
-
-    </>
+    </script>
 
 
     <script>
