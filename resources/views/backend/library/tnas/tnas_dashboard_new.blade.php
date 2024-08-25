@@ -203,6 +203,7 @@
                     <th colspan="2">Bulk Fabric Dyeing</th>
                     <th colspan="2">Bulk Fabric Delivery</th>
                     <th colspan="2">PP Meeting</th>
+                    <th colspan="2">Cutting</th>
                     <th colspan="2">ETD</th>
 
                 </tr>
@@ -211,6 +212,8 @@
                     <th colspan="2"></th>
                     <th><label id="AvgLeadTime"></label></th>
                     <th><label id="AvgOrderFreeTime"></label></th>
+                    <th>Plan</th>
+                    <th>Actual</th>
                     <th>Plan</th>
                     <th>Actual</th>
                     <th>Plan</th>
@@ -316,7 +319,7 @@
                             @endif
 
                         </td>
-                        @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'bulk_accessories_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'etd'] as $task)
+                        @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'bulk_accessories_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'cutting', 'etd'] as $task)
                             @foreach (['plan', 'actual'] as $type)
                                 @php
                                     $date = $tna->{$task . '_' . $type};
