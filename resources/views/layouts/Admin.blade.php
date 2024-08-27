@@ -152,7 +152,7 @@
 
                                 </div>
 
-                                 <div class="col-3 pt-1 pb-1">
+                                <div class="col-3 pt-1 pb-1">
                                     <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
                                         href="{{ route('jobs.index') }}">
                                         <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
@@ -266,57 +266,58 @@
                     @endcan
                 </div>
             </div>
-        </div>
-    </div>
-    <div class="col-12">
-        <div class="card">
-            <div class="text-left p-1 card-header">
-                Reports
-            </div>
 
-            <div class="card-body">
-                <div class="row justify-content-center">
-                    <div class="col-3 pt-1 pb-1">
-                        <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
-                            href="{{ route('tnas_dashboard') }}" target="_blank">
-                            <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
-                            TNA Dashboard
-                        </a>
+            <div class="col-12">
+                <div class="card">
+                    <div class="text-left p-1 card-header">
+                        Reports
+                    </div>
 
+                    <div class="card-body">
+                        <div class="row justify-content-center">
+                            <div class="col-3 pt-1 pb-1">
+                                <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                    href="{{ route('tnas_dashboard') }}" target="_blank">
+                                    <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                    TNA Dashboard
+                                </a>
+
+                            </div>
+                            @if (Auth()->user()->role_id == 1 || Auth()->user()->role_id == 4)
+                                <div class="col-3 pt-1 pb-1">
+                                    <a href="{{ route('monthly_order_summary') }}"
+                                        class="btn btn-sm btn-outline-primary" style="width: 10rem;" target="_blank">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
+                                        Monthly Order Summary
+                                    </a>
+                                </div>
+                                <div class="col-3 pt-1 pb-1">
+                                    <a href="{{ route('quantity_wise_summary') }}"
+                                        class="btn btn-sm btn-outline-primary" style="width: 10rem;" target="_blank">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
+                                        Quantity wise Summary
+                                    </a>
+                                </div>
+                                <div class="col-3 pt-1 pb-1">
+                                    <a href="{{ route('item_wise_summary') }}" class="btn btn-sm btn-outline-primary"
+                                        style="width: 10rem;" target="_blank">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        Item wise Summary
+                                    </a>
+                                </div>
+                                <div class="col-3 pt-1 pb-1">
+                                    <a href="{{ route('delivery_summary') }}" class="btn btn-sm btn-outline-primary"
+                                        style="width: 10rem;" target="_blank">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        Delivery Summary
+                                    </a>
+                                </div>
+                            @endif
+                        </div>
                     </div>
-                    @if (Auth()->user()->role_id == 1 || Auth()->user()->role_id == 4)
-                        
-                  
-                    <div class="col-3 pt-1 pb-1">
-                        <a href="{{ route('monthly_order_summary') }}" class="btn btn-sm btn-outline-primary"
-                            style="width: 10rem;" target="_blank">
-                            <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
-                            Monthly Order Summary</a>
-                    </div>
-                    <div class="col-3 pt-1 pb-1">
-                        <a href="{{ route('quantity_wise_summary') }}" class="btn btn-sm btn-outline-primary"
-                            style="width: 10rem;" target="_blank">
-                            <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
-                            Quantity wise Summary</a>
-                    </div>
-                    <div class="col-3 pt-1 pb-1">
-                        <a href="{{ route('item_wise_summary') }}" class="btn btn-sm btn-outline-primary"
-                            style="width: 10rem;" target="_blank">
-                            <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
-                            Item wise Summary</a>
-                    </div>
-                    <div class="col-3 pt-1 pb-1">
-                        <a href="{{ route('delivery_summary') }}" class="btn btn-sm btn-outline-primary"
-                            style="width: 10rem;" target="_blank">
-                            <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
-                            Delivery Summary</a>
-                    </div>
-                  @endif
                 </div>
             </div>
         </div>
-    </div>
-    </div>
     </div>
     <script>
         //     const iconPath = '{{ asset('logo.PNG') }}';
