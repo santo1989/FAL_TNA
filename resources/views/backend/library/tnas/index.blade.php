@@ -22,7 +22,7 @@
                                  ->count();
                              // dd($marchent_buyer_assigns )
                          @endphp
-                         @if ($marchent_buyer_assigns > 0 || auth()->user()->id == 1)
+                         @if ($marchent_buyer_assigns > 0 || auth()->user()->id == 1 || auth()->user()->role_id == 4)
                              <!-- Button trigger modal of update_actual_TEX_EBO-->
                              <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
                                  data-bs-target="#staticBackdrop">
@@ -80,7 +80,7 @@
                                  </thead>
                                  <tbody class="text-nowrap">
                                      @forelse ($tnas as $tna)
-                                     {{-- @dd($tna) --}}
+                                         {{-- @dd($tna) --}}
                                          <tr>
                                              <td>{{ $tna->buyer }}</td>
                                              <td class="text-wrap">{{ $tna->style }}</td>
@@ -115,23 +115,23 @@
                                                      @endif
 
                                                      @can('TNA-Factory')
-                                                       @if($tna->cutting_plan == null)
-                                                         <!--modal for creating a new Cutting plan date -->
-                                                         <button type="button" class="btn btn-outline-primary"
-                                                             data-bs-toggle="modal"
-                                                             data-bs-target="#staticBackdrop{{ $tna->id }}"><i
-                                                                 class='far fa-hand-scissors'></i>
-                                                             Cutting Plan
-                                                         </button>
+                                                         @if ($tna->cutting_plan == null)
+                                                             <!--modal for creating a new Cutting plan date -->
+                                                             <button type="button" class="btn btn-outline-primary"
+                                                                 data-bs-toggle="modal"
+                                                                 data-bs-target="#staticBackdrop{{ $tna->id }}"><i
+                                                                     class='far fa-hand-scissors'></i>
+                                                                 Cutting Plan
+                                                             </button>
                                                          @endif
-                                                         @if($tna->cutting_actual == null)
-                                                         <!--modal for creating a new Cutting actual date -->
-                                                         <button type="button" class="btn btn-outline-secondary"
-                                                             data-bs-toggle="modal"
-                                                             data-bs-target="#staticBackdropActual{{ $tna->id }}">
-                                                             <i class='far fa-hand-scissors text-info'></i>
-                                                             Cutting Actual
-                                                         </button>
+                                                         @if ($tna->cutting_actual == null)
+                                                             <!--modal for creating a new Cutting actual date -->
+                                                             <button type="button" class="btn btn-outline-secondary"
+                                                                 data-bs-toggle="modal"
+                                                                 data-bs-target="#staticBackdropActual{{ $tna->id }}">
+                                                                 <i class='far fa-hand-scissors text-info'></i>
+                                                                 Cutting Actual
+                                                             </button>
                                                          @endif
                                                          <!--modal for creating a new Cutting plan date Start -->
                                                          <div class="modal fade" id="staticBackdrop{{ $tna->id }}"
@@ -148,7 +148,8 @@
                                                                          </button>
                                                                      </div>
                                                                      <div class="modal-body">
-                                                                         <form action="{{ route('Cutting_plan') }}" method="POST" enctype="multipart/form-data">
+                                                                         <form action="{{ route('Cutting_plan') }}"
+                                                                             method="POST" enctype="multipart/form-data">
                                                                              @csrf
                                                                              <input type="hidden" name="tna_id"
                                                                                  value="{{ $tna->id }}">
@@ -186,7 +187,8 @@
                                                                          </button>
                                                                      </div>
                                                                      <div class="modal-body">
-                                                                         <form action="{{ route('actual_cutting') }}" method="POST" enctype="multipart/form-data">
+                                                                         <form action="{{ route('actual_cutting') }}"
+                                                                             method="POST" enctype="multipart/form-data">
                                                                              @csrf
                                                                              <input type="hidden" name="tna_id"
                                                                                  value="{{ $tna->id }}">
@@ -316,8 +318,6 @@
              $(document).ready(function() {
                  $('#buyer_assign_table').DataTable();
              });
-
-             
          </script>
 
 
