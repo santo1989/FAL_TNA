@@ -74,7 +74,7 @@
         }
     </style> --}}
     <style>
-                .bg-red {
+        .bg-red {
             background-color: red !important;
             color: white;
             font-weight: bold;
@@ -86,7 +86,7 @@
             font-weight: bold;
         }
 
-         /* Sortable column styles */
+        /* Sortable column styles */
         .sortable {
             cursor: pointer;
         }
@@ -95,7 +95,7 @@
             background-color: #f90303;
         }
 
- 
+
 
 
         /* Hover effect on table rows */
@@ -107,8 +107,6 @@
         #PrintTable tbody tr:hover td:nth-child(-n+4) {
             background-color: #ffcc00;
         }
-
-
     </style>
 
 
@@ -145,8 +143,8 @@ $buyerIds = DB::table('buyer_assigns')
                     All Buyers
                 </button>
                 @foreach ($buyerList as $buyer)
-                    <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;"
-                        id="filter-buyer-btn" data-buyer="{{ $buyer->buyer }}">
+                    <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;" id="filter-buyer-btn"
+                        data-buyer="{{ $buyer->buyer }}">
 
                         {{ $buyer->buyer }}
                     </button>
@@ -315,49 +313,39 @@ $buyerIds = DB::table('buyer_assigns')
                                     $date = $tna->{$task . '_' . $type};
                                     $cellClass = '';
                                     $explanation = ''; // Default explanation to empty
-                                    if ($date && $date != 'N/A') {
-                                        $today = \Carbon\Carbon::now();
-                                        $cellDate = \Carbon\Carbon::parse($date);
-                                        $diffDays = $today->diffInDays($cellDate, false);
 
-                                        // if actual date is empty and plane date have value then if plan date is today or past then bg color red else plan date before 2 days then bg color yellow else bg color light example: if plan date is 10-10-2021 and actual date is empty and today date is 10-10-2021 then bg color red if plan date is 8-10-2021 and actual date is empty then bg color yellow if plan date is 9-10-2021 and actual date is empty then bg color light
-                                        if ($type === 'plan' && empty($tna->{$task . '_actual'})) {
-                                            if ($cellDate->isToday() || $cellDate->lt($today)) {
-                                                $cellClass = 'bg-red';
-                                            } elseif ($diffDays <= 2) {
-                                                $cellClass = 'bg-yellow';
-                                            } else {
-                                                $cellClass = 'bg-light';
+                                    // Check if $date is a valid date and not 'N/A'
+                                    if ($date && $date !== 'N/A' && strtotime($date) !== false) {
+                                        try {
+                                            $cellDate = \Carbon\Carbon::parse($date);
+                                            $today = \Carbon\Carbon::now();
+                                            $diffDays = $today->diffInDays($cellDate, false);
+
+                                            if ($type === 'plan' && empty($tna->{$task . '_actual'})) {
+                                                if ($cellDate->isToday() || $cellDate->lt($today)) {
+                                                    $cellClass = 'bg-red';
+                                                } elseif ($diffDays <= 2) {
+                                                    $cellClass = 'bg-yellow';
+                                                } else {
+                                                    $cellClass = 'bg-light';
+                                                }
                                             }
+
+                                            if ($type === 'actual' && $tna->{$task . '_plan'}) {
+                                                $planDate = \Carbon\Carbon::parse($tna->{$task . '_plan'});
+                                                if ($cellDate->gt($planDate)) {
+                                                    $cellClass = 'text-danger font-weight-bold';
+                                                }
+                                            }
+                                        } catch (\Exception $e) {
+                                            // Log the error or handle it appropriately
+                                            $date = ''; // Reset the date if parsing fails
                                         }
-
-                                        //if actual date and plan date both have value then check if actual date is same or date over then plan date then bg color red expample: if plan date is 10-10-2021 and actual date is 10-10-2021 or 12-10-2021 then bg color red
-
-                                        // if ($type === 'actual' && $tna->{$task . '_plan'}) {
-                                        //     $planDate = \Carbon\Carbon::parse($tna->{$task . '_plan'});
-                                        //     if ($cellDate->isToday() || $cellDate->gt($planDate)) {
-                                        //         $cellClass = 'bg-red';
-                                        //     }
-                                        // }
-
-                                        //if actual date and plan date both have value then check if actual date is date over then plan date then text front red and blod expample: if plan date is 10-10-2021 and actual date is  12-10-2021 then text front red and blod
-                                        if ($type === 'actual' && $tna->{$task . '_plan'}) {
-                                            $planDate = \Carbon\Carbon::parse($tna->{$task . '_plan'});
-                                            $actualDate = \Carbon\Carbon::parse($date);
-                                            if ($cellDate->gt($planDate)) {
-                                                $cellClass = 'text-danger font-weight-bold';
-                                            }
-                                            if ($cellDate->gt($actualDate)) {
-                                                $cellClass = 'bg-light';
-                                            }
-                                        }
-
-                                        //explanation show from tna_explanations table if plan date is over from the actual date then show explanation in bootstrap tooltip
-                                        // Retrieve explanation for the actual date
-                                    } elseif ($date == 'N/A') {
-                                        $date = 'N/A';
+                                    } elseif ($date === 'N/A') {
+                                        $cellClass = 'text-muted'; // Optional: add a class for 'N/A'
                                     }
                                 @endphp
+
                                 <!-- if actual date is empty then modal button show else show date -->
                                 @if ($type === 'actual' && empty($date))
                                     @if (auth()->user()->role_id == 3)
@@ -366,7 +354,6 @@ $buyerIds = DB::table('buyer_assigns')
                                                 ->where('buyer_id', $tna->buyer_id)
                                                 ->where('user_id', auth()->user()->id)
                                                 ->count();
-                                            // dd($buyer_privilage);
                                         @endphp
                                         @if ($buyer_privilage > 0)
                                             <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
@@ -384,7 +371,6 @@ $buyerIds = DB::table('buyer_assigns')
                                                 ->where('perticulars', $task . '_' . $type)
                                                 ->where('tna_id', $tna->id)
                                                 ->first()->explanation ?? '';
-                                        // dd($tna->id);
                                     @endphp
                                     <td class="{{ $cellClass }}" data-toggle="tooltip" data-placement="top"
                                         title="{{ $explanation }}">
@@ -393,6 +379,7 @@ $buyerIds = DB::table('buyer_assigns')
                                 @endif
                             @endforeach
                         @endforeach
+
 
                     </tr>
                 @empty
@@ -455,127 +442,128 @@ $buyerIds = DB::table('buyer_assigns')
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
-   <script> 
-    document.addEventListener('DOMContentLoaded', function () {
-        const table = document.querySelector('#PrintTable');
-        const headers = table.querySelectorAll('thead th');
-        const rows = table.querySelectorAll('tbody tr');
-         const filterButtons = document.querySelectorAll('[data-buyer]');
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const table = document.querySelector('#PrintTable');
+            const headers = table.querySelectorAll('thead th');
+            const rows = table.querySelectorAll('tbody tr');
+            const filterButtons = document.querySelectorAll('[data-buyer]');
 
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function () {
-            const buyer = this.getAttribute('data-buyer');
-            filterByBuyer(buyer); 
-            console.log(buyer);
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const buyer = this.getAttribute('data-buyer');
+                    filterByBuyer(buyer);
+                    console.log(buyer);
 
-        });
-    });
+                });
+            });
 
-        // Function to calculate the maximum width of each visible column
-        function calculateColumnWidths() {
-            let columnWidths = Array.from(headers).map(header => header.offsetWidth);
+            // Function to calculate the maximum width of each visible column
+            function calculateColumnWidths() {
+                let columnWidths = Array.from(headers).map(header => header.offsetWidth);
 
-            // Update column widths based on the maximum content width of visible rows
-            rows.forEach(row => {
-                if (row.style.display !== 'none') { // Only consider visible rows
-                    row.querySelectorAll('td').forEach((cell, index) => {
-                        if (index < columnWidths.length) {
-                            const cellWidth = cell.scrollWidth;
-                            if (cellWidth > columnWidths[index]) {
-                                columnWidths[index] = cellWidth;
+                // Update column widths based on the maximum content width of visible rows
+                rows.forEach(row => {
+                    if (row.style.display !== 'none') { // Only consider visible rows
+                        row.querySelectorAll('td').forEach((cell, index) => {
+                            if (index < columnWidths.length) {
+                                const cellWidth = cell.scrollWidth;
+                                if (cellWidth > columnWidths[index]) {
+                                    columnWidths[index] = cellWidth;
+                                }
                             }
-                        }
-                    });
-                }
-            });
+                        });
+                    }
+                });
 
-            return columnWidths;
-        }
-
-        // Function to set sticky column widths and positions
-        function updateStickyColumnWidths() {
-            const columnWidths = calculateColumnWidths();
-            let cumulativeWidth = 0;
-
-            headers.forEach((header, index) => {
-                if (index < 4) { // Adjust if more columns need to be sticky
-                    header.style.width = `${columnWidths[index]}px`;
-                    header.style.left = `${cumulativeWidth}px`;
-                    header.style.position = 'sticky';
-                    header.style.zIndex = '2';
-
-                    const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
-                    cells.forEach(cell => {
-                        if (cell.closest('tr').style.display !== 'none') { // Only update visible rows
-                            cell.style.width = `${columnWidths[index]}px`;
-                            cell.style.left = `${cumulativeWidth}px`;
-                            cell.style.position = 'sticky';
-                            cell.style.zIndex = '1';
-                            cell.style.background = '#fff';
-                        }
-                    });
-
-                    cumulativeWidth += columnWidths[index];
-                }
-            });
-        }
-
-        // Function to filter by buyer and update the sticky columns
-        function filterByBuyer(buyer) {
-            const allBuyersBtn = document.getElementById('all-buyers-btn');
-            allBuyersBtn.classList.remove('btn-primary');
-            allBuyersBtn.classList.add('btn-outline-primary');
-            allBuyersBtn.style.color = 'black';
-            allBuyersBtn.style.fontWeight = 'normal';
-
-            if (buyer === 'All Buyers') {
-                localStorage.removeItem('buyer');
-            } else {
-                localStorage.setItem('buyer', buyer);
+                return columnWidths;
             }
 
-            const rows = document.querySelectorAll('#tnaTableBody tr');
-            rows.forEach(row => {
-                const buyerCell = row.querySelector('td:nth-child(2)');
-                if (buyer === 'All Buyers' || buyerCell.textContent === buyer) {
-                    row.style.display = '';
+            // Function to set sticky column widths and positions
+            function updateStickyColumnWidths() {
+                const columnWidths = calculateColumnWidths();
+                let cumulativeWidth = 0;
+
+                headers.forEach((header, index) => {
+                    if (index < 4) { // Adjust if more columns need to be sticky
+                        header.style.width = `${columnWidths[index]}px`;
+                        header.style.left = `${cumulativeWidth}px`;
+                        header.style.position = 'sticky';
+                        header.style.zIndex = '2';
+
+                        const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
+                        cells.forEach(cell => {
+                            if (cell.closest('tr').style.display !==
+                                'none') { // Only update visible rows
+                                cell.style.width = `${columnWidths[index]}px`;
+                                cell.style.left = `${cumulativeWidth}px`;
+                                cell.style.position = 'sticky';
+                                cell.style.zIndex = '1';
+                                cell.style.background = '#fff';
+                            }
+                        });
+
+                        cumulativeWidth += columnWidths[index];
+                    }
+                });
+            }
+
+            // Function to filter by buyer and update the sticky columns
+            function filterByBuyer(buyer) {
+                const allBuyersBtn = document.getElementById('all-buyers-btn');
+                allBuyersBtn.classList.remove('btn-primary');
+                allBuyersBtn.classList.add('btn-outline-primary');
+                allBuyersBtn.style.color = 'black';
+                allBuyersBtn.style.fontWeight = 'normal';
+
+                if (buyer === 'All Buyers') {
+                    localStorage.removeItem('buyer');
                 } else {
-                    row.style.display = 'none';
+                    localStorage.setItem('buyer', buyer);
                 }
-            });
 
-            // Recalculate totals, averages, and update sticky columns
-            calculateTotalsAndAverages();
-            updateStickyColumnWidths();
-        }
+                const rows = document.querySelectorAll('#tnaTableBody tr');
+                rows.forEach(row => {
+                    const buyerCell = row.querySelector('td:nth-child(2)');
+                    if (buyer === 'All Buyers' || buyerCell.textContent === buyer) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
 
-        // Initialize on page load
-        updateStickyColumnWidths();
-        window.addEventListener('resize', updateStickyColumnWidths);
-
-        // Event listener for "All Buyers" button
-        document.getElementById('all-buyers-btn').addEventListener('click', () => {
-            localStorage.removeItem('buyer');
-            const rows = document.querySelectorAll('#tnaTableBody tr');
-            rows.forEach(row => {
-                row.style.display = '';
-            });
-            calculateTotalsAndAverages();
-            updateStickyColumnWidths();
-        });
-
-        // On page load, check for stored buyer and filter if present
-        window.onload = function () {
-            const buyer = localStorage.getItem('buyer');
-            if (buyer) {
-                filterByBuyer(buyer);
-            } else {
+                // Recalculate totals, averages, and update sticky columns
                 calculateTotalsAndAverages();
                 updateStickyColumnWidths();
             }
-        };
-    });
-</script> 
+
+            // Initialize on page load
+            updateStickyColumnWidths();
+            window.addEventListener('resize', updateStickyColumnWidths);
+
+            // Event listener for "All Buyers" button
+            document.getElementById('all-buyers-btn').addEventListener('click', () => {
+                localStorage.removeItem('buyer');
+                const rows = document.querySelectorAll('#tnaTableBody tr');
+                rows.forEach(row => {
+                    row.style.display = '';
+                });
+                calculateTotalsAndAverages();
+                updateStickyColumnWidths();
+            });
+
+            // On page load, check for stored buyer and filter if present
+            window.onload = function() {
+                const buyer = localStorage.getItem('buyer');
+                if (buyer) {
+                    filterByBuyer(buyer);
+                } else {
+                    calculateTotalsAndAverages();
+                    updateStickyColumnWidths();
+                }
+            };
+        });
+    </script>
 
 
 
