@@ -443,126 +443,253 @@ $buyerIds = DB::table('buyer_assigns')
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
 
     <script>
+        // document.addEventListener('DOMContentLoaded', function() {
+        //     const table = document.querySelector('#PrintTable');
+        //     const headers = table.querySelectorAll('thead th');
+        //     const rows = table.querySelectorAll('tbody tr');
+        //     const filterButtons = document.querySelectorAll('[data-buyer]');
+
+        //     filterButtons.forEach(button => {
+        //         button.addEventListener('click', function() {
+        //             const buyer = this.getAttribute('data-buyer');
+        //             filterByBuyer(buyer);
+        //             console.log(buyer);
+
+        //         });
+        //     });
+
+        //     // Function to calculate the maximum width of each visible column
+        //     function calculateColumnWidths() {
+        //         let columnWidths = Array.from(headers).map(header => header.offsetWidth);
+
+        //         // Update column widths based on the maximum content width of visible rows
+        //         rows.forEach(row => {
+        //             if (row.style.display !== 'none') { // Only consider visible rows
+        //                 row.querySelectorAll('td').forEach((cell, index) => {
+        //                     if (index < columnWidths.length) {
+        //                         const cellWidth = cell.scrollWidth;
+        //                         if (cellWidth > columnWidths[index]) {
+        //                             columnWidths[index] = cellWidth;
+        //                         }
+        //                     }
+        //                 });
+        //             }
+        //         });
+
+        //         return columnWidths;
+        //     }
+
+        //     // Function to set sticky column widths and positions
+        //     function updateStickyColumnWidths() {
+        //         const columnWidths = calculateColumnWidths();
+        //         let cumulativeWidth = 0;
+
+        //         headers.forEach((header, index) => {
+        //             if (index < 4) { // Adjust if more columns need to be sticky
+        //                 header.style.width = `${columnWidths[index]}px`;
+        //                 header.style.left = `${cumulativeWidth}px`;
+        //                 header.style.position = 'sticky';
+        //                 header.style.zIndex = '2';
+
+        //                 const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
+        //                 cells.forEach(cell => {
+        //                     if (cell.closest('tr').style.display !==
+        //                         'none') { // Only update visible rows
+        //                         cell.style.width = `${columnWidths[index]}px`;
+        //                         cell.style.left = `${cumulativeWidth}px`;
+        //                         cell.style.position = 'sticky';
+        //                         cell.style.zIndex = '1';
+        //                         cell.style.background = '#fff';
+        //                     }
+        //                 });
+
+        //                 cumulativeWidth += columnWidths[index];
+        //             }
+        //         });
+        //     }
+
+        //     // Function to filter by buyer and update the sticky columns
+        //     function filterByBuyer(buyer) {
+        //         const allBuyersBtn = document.getElementById('all-buyers-btn');
+        //         allBuyersBtn.classList.remove('btn-primary');
+        //         allBuyersBtn.classList.add('btn-outline-primary');
+        //         allBuyersBtn.style.color = 'black';
+        //         allBuyersBtn.style.fontWeight = 'normal';
+
+        //         if (buyer === 'All Buyers') {
+        //             localStorage.removeItem('buyer');
+        //         } else {
+        //             localStorage.setItem('buyer', buyer);
+        //         }
+
+        //         const rows = document.querySelectorAll('#tnaTableBody tr');
+        //         rows.forEach(row => {
+        //             const buyerCell = row.querySelector('td:nth-child(2)');
+        //             if (buyer === 'All Buyers' || buyerCell.textContent === buyer) {
+        //                 row.style.display = '';
+        //             } else {
+        //                 row.style.display = 'none';
+        //             }
+        //         });
+
+        //         // Recalculate totals, averages, and update sticky columns
+        //         calculateTotalsAndAverages();
+        //         updateStickyColumnWidths();
+        //     }
+
+        //     // Initialize on page load
+        //     updateStickyColumnWidths();
+        //     window.addEventListener('resize', updateStickyColumnWidths);
+
+        //     // Event listener for "All Buyers" button
+        //     document.getElementById('all-buyers-btn').addEventListener('click', () => {
+        //         localStorage.removeItem('buyer');
+        //         const rows = document.querySelectorAll('#tnaTableBody tr');
+        //         rows.forEach(row => {
+        //             row.style.display = '';
+        //         });
+        //         calculateTotalsAndAverages();
+        //         updateStickyColumnWidths();
+        //     });
+
+        //     // On page load, check for stored buyer and filter if present
+        //     window.onload = function() {
+        //         const buyer = localStorage.getItem('buyer');
+        //         if (buyer) {
+        //             filterByBuyer(buyer);
+        //         } else {
+        //             calculateTotalsAndAverages();
+        //             updateStickyColumnWidths();
+        //         }
+        //     };
+        // });
         document.addEventListener('DOMContentLoaded', function() {
-            const table = document.querySelector('#PrintTable');
-            const headers = table.querySelectorAll('thead th');
-            const rows = table.querySelectorAll('tbody tr');
-            const filterButtons = document.querySelectorAll('[data-buyer]');
+    const table = document.querySelector('#PrintTable');
+    const headers = table.querySelectorAll('thead th');
+    const rows = table.querySelectorAll('tbody tr');
+    const filterButtons = document.querySelectorAll('[data-buyer]');
 
-            filterButtons.forEach(button => {
-                button.addEventListener('click', function() {
-                    const buyer = this.getAttribute('data-buyer');
-                    filterByBuyer(buyer);
-                    console.log(buyer);
-
-                });
-            });
-
-            // Function to calculate the maximum width of each visible column
-            function calculateColumnWidths() {
-                let columnWidths = Array.from(headers).map(header => header.offsetWidth);
-
-                // Update column widths based on the maximum content width of visible rows
-                rows.forEach(row => {
-                    if (row.style.display !== 'none') { // Only consider visible rows
-                        row.querySelectorAll('td').forEach((cell, index) => {
-                            if (index < columnWidths.length) {
-                                const cellWidth = cell.scrollWidth;
-                                if (cellWidth > columnWidths[index]) {
-                                    columnWidths[index] = cellWidth;
-                                }
-                            }
-                        });
-                    }
-                });
-
-                return columnWidths;
-            }
-
-            // Function to set sticky column widths and positions
-            function updateStickyColumnWidths() {
-                const columnWidths = calculateColumnWidths();
-                let cumulativeWidth = 0;
-
-                headers.forEach((header, index) => {
-                    if (index < 4) { // Adjust if more columns need to be sticky
-                        header.style.width = `${columnWidths[index]}px`;
-                        header.style.left = `${cumulativeWidth}px`;
-                        header.style.position = 'sticky';
-                        header.style.zIndex = '2';
-
-                        const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
-                        cells.forEach(cell => {
-                            if (cell.closest('tr').style.display !==
-                                'none') { // Only update visible rows
-                                cell.style.width = `${columnWidths[index]}px`;
-                                cell.style.left = `${cumulativeWidth}px`;
-                                cell.style.position = 'sticky';
-                                cell.style.zIndex = '1';
-                                cell.style.background = '#fff';
-                            }
-                        });
-
-                        cumulativeWidth += columnWidths[index];
-                    }
-                });
-            }
-
-            // Function to filter by buyer and update the sticky columns
-            function filterByBuyer(buyer) {
-                const allBuyersBtn = document.getElementById('all-buyers-btn');
-                allBuyersBtn.classList.remove('btn-primary');
-                allBuyersBtn.classList.add('btn-outline-primary');
-                allBuyersBtn.style.color = 'black';
-                allBuyersBtn.style.fontWeight = 'normal';
-
-                if (buyer === 'All Buyers') {
-                    localStorage.removeItem('buyer');
-                } else {
-                    localStorage.setItem('buyer', buyer);
-                }
-
-                const rows = document.querySelectorAll('#tnaTableBody tr');
-                rows.forEach(row => {
-                    const buyerCell = row.querySelector('td:nth-child(2)');
-                    if (buyer === 'All Buyers' || buyerCell.textContent === buyer) {
-                        row.style.display = '';
-                    } else {
-                        row.style.display = 'none';
-                    }
-                });
-
-                // Recalculate totals, averages, and update sticky columns
-                calculateTotalsAndAverages();
-                updateStickyColumnWidths();
-            }
-
-            // Initialize on page load
-            updateStickyColumnWidths();
-            window.addEventListener('resize', updateStickyColumnWidths);
-
-            // Event listener for "All Buyers" button
-            document.getElementById('all-buyers-btn').addEventListener('click', () => {
-                localStorage.removeItem('buyer');
-                const rows = document.querySelectorAll('#tnaTableBody tr');
-                rows.forEach(row => {
-                    row.style.display = '';
-                });
-                calculateTotalsAndAverages();
-                updateStickyColumnWidths();
-            });
-
-            // On page load, check for stored buyer and filter if present
-            window.onload = function() {
-                const buyer = localStorage.getItem('buyer');
-                if (buyer) {
-                    filterByBuyer(buyer);
-                } else {
-                    calculateTotalsAndAverages();
-                    updateStickyColumnWidths();
-                }
-            };
+    filterButtons.forEach(button => {
+        button.addEventListener('click', function() {
+            const buyer = this.getAttribute('data-buyer');
+            filterByBuyer(buyer);
+            console.log(buyer);
         });
+    });
+
+    // Function to calculate the maximum width of each visible column
+    function calculateColumnWidths() {
+        let columnWidths = Array.from(headers).map(header => header.offsetWidth);
+
+        rows.forEach(row => {
+            if (row.style.display !== 'none') {
+                row.querySelectorAll('td').forEach((cell, index) => {
+                    if (index < columnWidths.length) {
+                        const cellWidth = cell.scrollWidth;
+                        if (cellWidth > columnWidths[index]) {
+                            columnWidths[index] = cellWidth;
+                        }
+                    }
+                });
+            }
+        });
+
+        // Set minimum and maximum widths for the columns
+        columnWidths = columnWidths.map(width => Math.min(Math.max(width, 50), 300)); // Adjust the values as needed
+
+        return columnWidths;
+    }
+
+    // Function to set sticky column widths and positions
+    function updateStickyColumnWidths() {
+        const columnWidths = calculateColumnWidths();
+        let cumulativeWidth = 0;
+
+        headers.forEach((header, index) => {
+            if (index < 4) { // Adjust if more columns need to be sticky
+                header.style.width = `${columnWidths[index]}px`;
+                header.style.left = `${cumulativeWidth}px`;
+                header.style.position = 'sticky';
+                header.style.zIndex = '2';
+
+                const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
+                cells.forEach(cell => {
+                    if (cell.closest('tr').style.display !== 'none') {
+                        cell.style.width = `${columnWidths[index]}px`;
+                        cell.style.left = `${cumulativeWidth}px`;
+                        cell.style.position = 'sticky';
+                        cell.style.zIndex = '1';
+                        cell.style.background = '#fff';
+                    }
+                });
+
+                cumulativeWidth += columnWidths[index];
+            }
+        });
+    }
+
+    // Function to filter by buyer and update the sticky columns
+    function filterByBuyer(buyer) {
+        const allBuyersBtn = document.getElementById('all-buyers-btn');
+        allBuyersBtn.classList.remove('btn-primary');
+        allBuyersBtn.classList.add('btn-outline-primary');
+        allBuyersBtn.style.color = 'black';
+        allBuyersBtn.style.fontWeight = 'normal';
+
+        if (buyer === 'All Buyers') {
+            localStorage.removeItem('buyer');
+        } else {
+            localStorage.setItem('buyer', buyer);
+        }
+
+        const rows = document.querySelectorAll('#tnaTableBody tr');
+        rows.forEach(row => {
+            const buyerCell = row.querySelector('td:nth-child(2)');
+            if (buyer === 'All Buyers' || buyerCell.textContent === buyer) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+
+        // Recalculate totals, averages, and update sticky columns
+        calculateTotalsAndAverages();
+        updateStickyColumnWidths();
+    }
+
+    // Initialize on page load
+    updateStickyColumnWidths();
+
+    // Throttle resize event to prevent performance issues
+    let resizeTimeout;
+    window.addEventListener('resize', function() {
+        clearTimeout(resizeTimeout);
+        resizeTimeout = setTimeout(updateStickyColumnWidths, 100);
+    });
+
+    // Event listener for "All Buyers" button
+    document.getElementById('all-buyers-btn').addEventListener('click', () => {
+        localStorage.removeItem('buyer');
+        const rows = document.querySelectorAll('#tnaTableBody tr');
+        rows.forEach(row => {
+            row.style.display = '';
+        });
+        calculateTotalsAndAverages();
+        updateStickyColumnWidths();
+    });
+
+    // On page load, check for stored buyer and filter if present
+    window.onload = function() {
+        const buyer = localStorage.getItem('buyer');
+        if (buyer) {
+            filterByBuyer(buyer);
+        } else {
+            calculateTotalsAndAverages();
+            updateStickyColumnWidths();
+        }
+    };
+});
+
     </script>
 
 
