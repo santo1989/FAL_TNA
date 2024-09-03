@@ -564,132 +564,132 @@ $buyerIds = DB::table('buyer_assigns')
         //     };
         // });
         document.addEventListener('DOMContentLoaded', function() {
-    const table = document.querySelector('#PrintTable');
-    const headers = table.querySelectorAll('thead th');
-    const rows = table.querySelectorAll('tbody tr');
-    const filterButtons = document.querySelectorAll('[data-buyer]');
+            const table = document.querySelector('#PrintTable');
+            const headers = table.querySelectorAll('thead th');
+            const rows = table.querySelectorAll('tbody tr');
+            const filterButtons = document.querySelectorAll('[data-buyer]');
 
-    filterButtons.forEach(button => {
-        button.addEventListener('click', function() {
-            const buyer = this.getAttribute('data-buyer');
-            filterByBuyer(buyer);
-            console.log(buyer);
-        });
-    });
-
-    // Function to calculate the maximum width of each visible column
-    function calculateColumnWidths() {
-        let columnWidths = Array.from(headers).map(header => header.offsetWidth);
-
-        rows.forEach(row => {
-            if (row.style.display !== 'none') {
-                row.querySelectorAll('td').forEach((cell, index) => {
-                    if (index < columnWidths.length) {
-                        const cellWidth = cell.scrollWidth;
-                        if (cellWidth > columnWidths[index]) {
-                            columnWidths[index] = cellWidth;
-                        }
-                    }
+            filterButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const buyer = this.getAttribute('data-buyer');
+                    filterByBuyer(buyer);
+                    console.log(buyer);
                 });
-            }
-        });
+            });
 
-        // Set minimum and maximum widths for the columns
-        columnWidths = columnWidths.map(width => Math.min(Math.max(width, 50), 300)); // Adjust the values as needed
+            // Function to calculate the maximum width of each visible column
+            function calculateColumnWidths() {
+                let columnWidths = Array.from(headers).map(header => header.offsetWidth);
 
-        return columnWidths;
-    }
-
-    // Function to set sticky column widths and positions
-    function updateStickyColumnWidths() {
-        const columnWidths = calculateColumnWidths();
-        let cumulativeWidth = 0;
-
-        headers.forEach((header, index) => {
-            if (index < 4) { // Adjust if more columns need to be sticky
-                header.style.width = `${columnWidths[index]}px`;
-                header.style.left = `${cumulativeWidth}px`;
-                header.style.position = 'sticky';
-                header.style.zIndex = '2';
-
-                const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
-                cells.forEach(cell => {
-                    if (cell.closest('tr').style.display !== 'none') {
-                        cell.style.width = `${columnWidths[index]}px`;
-                        cell.style.left = `${cumulativeWidth}px`;
-                        cell.style.position = 'sticky';
-                        cell.style.zIndex = '1';
-                        cell.style.background = '#fff';
+                rows.forEach(row => {
+                    if (row.style.display !== 'none') {
+                        row.querySelectorAll('td').forEach((cell, index) => {
+                            if (index < columnWidths.length) {
+                                const cellWidth = cell.scrollWidth;
+                                if (cellWidth > columnWidths[index]) {
+                                    columnWidths[index] = cellWidth;
+                                }
+                            }
+                        });
                     }
                 });
 
-                cumulativeWidth += columnWidths[index];
+                // Set minimum and maximum widths for the columns
+                columnWidths = columnWidths.map(width => Math.min(Math.max(width, 50),
+                    300)); // Adjust the values as needed
+
+                return columnWidths;
             }
-        });
-    }
 
-    // Function to filter by buyer and update the sticky columns
-    function filterByBuyer(buyer) {
-        const allBuyersBtn = document.getElementById('all-buyers-btn');
-        allBuyersBtn.classList.remove('btn-primary');
-        allBuyersBtn.classList.add('btn-outline-primary');
-        allBuyersBtn.style.color = 'black';
-        allBuyersBtn.style.fontWeight = 'normal';
+            // Function to set sticky column widths and positions
+            function updateStickyColumnWidths() {
+                const columnWidths = calculateColumnWidths();
+                let cumulativeWidth = 0;
 
-        if (buyer === 'All Buyers') {
-            localStorage.removeItem('buyer');
-        } else {
-            localStorage.setItem('buyer', buyer);
-        }
+                headers.forEach((header, index) => {
+                    if (index < 4) { // Adjust if more columns need to be sticky
+                        header.style.width = `${columnWidths[index]}px`;
+                        header.style.left = `${cumulativeWidth}px`;
+                        header.style.position = 'sticky';
+                        header.style.zIndex = '2';
 
-        const rows = document.querySelectorAll('#tnaTableBody tr');
-        rows.forEach(row => {
-            const buyerCell = row.querySelector('td:nth-child(2)');
-            if (buyer === 'All Buyers' || buyerCell.textContent === buyer) {
-                row.style.display = '';
-            } else {
-                row.style.display = 'none';
+                        const cells = table.querySelectorAll(`tbody td:nth-child(${index + 1})`);
+                        cells.forEach(cell => {
+                            if (cell.closest('tr').style.display !== 'none') {
+                                cell.style.width = `${columnWidths[index]}px`;
+                                cell.style.left = `${cumulativeWidth}px`;
+                                cell.style.position = 'sticky';
+                                cell.style.zIndex = '1';
+                                cell.style.background = '#fff';
+                            }
+                        });
+
+                        cumulativeWidth += columnWidths[index];
+                    }
+                });
             }
-        });
 
-        // Recalculate totals, averages, and update sticky columns
-        calculateTotalsAndAverages();
-        updateStickyColumnWidths();
-    }
+            // Function to filter by buyer and update the sticky columns
+            function filterByBuyer(buyer) {
+                const allBuyersBtn = document.getElementById('all-buyers-btn');
+                allBuyersBtn.classList.remove('btn-primary');
+                allBuyersBtn.classList.add('btn-outline-primary');
+                allBuyersBtn.style.color = 'black';
+                allBuyersBtn.style.fontWeight = 'normal';
 
-    // Initialize on page load
-    updateStickyColumnWidths();
+                if (buyer === 'All Buyers') {
+                    localStorage.removeItem('buyer');
+                } else {
+                    localStorage.setItem('buyer', buyer);
+                }
 
-    // Throttle resize event to prevent performance issues
-    let resizeTimeout;
-    window.addEventListener('resize', function() {
-        clearTimeout(resizeTimeout);
-        resizeTimeout = setTimeout(updateStickyColumnWidths, 100);
-    });
+                const rows = document.querySelectorAll('#tnaTableBody tr');
+                rows.forEach(row => {
+                    const buyerCell = row.querySelector('td:nth-child(2)');
+                    if (buyer === 'All Buyers' || buyerCell.textContent === buyer) {
+                        row.style.display = '';
+                    } else {
+                        row.style.display = 'none';
+                    }
+                });
 
-    // Event listener for "All Buyers" button
-    document.getElementById('all-buyers-btn').addEventListener('click', () => {
-        localStorage.removeItem('buyer');
-        const rows = document.querySelectorAll('#tnaTableBody tr');
-        rows.forEach(row => {
-            row.style.display = '';
-        });
-        calculateTotalsAndAverages();
-        updateStickyColumnWidths();
-    });
+                // Recalculate totals, averages, and update sticky columns
+                calculateTotalsAndAverages();
+                updateStickyColumnWidths();
+            }
 
-    // On page load, check for stored buyer and filter if present
-    window.onload = function() {
-        const buyer = localStorage.getItem('buyer');
-        if (buyer) {
-            filterByBuyer(buyer);
-        } else {
-            calculateTotalsAndAverages();
+            // Initialize on page load
             updateStickyColumnWidths();
-        }
-    };
-});
 
+            // Throttle resize event to prevent performance issues
+            let resizeTimeout;
+            window.addEventListener('resize', function() {
+                clearTimeout(resizeTimeout);
+                resizeTimeout = setTimeout(updateStickyColumnWidths, 100);
+            });
+
+            // Event listener for "All Buyers" button
+            document.getElementById('all-buyers-btn').addEventListener('click', () => {
+                localStorage.removeItem('buyer');
+                const rows = document.querySelectorAll('#tnaTableBody tr');
+                rows.forEach(row => {
+                    row.style.display = '';
+                });
+                calculateTotalsAndAverages();
+                updateStickyColumnWidths();
+            });
+
+            // On page load, check for stored buyer and filter if present
+            window.onload = function() {
+                const buyer = localStorage.getItem('buyer');
+                if (buyer) {
+                    filterByBuyer(buyer);
+                } else {
+                    calculateTotalsAndAverages();
+                    updateStickyColumnWidths();
+                }
+            };
+        });
     </script>
 
 
@@ -717,12 +717,51 @@ $buyerIds = DB::table('buyer_assigns')
             $('#dateModal').modal('show');
         }
 
+        // function submitDate() {
+        //     const id = document.getElementById('tnaId').value;
+        //     const task = document.getElementById('taskName').value;
+        //     const date = document.getElementById('dateInput').value;
+        //     const naChecked = document.getElementById('naButton').checked;
+        //     const explanation = document.getElementById('explanation').value;
+
+        //     $.ajax({
+        //         url: '/update-tna-date', // Your route to handle the date update
+        //         type: 'POST',
+        //         data: {
+        //             _token: $('input[name="_token"]').val(),
+        //             id: id,
+        //             task: task,
+        //             date: naChecked ? 'N/A' : date,
+        //             explanation: explanation
+        //         },
+        //         success: function(response) {
+        //             // Optionally, update the cell content and class here without reloading
+        //             // location.reload();
+        //             // refresh the url with the updated data
+        //             const cellToUpdate = document.querySelector(`[data-id="${id}"][data-task="${task}"]`);
+        //             if (cellToUpdate) {
+        //                 cellToUpdate.textContent = naChecked ? 'N/A' : date;
+        //             }
+
+        //             // Optionally update totals, averages, and sticky column widths
+        //             calculateTotalsAndAverages();
+        //             updateStickyColumnWidths();
+
+
+        //         }
+        //     });
+
+        //     $('#dateModal').modal('hide');
+        // }
+
         function submitDate() {
             const id = document.getElementById('tnaId').value;
             const task = document.getElementById('taskName').value;
-            const date = document.getElementById('dateInput').value;
+            const dateInput = document.getElementById('dateInput').value;
             const naChecked = document.getElementById('naButton').checked;
             const explanation = document.getElementById('explanation').value;
+
+            const formattedDate = naChecked ? 'N/A' : formatDate(dateInput); // Format the date
 
             $.ajax({
                 url: '/update-tna-date', // Your route to handle the date update
@@ -731,17 +770,43 @@ $buyerIds = DB::table('buyer_assigns')
                     _token: $('input[name="_token"]').val(),
                     id: id,
                     task: task,
-                    date: naChecked ? 'N/A' : date,
+                    date: formattedDate,
                     explanation: explanation
                 },
                 success: function(response) {
-                    // Optionally, update the cell content and class here without reloading
-                    location.reload();
+                    // Update the cell content dynamically without reloading
+                    const cellToUpdate = document.querySelector(`[data-id="${id}"][data-task="${task}"]`);
+                    if (cellToUpdate) {
+                        cellToUpdate.textContent = formattedDate;
+                        cellToUpdate.classList.add('updated-class'); // Optional: add a class for styling
+                    }
+
+                    // Optionally update totals, averages, and sticky column widths
+                    calculateTotalsAndAverages();
+                    updateStickyColumnWidths();
+                },
+                error: function(error) {
+                    console.error('Error updating date:', error);
                 }
             });
 
             $('#dateModal').modal('hide');
         }
+
+        // Function to format the date as "d-M-y"
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const dateObj = new Date(dateStr);
+
+            const day = dateObj.getDate().toString().padStart(2, '0'); // Day with leading zero
+            const month = dateObj.toLocaleString('en-us', {
+                month: 'short'
+            }); // Short month name
+            const year = dateObj.getFullYear().toString().substr(-2); // Last two digits of the year
+
+            return `${day}-${month}-${year}`; // Format "d-M-y"
+        }
+
 
         // Reset modal form on close
         $('#dateModal').on('hidden.bs.modal', function() {
