@@ -694,125 +694,6 @@ $buyerIds = DB::table('buyer_assigns')
 
 
 
-    <script>
-        function openModal(cell) {
-            const id = cell.getAttribute('data-id');
-            const task = cell.getAttribute('data-task');
-            const planDate = cell.getAttribute('data-plan-date');
-            document.getElementById('tnaId').value = id;
-            document.getElementById('taskName').value = task;
-
-            if (task === 'print_strike_off_submission_actual' || task === 'fit_sample_submission_actual') {
-                document.getElementById('dateInput').style.display = 'block';
-                document.getElementById('naCheckbox').style.display = 'block';
-            } else {
-                document.getElementById('dateInput').style.display = 'block';
-                document.getElementById('naCheckbox').style.display = 'none';
-            }
-
-            const today = new Date().toISOString().split('T')[0];
-            document.getElementById('explanation').style.display = planDate && new Date(planDate) < new Date(today) ?
-                'block' : 'none';
-
-            $('#dateModal').modal('show');
-        }
-
-        // function submitDate() {
-        //     const id = document.getElementById('tnaId').value;
-        //     const task = document.getElementById('taskName').value;
-        //     const date = document.getElementById('dateInput').value;
-        //     const naChecked = document.getElementById('naButton').checked;
-        //     const explanation = document.getElementById('explanation').value;
-
-        //     $.ajax({
-        //         url: '/update-tna-date', // Your route to handle the date update
-        //         type: 'POST',
-        //         data: {
-        //             _token: $('input[name="_token"]').val(),
-        //             id: id,
-        //             task: task,
-        //             date: naChecked ? 'N/A' : date,
-        //             explanation: explanation
-        //         },
-        //         success: function(response) {
-        //             // Optionally, update the cell content and class here without reloading
-        //             // location.reload();
-        //             // refresh the url with the updated data
-        //             const cellToUpdate = document.querySelector(`[data-id="${id}"][data-task="${task}"]`);
-        //             if (cellToUpdate) {
-        //                 cellToUpdate.textContent = naChecked ? 'N/A' : date;
-        //             }
-
-        //             // Optionally update totals, averages, and sticky column widths
-        //             calculateTotalsAndAverages();
-        //             updateStickyColumnWidths();
-
-
-        //         }
-        //     });
-
-        //     $('#dateModal').modal('hide');
-        // }
-
-        function submitDate() {
-            const id = document.getElementById('tnaId').value;
-            const task = document.getElementById('taskName').value;
-            const dateInput = document.getElementById('dateInput').value;
-            const naChecked = document.getElementById('naButton').checked;
-            const explanation = document.getElementById('explanation').value;
-
-            const formattedDate = naChecked ? 'N/A' : formatDate(dateInput); // Format the date
-
-            $.ajax({
-                url: '/update-tna-date', // Your route to handle the date update
-                type: 'POST',
-                data: {
-                    _token: $('input[name="_token"]').val(),
-                    id: id,
-                    task: task,
-                    date: formattedDate,
-                    explanation: explanation
-                },
-                success: function(response) {
-                    // Update the cell content dynamically without reloading
-                    const cellToUpdate = document.querySelector(`[data-id="${id}"][data-task="${task}"]`);
-                    if (cellToUpdate) {
-                        cellToUpdate.textContent = formattedDate;
-                        cellToUpdate.classList.add('updated-class'); // Optional: add a class for styling
-                    }
-
-                    // Optionally update totals, averages, and sticky column widths
-                    calculateTotalsAndAverages();
-                    updateStickyColumnWidths();
-                },
-                error: function(error) {
-                    console.error('Error updating date:', error);
-                }
-            });
-
-            $('#dateModal').modal('hide');
-        }
-
-        // Function to format the date as "d-M-y"
-        function formatDate(dateStr) {
-            if (!dateStr) return '';
-            const dateObj = new Date(dateStr);
-
-            const day = dateObj.getDate().toString().padStart(2, '0'); // Day with leading zero
-            const month = dateObj.toLocaleString('en-us', {
-                month: 'short'
-            }); // Short month name
-            const year = dateObj.getFullYear().toString().substr(-2); // Last two digits of the year
-
-            return `${day}-${month}-${year}`; // Format "d-M-y"
-        }
-
-
-        // Reset modal form on close
-        $('#dateModal').on('hidden.bs.modal', function() {
-            $('#dateForm').trigger('reset');
-        });
-    </script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
@@ -1011,5 +892,124 @@ $buyerIds = DB::table('buyer_assigns')
         }
     </script>
 
+    <script>
+        function openModal(cell) {
+            const id = cell.getAttribute('data-id');
+            const task = cell.getAttribute('data-task');
+            const planDate = cell.getAttribute('data-plan-date');
+            document.getElementById('tnaId').value = id;
+            document.getElementById('taskName').value = task;
+
+            if (task === 'print_strike_off_submission_actual' || task === 'fit_sample_submission_actual') {
+                document.getElementById('dateInput').style.display = 'block';
+                document.getElementById('naCheckbox').style.display = 'block';
+            } else {
+                document.getElementById('dateInput').style.display = 'block';
+                document.getElementById('naCheckbox').style.display = 'none';
+            }
+
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('explanation').style.display = planDate && new Date(planDate) < new Date(today) ?
+                'block' : 'none';
+
+            $('#dateModal').modal('show');
+        }
+
+        // function submitDate() {
+        //     const id = document.getElementById('tnaId').value;
+        //     const task = document.getElementById('taskName').value;
+        //     const date = document.getElementById('dateInput').value;
+        //     const naChecked = document.getElementById('naButton').checked;
+        //     const explanation = document.getElementById('explanation').value;
+
+        //     $.ajax({
+        //         url: '/update-tna-date', // Your route to handle the date update
+        //         type: 'POST',
+        //         data: {
+        //             _token: $('input[name="_token"]').val(),
+        //             id: id,
+        //             task: task,
+        //             date: naChecked ? 'N/A' : date,
+        //             explanation: explanation
+        //         },
+        //         success: function(response) {
+        //             // Optionally, update the cell content and class here without reloading
+        //             // location.reload();
+        //             // refresh the url with the updated data
+        //             const cellToUpdate = document.querySelector(`[data-id="${id}"][data-task="${task}"]`);
+        //             if (cellToUpdate) {
+        //                 cellToUpdate.textContent = naChecked ? 'N/A' : date;
+        //             }
+
+        //             // Optionally update totals, averages, and sticky column widths
+        //             calculateTotalsAndAverages();
+        //             updateStickyColumnWidths();
+
+
+        //         }
+        //     });
+
+        //     $('#dateModal').modal('hide');
+        // }
+
+        function submitDate() {
+            const id = document.getElementById('tnaId').value;
+            const task = document.getElementById('taskName').value;
+            const dateInput = document.getElementById('dateInput').value;
+            const naChecked = document.getElementById('naButton').checked;
+            const explanation = document.getElementById('explanation').value;
+
+            const formattedDate = naChecked ? 'N/A' : formatDate(dateInput); // Format the date
+
+            $.ajax({
+                url: '/update-tna-date', // Your route to handle the date update
+                type: 'POST',
+                data: {
+                    _token: $('input[name="_token"]').val(),
+                    id: id,
+                    task: task,
+                    date: formattedDate,
+                    explanation: explanation
+                },
+                success: function(response) {
+                    // Update the cell content dynamically without reloading
+                    const cellToUpdate = document.querySelector(`[data-id="${id}"][data-task="${task}"]`);
+                    if (cellToUpdate) {
+                        cellToUpdate.textContent = formattedDate;
+                        cellToUpdate.classList.add('updated-class'); // Optional: add a class for styling
+                    }
+
+                    // Optionally update totals, averages, and sticky column widths
+                    calculateTotalsAndAverages();
+                    updateStickyColumnWidths();
+                },
+                error: function(error) {
+                    console.error('Error updating date:', error);
+                }
+            });
+
+            $('#dateModal').modal('hide');
+        }
+
+        // Function to format the date as "d-M-y"
+        function formatDate(dateStr) {
+            if (!dateStr) return '';
+            const dateObj = new Date(dateStr);
+
+            const day = dateObj.getDate().toString().padStart(2, '0'); // Day with leading zero
+            const month = dateObj.toLocaleString('en-us', {
+                month: 'short'
+            }); // Short month name
+            const year = dateObj.getFullYear().toString().substr(-2); // Last two digits of the year
+
+            return `${day}-${month}-${year}`; // Format "d-M-y"
+        }
+
+
+        // Reset modal form on close
+        $('#dateModal').on('hidden.bs.modal', function() {
+            $('#dateForm').trigger('reset');
+        });
+    </script>
 
 </x-backend.layouts.report_master>
