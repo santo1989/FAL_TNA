@@ -57,6 +57,7 @@
                                 <th>Style</th>
                                 <th>PO Number</th>
                                 <th>Plan Date</th>
+                                <th>Shipment Date</th>
                             </tr>
                         </thead>
                         <tbody id="detailsBody">
@@ -185,6 +186,7 @@
                     <td>${detail.style}</td>
                     <td>${detail.po}</td>
                     <td>${detail.PlanDate}</td>
+                    <td>${detail.shipment_etd}</td>
                 </tr>`
             );
         });

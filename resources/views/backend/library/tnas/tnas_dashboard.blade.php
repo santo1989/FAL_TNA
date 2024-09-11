@@ -818,31 +818,34 @@ $buyerIds = DB::table('buyer_assigns')
         let currentTableHash = getTableHash();
 
         // Periodically update the table
-        setInterval(() => {
-            $.ajax({
-                url: "{{ route('tnas_dashboard_update') }}",
-                type: 'GET',
-                success: function(data) {
-                    const newTableHash = getTableHash(data);
+        // setInterval(() => {
+        //     $.ajax({
+        //         url: "{{ route('tnas_dashboard_update') }}",
+        //         type: 'GET',
+        //         success: function(data) {
+        //             const newTableHash = getTableHash(data);
 
-                    // Update only if the new data is different
-                    if (currentTableHash !== newTableHash) {
-                        document.getElementById('tnaTableBody').innerHTML = data;
-                        currentTableHash = newTableHash;
+        //             // Update only if the new data is different
+        //             if (currentTableHash !== newTableHash) {
+        //                 document.getElementById('tnaTableBody').innerHTML = data;
+        //                 currentTableHash = newTableHash;
 
-                        const buyer = localStorage.getItem('buyer');
-                        if (buyer) {
-                            filterByBuyer(buyer);
-                        } else {
-                            calculateTotalsAndAverages();
-                        }
-                    }
-                },
-                error: function(error) {
-                    console.error('Ajax error:', error);
-                }
-            });
-        }, 500000);
+        //                 const buyer = localStorage.getItem('buyer');
+        //                 if (buyer) {
+        //                     filterByBuyer(buyer);
+        //                 } else {
+        //                     calculateTotalsAndAverages();
+        //                      updateStickyColumnWidths();
+
+        //                 }
+
+        //             }
+        //         },
+        //         error: function(error) {
+        //             console.error('Ajax error:', error);
+        //         }
+        //     });
+        // }, 5000);
 
         // // On page load, check for stored buyer and filter if present
         // window.onload = function() {

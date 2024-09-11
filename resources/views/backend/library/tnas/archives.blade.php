@@ -9,8 +9,8 @@
 
                          <a href=" {{ route('home') }} " class="btn btn-outline-secondary"><i
                                  class="fas fa-arrow-left"></i>
-                             Close</a> 
-                             <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary"> <i
+                             Close</a>
+                         <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary"> <i
                                  class="fas fa-info"></i> TNA List</a>
                      </div>
                      <div class="col-6 text-end">
@@ -51,7 +51,7 @@
                                          <th>Style</th>
                                          <th>PO Number</th>
                                          <th>Item</th>
-                                       {{--   <th>Color</th>
+                                         {{--   <th>Color</th>
                                          <th>Picture</th> --}}
                                          <th>Total Qty</th>
                                          <th>PO Date</th>
@@ -67,7 +67,7 @@
                                              <td>{{ $tna->style }}</td>
                                              <td>{{ $tna->po }}</td>
                                              <td>{{ $tna->item }}</td>
-                                            {{--  <td>{{ $tna->color }}</td>
+                                             {{--  <td>{{ $tna->color }}</td>
                                              <td><img src="{{ asset('storage/tna/' . $tna->picture) }}" alt="Picture"
                                                         style="width: 50px; height: 50px;"></td> --}}
                                              <td>{{ $tna->qty_pcs }}</td>
@@ -89,23 +89,26 @@
                                                          <button type="submit" class="btn btn-outline-danger"><i
                                                                  class="fas fa-times"></i></button>
                                                      </form> @endcan --}}
-                                                     @if (auth()->user()->role_id == 1)
-                                                      <form action="{{ route('tnas_open', ['tna' => $tna->id]) }}"
+                                                 @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 4)
+                                                     <form action="{{ route('tnas_open', ['tna' => $tna->id]) }}"
                                                          method="POST" style="display:inline-block;">
                                                          @csrf
-                                                         <input type="hidden" name="tna_id" value="{{ $tna->id }}">
+                                                         <input type="hidden" name="tna_id"
+                                                             value="{{ $tna->id }}">
                                                          <button type="submit" class="btn btn-outline-danger"><i
                                                                  class="fas fa-box-open"></i></button>
                                                      </form>
-                                                         <form action="{{ route('tnas.destroy', $tna->id) }}"
-                                                             method="POST" style="display:inline-block;">
-                                                             @csrf
-                                                             @method('DELETE')
-                                                             <button type="submit" class="btn btn-outline-danger"><i
-                                                                     class="fas fa-trash"></i></button>
-                                                         </form>
-                                                     @endif
-                                                
+                                                 @endif
+                                                 @if (auth()->user()->role_id == 1)
+                                                     <form action="{{ route('tnas.destroy', $tna->id) }}"
+                                                         method="POST" style="display:inline-block;">
+                                                         @csrf
+                                                         @method('DELETE')
+                                                         <button type="submit" class="btn btn-outline-danger"><i
+                                                                 class="fas fa-trash"></i></button>
+                                                     </form>
+                                                 @endif
+
                                              </td>
                                          </tr>
                                      @empty

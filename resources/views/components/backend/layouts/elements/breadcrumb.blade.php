@@ -5,11 +5,11 @@
 
 </ol> --}}
 <div class="row justify-content-between">
-    <div class="col-9 text-center">
+    <div class="col-sm-9 col-md-9 text-center">
         <h1 class="mt-2 text-center">{{ $pageHeader }}</h1>
     </div>
-    <div class="col-3">
-        <div class="">
+    <div class="col-sm-3 col-md-3">
+        <div class="section">
             <ul class="navbar-nav ms-auto ms-md-0 me-3 me-lg-4">
                 <li class="nav-item dropdown">
                     <a class="nav-link dropdown-toggle" id="navbarDropdown" href="#" role="button"

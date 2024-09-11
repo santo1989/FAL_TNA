@@ -367,7 +367,7 @@ class TNAController extends Controller
     public function destroy($id)
     {
         // dd($id);
-        if (auth()->user()->role_id == 1) {
+        if (auth()->user()->role_id == 1 || auth()->user()->role_id == 1) {
             $tna = TNA::find($id);
             $tna->delete();
             return redirect()->route('tnas.index')->withMessage('TNA deleted successfully');
@@ -441,7 +441,7 @@ class TNAController extends Controller
         $cacheKey = 'tnas_data_user_' . $user->id;
         $query = Cache::remember($cacheKey, now()->addMinutes(10), function () use ($user, $buyerIds) {
             $query = TNA::where('order_close', '0')
-            ->orderBy('shipment_etd', 'asc');
+                ->orderBy('shipment_etd', 'asc');
 
             if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
                 $query->whereIn('buyer_id', $buyerIds);
@@ -467,7 +467,7 @@ class TNAController extends Controller
     }
 
 
-    
+
 
     public function tnas_close(Request $request, $id)
     {
@@ -685,7 +685,8 @@ class TNAController extends Controller
                         'style' => $row->style,
                         'po' => $row->po,
                         'task' => $column,
-                        'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y')
+                        'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y'),
+                        'shipment_etd' => Carbon::parse($row->shipment_etd)->format('d-M-y')
                     ];
                 }
             }
@@ -814,7 +815,8 @@ class TNAController extends Controller
                         'style' => $row->style,
                         'po' => $row->po,
                         'task' => $column,
-                        'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y')
+                        'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y'),
+                        'shipment_etd' => Carbon::parse($row->shipment_etd)->format('d-M-y')
                     ];
                 }
             }
