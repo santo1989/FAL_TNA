@@ -367,7 +367,7 @@ class TNAController extends Controller
     public function destroy($id)
     {
         // dd($id);
-        if (auth()->user()->role_id == 1 || auth()->user()->role_id == 1) {
+        if (auth()->user()->role_id == 1 || auth()->user()->role_id == 4) {
             $tna = TNA::find($id);
             $tna->delete();
             return redirect()->route('tnas.index')->withMessage('TNA deleted successfully');
