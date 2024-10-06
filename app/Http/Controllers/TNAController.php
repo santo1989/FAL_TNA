@@ -33,6 +33,8 @@ class TNAController extends Controller
 
         return view('backend.library.tnas.index', compact('tnas'));
     }
+   
+
 
     public function create()
     {
@@ -698,6 +700,7 @@ class TNAController extends Controller
         ]);
     }
 
+    // TEX_EBO
     public function update_actual_TEX_EBO(Request $request)
     {
         // Retrieve parameters from the request
@@ -765,6 +768,82 @@ class TNAController extends Controller
         // Optionally redirect or return a response
         return redirect()->route('tnas.index')->withMessage('TNA records updated successfully.');
     }
+
+    // COTTON_ROSE
+
+    public function getStyles(Request $request)
+    {
+        
+        $buyerId = $request->input('buyer_id');
+        $style_lists = DB::table('t_n_a_s')
+        ->where('buyer_id', $buyerId)
+            ->distinct()
+            ->pluck('style');
+        return response()->json($style_lists);
+    }
+
+    public function update_actual_COTTON_ROSE(Request $request)
+    {
+        // Retrieve parameters from the request
+        $buyer_id = $request->input('buyer_id');
+        $style = $request->input('style'); 
+
+        // Fetch TNA records based on buyer_id and shipment month
+        $tnas = TNA::where('buyer_id', $buyer_id)
+            ->where('style', $style) 
+            ->get();
+
+        // Fetch active buyers
+        $buyers = Buyer::where('is_active', '0')->get();
+
+        // Check if $tnas is empty
+        if ($tnas->isEmpty()) {
+            return back()->withErrors('No TNA found for the selected buyer');
+        }
+
+        // Return the view with the required data
+        return view('backend.library.tnas.edit_actual_COTTON_ROSE', compact('tnas', 'buyers'));
+    }
+
+
+    public function tnas_update_COTTON_ROSE(Request $request)
+    {
+        // dd($request->all());
+
+        // Retrieve parameters from the request
+        $tna_ids = $request->input('tna_id'); // Array of TNA IDs
+        $actual_dates = [
+            'lab_dip_submission_actual' => $request->input('lab_dip_submission_actual'),
+            'fabric_booking_actual' => $request->input('fabric_booking_actual'),
+            'fit_sample_submission_actual' => $request->input('fit_sample_submission_actual'),
+            'print_strike_off_submission_actual' => $request->input('print_strike_off_submission_actual'),
+            'bulk_accessories_booking_actual' => $request->input('bulk_accessories_booking_actual'),
+            'fit_comments_actual' => $request->input('fit_comments_actual'),
+            'bulk_yarn_inhouse_actual' => $request->input('bulk_yarn_inhouse_actual'),
+            'bulk_accessories_inhouse_actual' => $request->input('bulk_accessories_inhouse_actual'),
+            'pp_sample_submission_actual' => $request->input('pp_sample_submission_actual'),
+            'pp_comments_receive_actual' => $request->input('pp_comments_receive_actual'),
+        ];
+// dd($actual_dates, $tna_ids);
+        // Loop through each TNA ID and update the corresponding record
+        foreach ($tna_ids as $tna_id) {
+            $tna = TNA::find($tna_id);
+
+            if ($tna) {
+                // Update each field if it has a value
+                foreach ($actual_dates as $field => $date) {
+                    if ($date) {
+                        $tna->$field = $date;
+                    }
+                }
+                $tna->save();
+            }
+        }
+
+        // Optionally redirect or return a response
+        return redirect()->route('tnas.index')->withMessage('TNA records updated successfully.');
+    }
+
 
     //update code for MD Sir,
     public function FAL_BuyerWiseTnaSummary()

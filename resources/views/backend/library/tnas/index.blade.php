@@ -16,6 +16,7 @@
                                  class="fas fa-user"></i> TNA Pending List</a>
                      </div>
                      <div class="col-6 text-end">
+                         <!--TEX_EBO Start-->
                          @php
                              $marchent_buyer_assigns = App\Models\BuyerAssign::where('user_id', auth()->user()->id)
                                  ->where('buyer_id', 11)
@@ -29,8 +30,27 @@
                                  Update Common Date
                              </button>
                          @endif
+                         <!--TEX_EBO End-->
+                         <!-- COTTON_ROSE start-->
 
 
+                         @php
+                             $marchent_buyer_assigns_COTTON_ROSE = App\Models\BuyerAssign::where(
+                                 'user_id',
+                                 auth()->user()->id,
+                             )
+                                 ->where('buyer_id', 7)
+                                 ->orwhere('buyer_id', 10021)
+                                 ->count();
+                             // dd($marchent_buyer_assigns_COTTON_ROSE )
+                         @endphp
+                         @if ($marchent_buyer_assigns_COTTON_ROSE > 0 || auth()->user()->id == 1 || auth()->user()->role_id == 4)
+                             <!-- Button trigger modal of update_actual_COTTON_ROSE-->
+                             <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
+                                 data-bs-target="#staticBackdropCOTTON_ROSE">
+                                 Update COTTON ROSE Date
+                             </button>
+                         @endif
 
                          <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-success"> <i
                                  class="fas fa-tachometer-alt"></i> TNA Dashboard</a>
@@ -314,14 +334,72 @@
          <!--update_actual_TEX_EBO Modal End-->
 
 
-         <script>
-             $(document).ready(function() {
-                 $('#buyer_assign_table').DataTable();
-             });
-         </script>
+         <!--update_actual_COTTON_ROSE Modal start-->
+         <!-- Modal -->
+         <div class="modal fade" id="staticBackdropCOTTON_ROSE" data-bs-backdrop="static" data-bs-keyboard="false"
+             tabindex="-1" aria-labelledby="staticBackdropCOTTON_ROSELabel" aria-hidden="true">
+             <div class="modal-dialog modal-lg">
+                 <div class="modal-content">
+                     <div class="modal-header">
+                         <h1 class="modal-title fs-5" id="staticBackdropCOTTON_ROSELabel">Update Common Date</h1>
+                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                     </div>
+                     <div class="modal-body">
+                         <form method="POST" action="{{ route('update_actual_COTTON_ROSE') }}"
+                             enctype="multipart/form-data">
+                             @csrf
+                             @method('POST')
+                             <table class="table">
+                                 <tbody>
+                                     <tr>
+                                         <td class="create_label_column">Buyer</td>
+                                         <td class="create_input_column">
+                                             <select class="form-select form-select-sm" aria-label="Small select example"
+                                                 id="cotton_buyer_id" name="buyer_id" required>
+                                                 <option selected>Select Buyer</option>
+                                                 <option value="7">COTTON ROSE</option>
+                                                 <option value="10021">COTTON ROSE - HASAN</option>
+                                             </select>
+                                         </td>
+                                         <td class="create_label_column">Style</td>
+                                         <td class="create_input_column">
+                                             <select class="form-select form-select-sm" aria-label="Small select example"
+                                                 id="cotton_style" name="style" required>
+                                                 <option selected>Select Style</option>
+                                                 <!-- Dynamic style options will be appended here -->
+                                             </select>
+                                         </td>
+                                     </tr>
+                                 </tbody>
+                             </table> 
+                     </div>
+                     <div class="modal-footer">
+                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                         <button type="submit" class="btn btn-outline-success"><i class="fas fa-save"></i>
+                             Search TNA</button>
+                     </div>
+                     </form>
+                 </div>
+             </div>
+         </div>
+         <!--update_actual_COTTON_ROSE Modal End-->
+        <script>
+    document.getElementById('cotton_buyer_id').addEventListener('change', function() {
+        var buyerId = this.value;
 
-
-
-
+        if(buyerId) {
+            fetch('/get-styles?buyer_id=' + buyerId)
+            .then(response => response.json())
+            .then(styles => {
+                var styleSelect = document.getElementById('cotton_style');
+                styleSelect.innerHTML = '<option selected>Select Style</option>';
+                styles.forEach(function(style) {
+                    styleSelect.innerHTML += '<option value="' + style + '">' + style + '</option>';
+                });
+            })
+            .catch(error => console.error('Error fetching styles:', error));
+        }
+    });
+</script>
 
      </x-backend.layouts.master>

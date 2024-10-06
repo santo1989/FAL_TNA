@@ -172,7 +172,10 @@ Route::middleware('auth')->group(function () {
     Route::delete('/marchent_sops/{marchent_sop}', [MarchentSOPController::class, 'destroy'])->name('marchent_sops.destroy');
 
     //tnas
-    Route::get('/tnas', [TNAController::class, 'index'])->name('tnas.index');
+    // Route::get('/tnas', [TNAController::class, 'index'])->name('tnas.index');
+    // Existing route that returns the view
+    Route::get('/tnas', [TNAController::class, 'index'])->name('tnas.index'); 
+
     Route::get('/tnas/create', [TNAController::class, 'create'])->name('tnas.create');
     Route::post('/tnas', [TNAController::class, 'store'])->name('tnas.store');
     Route::get('/tnas/{tna}', [TNAController::class, 'show'])->name('tnas.show');
@@ -191,6 +194,11 @@ Route::middleware('auth')->group(function () {
     Route::post('/update_actual_TEX_EBO', [TNAController::class, 'update_actual_TEX_EBO'])->name('update_actual_TEX_EBO');
     //tnas_update
     Route::post('/tnas_update_TEX_EBO', [TNAController::class, 'tnas_update_TEX_EBO'])->name('tnas_update_TEX_EBO');
+
+    //update_actual_COTTON_ROSE
+    Route::post('/update_actual_COTTON_ROSE', [TNAController::class, 'update_actual_COTTON_ROSE'])->name('update_actual_COTTON_ROSE');
+    //tnas_update
+    Route::post('/tnas_update_COTTON_ROSE', [TNAController::class, 'tnas_update_COTTON_ROSE'])->name('tnas_update_COTTON_ROSE');
     //Cutting_TNA
     Route::post('/Cutting_actual', [TNAController::class, 'Cutting_actual'])->name('actual_cutting'); 
     Route::post('/Cutting_plan', [TNAController::class, 'Cutting_plan'])->name('Cutting_plan');
@@ -259,6 +267,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/shipments/{shipment}', [ShipmentController::class, 'destroy'])->name('shipments.destroy');
 });
 
+Route::get('/get-styles', [TNAController::class, 'getStyles']);
 
 
 
