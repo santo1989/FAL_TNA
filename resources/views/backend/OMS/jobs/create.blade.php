@@ -573,6 +573,8 @@
                                                 Neck Print</option>
                                             <option value="Both Print" {{ old('print') == 'Both Print' ? 'selected' : '' }}>
                                                 Both Print</option>
+                                            <option value="No Print" {{ old('print') == 'No Print' ? 'selected' : '' }}>
+                                                No Print</option>
                                         </select>
                                     </td>
                                 </tr>
