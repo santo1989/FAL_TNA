@@ -31,4 +31,5 @@
             </table>
         </div>
     </div>
+    For any query, please contact with the Planning or HR of FAL.
 </x-backend.layouts.master>

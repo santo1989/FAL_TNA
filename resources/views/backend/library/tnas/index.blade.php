@@ -244,13 +244,24 @@
 
                                              </form>
                                              @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                                                 <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST"
-                                                     style="display:inline-block;">
-                                                     @csrf
-                                                     @method('DELETE')
-                                                     <button type="submit" class="btn btn-outline-danger"><i
-                                                             class="fas fa-trash"></i></button>
-                                                 </form>
+                                                 @if (auth()->user()->email == 'shakib@ntg.com.bd')
+                                                     <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST"
+                                                         style="display:inline-block;">
+                                                         @csrf
+                                                         @method('DELETE')
+                                                         <button type="submit" class="btn btn-outline-danger disabled"><i
+                                                                 class="fas fa-trash"></i></button>
+                                                     </form>
+                                                 @else
+                                                     <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST"
+                                                         style="display:inline-block;">
+                                                         @csrf
+                                                         @method('DELETE')
+                                                         <button type="submit" class="btn btn-outline-danger"><i
+                                                                 class="fas fa-trash"></i></button>
+                                                     </form>
+                                                 @endif
+
                                              @endif
                                          @endcan
                                          </td>
@@ -371,7 +382,7 @@
                                          </td>
                                      </tr>
                                  </tbody>
-                             </table> 
+                             </table>
                      </div>
                      <div class="modal-footer">
                          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
@@ -383,23 +394,24 @@
              </div>
          </div>
          <!--update_actual_COTTON_ROSE Modal End-->
-        <script>
-    document.getElementById('cotton_buyer_id').addEventListener('change', function() {
-        var buyerId = this.value;
+         <script>
+             document.getElementById('cotton_buyer_id').addEventListener('change', function() {
+                 var buyerId = this.value;
 
-        if(buyerId) {
-            fetch('/get-styles?buyer_id=' + buyerId)
-            .then(response => response.json())
-            .then(styles => {
-                var styleSelect = document.getElementById('cotton_style');
-                styleSelect.innerHTML = '<option selected>Select Style</option>';
-                styles.forEach(function(style) {
-                    styleSelect.innerHTML += '<option value="' + style + '">' + style + '</option>';
-                });
-            })
-            .catch(error => console.error('Error fetching styles:', error));
-        }
-    });
-</script>
+                 if (buyerId) {
+                     fetch('/get-styles?buyer_id=' + buyerId)
+                         .then(response => response.json())
+                         .then(styles => {
+                             var styleSelect = document.getElementById('cotton_style');
+                             styleSelect.innerHTML = '<option selected>Select Style</option>';
+                             styles.forEach(function(style) {
+                                 styleSelect.innerHTML += '<option value="' + style + '">' + style +
+                                     '</option>';
+                             });
+                         })
+                         .catch(error => console.error('Error fetching styles:', error));
+                 }
+             });
+         </script>
 
      </x-backend.layouts.master>

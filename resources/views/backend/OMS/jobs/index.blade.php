@@ -67,7 +67,7 @@
                                          <th>Action</th>
                                      </tr>
                                  </thead>
-                                 <tbody class="text-nowrap">
+                                 <tbody class="text-nowrap" id="jobTableBody">
                                      @forelse ($jobs as $job)
                                          <tr>
                                              <td>
@@ -447,10 +447,18 @@
      </div>
      <!-- ShipmentModal End-->
 
-     <script>
-         $(document).ready(function() {
-             $('#buyer_assign_table').DataTable();
-         });
+     <script> 
+         setInterval(function() {
+             $.ajax({
+                 url: '{{ route('jobs.index') }}', // Adjust route if needed
+                 type: 'GET',
+                 success: function(data) {
+                     $('#jobTableBody').html(data.html); // Inject new job data into the table body
+                     console.log('Data updated', data);
+
+                 }
+             });
+         }, 5000); // Poll every 5 seconds
      </script>
      <script>
          $('#jobModal').on('show.bs.modal', function(event) {

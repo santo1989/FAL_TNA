@@ -429,12 +429,12 @@
                                             <tr>
                                                 <td>
                                                     <input type="text" name="color[]" class="form-control"
-                                                        placeholder="Color" value="{{ $color }}">
+                                                        placeholder="Color" value="{{ $color }}" required>
                                                 </td>
                                                 <td>
                                                     <input type="number" name="color_quantity[]"
                                                         class="form-control" placeholder="Quantity"
-                                                        value="{{ old('color_quantity')[$index] }}">
+                                                        value="{{ old('color_quantity')[$index] }}" required>
                                                 </td>
                                                 <td>
                                                     <a href="javascript:void(0)" class="btn btn-outline-primary"
@@ -446,15 +446,15 @@
                                         <tr>
                                             <td>
                                                 <input type="text" name="color[]" class="form-control"
-                                                    placeholder="Color">
+                                                    placeholder="Color" required>
                                             </td>
                                             <td>
                                                 <input type="text" name="size[]" class="form-control"
-                                                    placeholder="Size">
+                                                    placeholder="Size" required>
                                             </td>
                                             <td>
                                                 <input type="number" name="color_quantity[]" class="form-control"
-                                                    placeholder="Quantity">
+                                                    placeholder="Quantity" required>
                                             </td>
                                             <td>
                                                 <a href="javascript:void(0)" class="btn btn-outline-primary"
@@ -565,15 +565,19 @@
                                     <td class="create_input_column">
                                         {{-- <input type="text" name="print" class="form-control"
                                             placeholder="Print" value="{{ old('print') }}"> --}}
-                                            <select name="print" class="form-control">
+                                        <select name="print" class="form-control">
                                             <option value="">Select Print Type</option>
-                                            <option value="Chest Print" {{ old('print') == 'Chest Print' ? 'selected' : '' }}>
+                                            <option value="Chest Print"
+                                                {{ old('print') == 'Chest Print' ? 'selected' : '' }}>
                                                 Chest Print</option>
-                                            <option value="Neck Print" {{ old('print') == 'Neck Print' ? 'selected' : '' }}>
+                                            <option value="Neck Print"
+                                                {{ old('print') == 'Neck Print' ? 'selected' : '' }}>
                                                 Neck Print</option>
-                                            <option value="Both Print" {{ old('print') == 'Both Print' ? 'selected' : '' }}>
+                                            <option value="Both Print"
+                                                {{ old('print') == 'Both Print' ? 'selected' : '' }}>
                                                 Both Print</option>
-                                            <option value="No Print" {{ old('print') == 'No Print' ? 'selected' : '' }}>
+                                            <option value="No Print"
+                                                {{ old('print') == 'No Print' ? 'selected' : '' }}>
                                                 No Print</option>
                                         </select>
                                     </td>
@@ -623,12 +627,23 @@
             $('#style-select').select2();
             $('#po-select').select2();
             $('#department-select').select2();
+            $('#country').select2();
 
         })
         $(document).ready(function() {
 
             $('#colorWayTable').on('click', '#removeColorWay', function() {
                 $(this).closest('tr').remove();
+            });
+
+            // if any colorWayTable row field is empty then saveQuantity button will be disabled
+            $('#colorWayTable tbody tr').each(function() {
+                var color = $(this).find('input[name="color[]"]').val();
+                var size = $(this).find('input[name="size[]"]').val();
+                var quantity = $(this).find('input[name="color_quantity[]"]').val();
+                if (color == '' || size == '' || quantity == '') {
+                    $('#saveQuantity').prop('disabled', true);
+                }
             });
 
             $('#saveQuantity').click(function() {
@@ -645,9 +660,9 @@
 
             $('#colorWayTable').on('click', '#addColorWay', function() {
                 var newRow = `<tr>
-                <td><input type="text" name="color[]" class="form-control" placeholder="Color"></td>
-                <td><input type="text" name="size[]" class="form-control" placeholder="Size"></td>
-                <td><input type="number" name="color_quantity[]" class="form-control" placeholder="Quantity"></td>
+                <td><input type="text" name="color[]" class="form-control" placeholder="Color" required></td>
+                <td><input type="text" name="size[]" class="form-control" placeholder="Size" required></td>
+                <td><input type="number" name="color_quantity[]" class="form-control" placeholder="Quantity" required></td>
                 <td><a href="javascript:void(0)" class="btn btn-outline-danger" id="removeColorWay">Remove</a></td>
             </tr>`;
                 $('#colorWayTable tbody').append(newRow);

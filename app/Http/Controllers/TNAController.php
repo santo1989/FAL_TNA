@@ -33,7 +33,7 @@ class TNAController extends Controller
 
         return view('backend.library.tnas.index', compact('tnas'));
     }
-   
+
 
 
     public function create()
@@ -773,10 +773,10 @@ class TNAController extends Controller
 
     public function getStyles(Request $request)
     {
-        
+
         $buyerId = $request->input('buyer_id');
         $style_lists = DB::table('t_n_a_s')
-        ->where('buyer_id', $buyerId)
+            ->where('buyer_id', $buyerId)
             ->distinct()
             ->pluck('style');
         return response()->json($style_lists);
@@ -786,11 +786,11 @@ class TNAController extends Controller
     {
         // Retrieve parameters from the request
         $buyer_id = $request->input('buyer_id');
-        $style = $request->input('style'); 
+        $style = $request->input('style');
 
         // Fetch TNA records based on buyer_id and shipment month
         $tnas = TNA::where('buyer_id', $buyer_id)
-            ->where('style', $style) 
+            ->where('style', $style)
             ->get();
 
         // Fetch active buyers
@@ -824,7 +824,7 @@ class TNAController extends Controller
             'pp_sample_submission_actual' => $request->input('pp_sample_submission_actual'),
             'pp_comments_receive_actual' => $request->input('pp_comments_receive_actual'),
         ];
-// dd($actual_dates, $tna_ids);
+        // dd($actual_dates, $tna_ids);
         // Loop through each TNA ID and update the corresponding record
         foreach ($tna_ids as $tna_id) {
             $tna = TNA::find($tna_id);
@@ -1026,6 +1026,76 @@ class TNAController extends Controller
         return $tnas;
     }
 
+    // public function MailBuyerWiseTnaSummary()
+    // {
+    //     // Get current date
+    //     $currentDate = Carbon::now()->format('Y-m-d');
+
+    //     // Fetch data from t_n_a_s table
+    //     $tnaData = Tna::where('order_close', '0')
+    //         ->orderBy('shipment_etd', 'asc')
+    //         ->get();
+
+    //     $marchendiser_wise_buyer = DB::table('buyer_assigns')->select(array('buyer_id', 'user_id'))->get();
+
+    //     // Process data to get counts
+    //     $buyers = [];
+    //     $columns = [
+    //         'lab_dip_submission',
+    //         'fabric_booking',
+    //         'fit_sample_submission',
+    //         'print_strike_off_submission',
+    //         'bulk_accessories_booking',
+    //         'fit_comments',
+    //         'bulk_yarn_inhouse',
+    //         'bulk_accessories_inhouse',
+    //         'pp_sample_submission',
+    //         'bulk_fabric_knitting',
+    //         'pp_comments_receive',
+    //         'bulk_fabric_dyeing',
+    //         'bulk_fabric_delivery',
+    //         'pp_meeting'
+    //     ];
+
+    //     foreach ($tnaData as $row) {
+    //         $buyerName = $row->buyer;
+    //         if (!isset($buyers[$buyerName])) {
+    //             $buyers[$buyerName] = [
+    //                 'data' => array_fill_keys($columns, 0),
+    //                 'details' => []
+    //             ];
+    //         }
+    //         foreach ($columns as $column) {
+    //             $planColumn = $column . '_plan';
+    //             $actualColumn = $column . '_actual';
+    //             if ($row->$planColumn && !$row->$actualColumn && $row->$planColumn <= $currentDate) {
+    //                 $buyers[$buyerName]['data'][$column]++;
+    //                 $buyers[$buyerName]['details'][$column][] = [
+    //                     'style' => $row->style,
+    //                     'po' => $row->po,
+    //                     'task' => $column,
+    //                     'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y')
+    //                 ];
+    //             }
+    //         }
+    //     }
+
+    //     // Send email
+    //     // Mail::to('santo@ntg.com.bd') // Replace with actual buyer email or loop through multiple emails
+    //     // ->send(new BuyerWiseTnaSummary($buyers, $columns));
+    //     try {
+    //         Mail::to('santo@ntg.com.bd')->send(new BuyerWiseTnaSummary($buyers, $columns));
+    //     } catch (\Exception $e) {
+    //         Log::error('Error sending email: ' . $e->getMessage());
+    //     }
+
+
+    //     return view('backend.OMS.reports.buyer_wise_tna_summary', [
+    //         'buyers' => $buyers,
+    //         'columns' => $columns
+    //     ]);
+    // }
+
     public function MailBuyerWiseTnaSummary()
     {
         // Get current date
@@ -1036,9 +1106,15 @@ class TNAController extends Controller
             ->orderBy('shipment_etd', 'asc')
             ->get();
 
-        $marchendiser_wise_buyer = DB::table('buyer_assigns')->select(array('buyer_id', 'user_id'))->get();
+        // Fetch buyer assignments (buyer_id and user_id (merchandiser))
+        $marchendiserWiseBuyer = DB::table('buyer_assigns')->get();
 
-        // Process data to get counts
+        // Fetch emails of merchandisers, admins, and supervisors
+        $marchendiserEmails = DB::table('users')->pluck('email', 'id'); // Merchandiser emails by user ID
+        $adminEmails = 'santo@ntg.com.bd'; // Assuming you have a role field
+        $supervisorEmails = DB::table('users')->where('role_id', 4)->pluck('email'); // Same for supervisor role
+
+        // Process data to get counts for pending tasks
         $buyers = [];
         $columns = [
             'lab_dip_submission',
@@ -1080,21 +1156,43 @@ class TNAController extends Controller
             }
         }
 
-        // Send email
-        // Mail::to('santo@ntg.com.bd') // Replace with actual buyer email or loop through multiple emails
-        // ->send(new BuyerWiseTnaSummary($buyers, $columns));
-        try {
-            Mail::to('santo@ntg.com.bd')->send(new BuyerWiseTnaSummary($buyers, $columns));
-        } catch (\Exception $e) {
-            Log::error('Error sending email: ' . $e->getMessage());
-        }
+        // Send email to each buyer's assigned merchant, and cc to admin and supervisor
+        foreach ($marchendiserWiseBuyer as $assignment) {
+            $buyerId = $assignment->buyer_id;
+            $userId = $assignment->user_id; // Merchandiser ID
 
+            // Get the merchandiser email by ID
+            $merchantEmail = isset($marchendiserEmails[$userId]) ? $marchendiserEmails[$userId] : null;
+
+            // Prepare the email only for buyers with pending tasks
+            if (isset($buyers[$buyerId]) && array_sum($buyers[$buyerId]['data']) > 0) {
+                try {
+                    if (!$merchantEmail) {
+                        Log::warning('No email found for user ID ' . $userId);
+                        continue;
+                    }
+
+                    // Send the email to the merchant and cc admins and supervisors
+                    Mail::to($merchantEmail)
+                        ->cc($adminEmails) // CC admins
+                        ->bcc($supervisorEmails) // BCC supervisors
+                        ->send(new BuyerWiseTnaSummary($buyers[$buyerId], $columns));
+
+                    Log::info('Email sent to ' . $merchantEmail);
+                } catch (\Exception $e) {
+                    Log::error('Error sending email to ' . $merchantEmail . ': ' . $e->getMessage());
+                }
+            }
+        }
 
         return view('backend.OMS.reports.buyer_wise_tna_summary', [
             'buyers' => $buyers,
             'columns' => $columns
         ]);
+        // return response()->json(['status' => 'Emails sent successfully']);
     }
+
+
 
     public function Cutting_Plan(Request $request)
     {

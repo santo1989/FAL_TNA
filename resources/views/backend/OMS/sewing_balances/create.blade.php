@@ -68,11 +68,25 @@
                                         <td class="create_input_column">
                                             {{ $basic_info->order_quantity }}
                                         </td>
+                                        <td class="create_label_column">Total Sweing</td>
+                                        <td class="create_input_column">
+                                            <input type="number" name="total_sewing_balance" class="form-control"
+                                                placeholder="Total Sewing Balance" value="{{ $basic_info->total_sewing_balance }}"
+                                                required readonly id="total_sewing_balance">
+                                        </td>
+                                    </tr>
+                                    <tr>
                                         <td class="create_label_column">Sweing Balance</td>
                                         <td class="create_input_column">
                                             <input type="number" name="sewing_balance" class="form-control"
                                                 placeholder="Sewing Balance" value="{{ $basic_info->sewing_balance }}"
                                                 required readonly id="sewing_balance">
+                                        </td>
+                                        <td class="create_label_column">Total Production Min</td>
+                                        <td class="create_input_column">
+                                            <input type="number" name="Total_Production_Min" class="form-control"
+                                                placeholder="Total Production Min" value="{{ $basic_info->Total_Production_Min }}"
+                                                required readonly id="Total_Production_Min">
                                         </td>
                                     </tr>
                                     <tr>
@@ -101,6 +115,7 @@
                                     <tr>
                                         <th>Color</th>
                                         <th>Size</th>
+                                        <th>Order Quantity</th>
                                         <th>Remain Quantity</th>
                                         <th>Sewing Quantity</th>
                                     </tr>
@@ -118,6 +133,9 @@
                                                     placeholder="Size" value="{{ $color->size }}" readonly>
                                             </td>
                                             <td>
+                                                {{ $color->color_quantity }}
+                                            </td>
+                                            <td>
                                                 @php
                                                     $total_sewing_qty = 0;
 
@@ -132,7 +150,7 @@
                                                     }
                                                     $remain_qty = $color->color_quantity - $total_sewing_qty;
                                                 @endphp
-                                                <input type="number" name="color_quantity[]" class="form-control"
+                                                <input type="number" name="color_quantity[]" id="color_quantity"  class="form-control"
                                                     placeholder="Quantity" value="{{ $remain_qty }}" readonly>
                                             </td>
                                             <td>
@@ -219,7 +237,18 @@
                 $('.sewing_quantity').each(function() {
                     total_sewing_quantity += $(this).val() === '' ? 0 : parseInt($(this).val());
                 });
-                $('#sewing_balance').val(total_sewing_quantity);
+                $('#total_sewing_balance').val(total_sewing_quantity);
+
+                // Calculate the total sewing balance from the balance of  (order quantity - sewing quantity)
+                var total_color_quantity_balance = 0;
+                var total_sewing_balance = $('#total_sewing_balance').val();
+                $('#color_quantity').each(function() {
+                    var color_quantity = $(this).val();
+                    total_color_quantity_balance += parseInt(color_quantity) === '' ? 0 : parseInt(color_quantity);
+                }); 
+                var sewing_balance = total_color_quantity_balance - total_sewing_balance;
+                $('#sewing_balance').val(sewing_balance);
+
             }
 
             function calculateProductionMinBalance() {
