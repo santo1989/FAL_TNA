@@ -42,8 +42,8 @@
                                  <td class="create_label_column">Buyer</td>
                                  <td class="create_input_column">
                                      {{ $tnas['0']->buyer }}
-                                 </td> 
-                             </tr> 
+                                 </td>
+                             </tr>
 
                          </tbody>
                      </table>
@@ -52,10 +52,11 @@
                      <div class="card-body">
                          <form method="POST" action="{{ route('tnas_update_COTTON_ROSE') }}"
                              enctype="multipart/form-data">
-                             @csrf 
+                             @csrf
                              <table class="table table-bordered table-striped text-wrap">
                                  <thead>
                                      <tr>
+                                        <th></th>
                                          <th>Lab Dip Submission</th>
                                          <th>Fabric Booking</th>
                                          <th>Fit Sample Submission</th>
@@ -64,54 +65,89 @@
                                          <th>Fit Comments</th>
                                          <th>Bulk Yarn Inhouse</th>
                                          <th>Bulk Accessories Inhouse</th>
-                                         <th>PP Sample Submission</th>
-                                         {{-- <th>Bulk Fabric Knitting</th> --}}
-                                         <th>PP Comments Receive</th>
-                                         {{-- <th>Bulk Fabric Dyeing</th>
-                                         <th>Bulk Fabric Delivery</th>
-                                         <th>PP Meeting</th>
-                                         <th>ETD</th> --}}
+                                         <th>PP Sample Submission</th> 
+                                         <th>PP Comments Receive</th> 
                                      </tr>
                                  </thead>
                                  <tbody>
-                                    @foreach ($tnas as $tna )
-                                     
-                                    <input type="hidden" name="tna_id[]" id="tna_id[]" value="{{ $tna->id }}" >
-                                        
-                                    @endforeach
+{{-- @dd($tna_first_plan_date) --}}
                                      <tr>
+                                            <td>Plan</td>
+                                         <td><input type="date" class="form-control"
+                                                 value="{{ $tna_first_plan_date->lab_dip_submission_plan }}" readonly>
+                                         </td>
+                                         <td><input type="date" class="form-control"
+                                                 value="{{ $tna_first_plan_date->fabric_booking_plan }}" readonly></td>
+                                         <td><input type="date" class="form-control"
+                                                 value="{{ $tna_first_plan_date->fit_sample_submission_plan }}"
+                                                 readonly></td>
+                                         <td>
+                                            @php
+                                                $print_strike_off_submission_plan = Carbon\Carbon::parse($tna_first_plan_date->print_strike_off_submission_plan)->format('d-M-Y');
+                                            @endphp
+                                            <input type="text" class="form-control"
+                                                 value="{{ $print_strike_off_submission_plan }}"
+                                                 readonly>
+                                         </td>
+                                         <td><input type="date" class="form-control"
+                                                 value="{{ $tna_first_plan_date->bulk_accessories_booking_plan }}"
+                                                 readonly>
+                                         </td>
+                                         <td><input type="date" class="form-control"
+                                                 value="{{ $tna_first_plan_date->fit_comments_plan }}" readonly></td>
+                                         <td><input type="date" class="form-control"
+                                                 value="{{ $tna_first_plan_date->bulk_yarn_inhouse_plan }}" readonly>
+                                         </td>
+                                         <td><input type="date" class="form-control"
+                                                 value="{{ $tna_first_plan_date->bulk_accessories_inhouse_plan }}"
+                                                 readonly></td>
+                                         <td><input type="date" class="form-control"
+                                                 value="{{ $tna_first_plan_date->pp_sample_submission_plan }}"
+                                                 readonly></td>
+                                         <td><input type="date" class="form-control"
+                                                 value="{{ $tna_first_plan_date->pp_comments_receive_plan }}" readonly>
+                                         </td>
+
+
+
+                                     </tr>
+                                     @foreach ($tnas as $tna)
+                                         <input type="hidden" name="tna_id[]" id="tna_id[]"
+                                             value="{{ $tna->id }}">
+                                     @endforeach
+                                     <tr>
+                                            <td>Actual</td>
                                          <td><input type="date" name="lab_dip_submission_actual"
-                                                  class="form-control"></td>
-                                         <td><input type="date" name="fabric_booking_actual"
-                                                  class="form-control"></td>
+                                                 class="form-control"></td>
+                                         <td><input type="date" name="fabric_booking_actual" class="form-control">
+                                         </td>
                                          <td><input type="date" name="fit_sample_submission_actual"
                                                  class="form-control"></td>
                                          <td><input type="date" name="print_strike_off_submission_actual"
                                                  class="form-control">
                                          </td>
                                          <td><input type="date" name="bulk_accessories_booking_actual"
-                                                  class="form-control">
+                                                 class="form-control">
                                          </td>
-                                         <td><input type="date" name="fit_comments_actual"
-                                                  class="form-control"></td>
-                                            <td><input type="date" name="bulk_yarn_inhouse_actual"
+                                         <td><input type="date" name="fit_comments_actual" class="form-control"></td>
+                                         <td><input type="date" name="bulk_yarn_inhouse_actual" class="form-control">
+                                         </td>
+                                         <td><input type="date" name="bulk_accessories_inhouse_actual"
                                                  class="form-control"></td>
-                                            <td><input type="date" name="bulk_accessories_inhouse_actual"  
+                                         <td><input type="date" name="pp_sample_submission_actual"
                                                  class="form-control"></td>
-                                            <td><input type="date" name="pp_sample_submission_actual"
-                                                   class="form-control"></td>
-                                            {{-- <td><input type="date" name="bulk_fabric_knitting_actual" value="{{ $tnas->bulk_fabric_knitting_actual }}"
+                                         {{-- <td><input type="date" name="bulk_fabric_knitting_actual" value="{{ $tnas->bulk_fabric_knitting_actual }}"
                                                  class="form-control"></td> --}}
-                                            <td><input type="date" name="pp_comments_receive_actual"  
+                                         <td><input type="date" name="pp_comments_receive_actual"
                                                  class="form-control"></td>
-                                            {{-- <td><input type="date" name="bulk_fabric_dyeing_actual" value="{{ $tnas->bulk_fabric_dyeing_actual }}"
+                                         {{-- <td><input type="date" name="bulk_fabric_dyeing_actual" value="{{ $tnas->bulk_fabric_dyeing_actual }}"
                                                     class="form-control"></td>
                                             <td><input type="date" name="bulk_fabric_delivery_actual" value="{{ $tnas->bulk_fabric_delivery_actual }}" class="form-control"></td>
                                             <td><input type="date" name="pp_meeting_actual" value="{{ $tnas->pp_meeting_actual }}" class="form-control"></td>
                                             <td><input type="date" name="etd_actual" value="{{ $tnas->etd_actual }}" class="form-control"></td> --}}
 
 
-                                          
+
                                      </tr>
                                  </tbody>
                              </table>
@@ -128,5 +164,5 @@
                  </div>
              </div>
          </div>
-     </div> 
+     </div>
  </x-backend.layouts.master>

@@ -13,6 +13,8 @@
 
                      </div>
                      <div class="col-6 text-end">
+                          <a href="{{ route('sewing_plans.create') }}" class="btn btn-outline-primary"> <i
+                                 class="fas fa-plus"></i> Add Sewing Plan</a> 
                          <button type="button" class="btn btn-outline-success" data-toggle="modal"
                              data-target="#ReportModal">
                              Report
@@ -447,7 +449,7 @@
      </div>
      <!-- ShipmentModal End-->
 
-     <script> 
+     <script>
          setInterval(function() {
              $.ajax({
                  url: '{{ route('jobs.index') }}', // Adjust route if needed

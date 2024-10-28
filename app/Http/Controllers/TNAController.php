@@ -793,6 +793,11 @@ class TNAController extends Controller
             ->where('style', $style)
             ->get();
 
+        // Fetch the 1st record to get the all plan dates
+        $tna_first_plan_date = TNA::where('buyer_id', $buyer_id)
+            ->where('style', $style)
+            ->first();
+
         // Fetch active buyers
         $buyers = Buyer::where('is_active', '0')->get();
 
@@ -802,7 +807,7 @@ class TNAController extends Controller
         }
 
         // Return the view with the required data
-        return view('backend.library.tnas.edit_actual_COTTON_ROSE', compact('tnas', 'buyers'));
+        return view('backend.library.tnas.edit_actual_COTTON_ROSE', compact('tnas', 'buyers', 'tna_first_plan_date'));
     }
 
 

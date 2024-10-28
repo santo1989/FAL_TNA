@@ -6,11 +6,13 @@ use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
 use App\Http\Controllers\DivisionController;
+use App\Http\Controllers\FactoryHolidayController;
 use App\Http\Controllers\JobController;
 use App\Http\Controllers\MarchentSOPController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\SewingBlanceController;
+use App\Http\Controllers\SewingPlanController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\SOPController;
 use App\Http\Controllers\SupplierController;
@@ -241,7 +243,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/item-wise-summary', [JobController::class, 'itemWiseSummary'])->name('item_wise_summary');
     Route::get('/delivery-summary', [JobController::class, 'deliverySummary'])->name('delivery_summary');
 
-    
+    //sewing_plans
+    Route::get('/sewing_plans', [SewingPlanController::class, 'sewing_plans'])->name('sewing_plans.index');
+    Route::get('/sewing_plans/create', [SewingPlanController::class, 'create'])->name('sewing_plans.create');
+    Route::post('/sewing_plans', [SewingPlanController::class, 'store'])->name('sewing_plans.store');
+    Route::get('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'show'])->name('sewing_plans.show');
+    Route::get('/sewing_plans/{sewing_plan}/edit', [SewingPlanController::class, 'edit'])->name('sewing_plans.edit');
+    Route::put('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'update'])->name('sewing_plans.update');
+    Route::delete('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'destroy'])->name('sewing_plans.destroy');
+
 
 
 
@@ -265,6 +275,20 @@ Route::middleware('auth')->group(function () {
     Route::get('/shipments/{shipment}/edit', [ShipmentController::class, 'edit'])->name('shipments.edit');
     Route::put('/shipments/{shipment}', [ShipmentController::class, 'update'])->name('shipments.update');
     Route::delete('/shipments/{shipment}', [ShipmentController::class, 'destroy'])->name('shipments.destroy');
+
+    //factory_holidays
+    Route::get('/factory_holidays', [FactoryHolidayController::class, 'index'])->name('factory_holidays.index');
+    Route::get('/factory_holidays/create', [FactoryHolidayController::class, 'create'])->name('factory_holidays.create');
+    Route::post('/factory_holidays', [FactoryHolidayController::class, 'store'])->name('factory_holidays.store');
+    Route::get('/factory_holidays/{factory_holiday}', [FactoryHolidayController::class, 'show'])->name('factory_holidays.show');
+    Route::get('/factory_holidays/{factory_holiday}/edit', [FactoryHolidayController::class, 'edit'])->name('factory_holidays.edit');
+    Route::put('/factory_holidays/{factory_holiday}', [FactoryHolidayController::class, 'update'])->name('factory_holidays.update');
+    Route::delete('/factory_holidays/{factory_holiday}', [FactoryHolidayController::class, 'destroy'])->name('factory_holidays.destroy');
+
+    //active_inactive
+    Route::post('/factory_holidays/{factory_holiday}/factory_holidays_active', [FactoryHolidayController::class, 'factory_holidays_active'])->name('factory_holidays.active');
+    
+
 });
 
 Route::get('/get-styles', [TNAController::class, 'getStyles']);
