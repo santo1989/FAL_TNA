@@ -33,6 +33,8 @@
                                         class="fas fa-arrow-left"></i>
                                     Close</a>
                                 <x-backend.form.anchor :href="route('factory_holidays.create')" type="create" />
+                                <a href="{{ route('factory_holidays.calander_views') }}" class="btn btn-lg btn-outline-primary"><i
+                                        class="fas fa-plus"></i> Calander view</a>
                             </div>
                             <!-- /.card-header -->
                             <div class="card-body">
@@ -42,9 +44,9 @@
                                     <thead>
                                         <tr>
                                             <th>Sl#</th>
-                                            <th>Division</th>
-                                            <th>Company</th>
-                                            <th>Name</th>
+                                            <th>Date</th>
+                                            <th>Description</th>
+                                            <th>Weekend</th>
                                             <th>Active</th>
                                             <th>Actions</th>
 
@@ -53,35 +55,44 @@
                                     <tbody>
                                         @php $sl=0 @endphp
 
-                                        @forelse ($holidays as $holiday) 
-                                                <tr>
-                                                    <td>{{ ++$sl }}</td>
-                                                    <td>{{ $holiday->division->name }}</td>
-                                                    <td>{{ $holiday->company->name }}</td>
-                                                    <td>{{ $holiday->name }}</td>
-                                                    <td>
-                                                        <form
-                                                            action="{{ route('factory_holidays.active', ['holiday' => $holiday->id]) }}"
-                                                            method="POST">
-                                                            @csrf
-                                                            <button
-                                                                onclick="return confirm('Are you sure want to change status ?')"
-                                                                class="btn btn-sm {{ $holiday->is_active ? 'btn-danger' : 'btn-success' }}"
-                                                                type="submit">{{ $holiday->is_active ? 'Inactive' : 'Active' }}</button>
-                                                        </form>
-                                                    </td>
-                                                    <td>
-                                                        <x-backend.form.anchor :href="route('factory_holidays.edit', ['holiday' => $holiday->id])" type="edit" />
-                                                        <x-backend.form.anchor :href="route('factory_holidays.show', ['holiday' => $holiday->id])" type="show" />
-                                                        @if (auth()->user()->role_id == 1)
-                                                            <button
-                                                                class="btn btn-outline-danger my-1 mx-1 inline btn-sm"
-                                                                onclick="confirmDelete('{{ route('factory_holidays.destroy', ['holiday' => $holiday->id]) }}')">
-                                                                <i class="bi bi-trash"></i> Delete
-                                                            </button>
-                                                        @endif
-                                                    </td>
-                                                </tr> 
+                                        @forelse ($holidays as $holiday)
+                                            <tr>
+                                                <td>{{ ++$sl }}</td>
+                                                <td> {{ Carbon\Carbon::parse($holiday->holiday_date)->format('d-M-Y') }} </td> 
+                                                <td>{{ $holiday->description }}</td>
+                                                <td>
+                                                    @if ($holiday->is_weekend == 1)
+                                                        <span class="badge badge-success">Yes</span>
+                                                    @else
+                                                        <span class="badge badge-danger">No</span>
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    <form
+                                                        action="{{ route('factory_holidays.active', ['factory_holiday' => $holiday->id]) }}"
+                                                        method="POST">
+                                                        @csrf
+                                                        <button
+                                                            onclick="return confirm('Are you sure want to change status ?')"
+                                                            class="btn btn-sm {{ $holiday->is_active ? 'btn-success' : 'btn-outline-danger' }}"
+                                                            type="submit">{{ $holiday->is_active ? 'Active' : 'Inactive' }}</button>
+                                                    </form>
+                                                </td>
+                                                <td>
+                                                    <x-backend.form.anchor :href="route('factory_holidays.edit', [
+                                                        'factory_holiday' => $holiday->id,
+                                                    ])" type="edit" />
+                                                    <x-backend.form.anchor :href="route('factory_holidays.show', [
+                                                        'factory_holiday' => $holiday->id,
+                                                    ])" type="show" />
+                                                    @if (auth()->user()->role_id == 1)
+                                                        <button class="btn btn-outline-danger my-1 mx-1 inline btn-sm"
+                                                            onclick="confirmDelete('{{ route('factory_holidays.destroy', ['factory_holiday' => $holiday->id]) }}')">
+                                                            <i class="bi bi-trash"></i> Delete
+                                                        </button>
+                                                    @endif
+                                                </td>
+                                            </tr>
                                         @empty
                                             <tr>
                                                 <td colspan="5" class="text-center">No data found!</td>

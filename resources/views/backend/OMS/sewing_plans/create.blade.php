@@ -96,6 +96,9 @@
                                                 placeholder="Production Plan" required>
                                         </td>
                                     </tr>
+                                    <!--after input the production plan, then show that month's factory calendar with holidays and count of working days and if there is any holiday then show the message that to adjust the plan and redrect to the factory holiday page index--> 
+                                    
+
                                 </tbody>
                             </table>
 

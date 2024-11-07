@@ -15,7 +15,7 @@ class CreateFactoryHolidaysTable extends Migration
     {
         Schema::create('factory_holidays', function (Blueprint $table) {
             $table->id();
-            $table->date('holiday_date');
+            $table->date('holiday_date')->nullable();
             $table->boolean('is_default')->default(false); // For Friday or auto-added holidays
             $table->boolean('is_weekend')->default(false); // For Saturday or Sunday
             $table->boolean('is_additional')->default(false); // For Additional holidays

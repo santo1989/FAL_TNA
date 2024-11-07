@@ -287,6 +287,8 @@ Route::middleware('auth')->group(function () {
 
     //active_inactive
     Route::post('/factory_holidays/{factory_holiday}/factory_holidays_active', [FactoryHolidayController::class, 'factory_holidays_active'])->name('factory_holidays.active');
+    //factory_holidays.calander_views
+    Route::get('/factory-holidays-calander-views', [FactoryHolidayController::class, 'calander_views'])->name('factory_holidays.calander_views');
     
 
 });

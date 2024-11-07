@@ -45,7 +45,7 @@
                                      </tr>
                                  </thead>
                                  <tbody>
-                                     @forelse ($buyer_assigns as $key=> $buyer_assign)
+                                     {{-- @forelse ($buyer_assigns as $key=> $buyer_assign)
                                             @if ($key === 0 || $buyer_assign->user_name !== $buyer_assigns[$key - 1]->user_name)
                                                 <tr>
     
@@ -80,6 +80,31 @@
                                                     </td>
                                                 </tr>
                                             @endif
+                                        @empty
+                                            <tr>
+                                                <td colspan="3">No buyer_assigns found</td>
+                                            </tr>
+                                          
+                                     @endforelse --}}
+                                      @forelse ($buyer_assigns as $buyer_assign)
+                                           
+                                                <tr>
+    
+                                                    <td>{{ $buyer_assign->user_name }}</td>
+                                                    <td>{{ $buyer_assign->buyer_name }}</td>
+                                                    <td>
+                                                        <a href="{{ route('buyer_assigns.edit', $buyer_assign->id) }}"
+                                                            class="btn btn-outline-primary"><i class="fas fa-edit"></i></a>
+                                                        <form action="{{ route('buyer_assigns.destroy', $buyer_assign->id) }}"
+                                                            method="POST" style="display:inline-block;">
+                                                            @csrf
+                                                            @method('DELETE')
+                                                            <button type="submit" class="btn btn-outline-danger"><i
+                                                                    class="fas fa-trash"></i></button>
+                                                        </form>
+                                                    </td>
+                                                </tr>
+                                           
                                         @empty
                                             <tr>
                                                 <td colspan="3">No buyer_assigns found</td>

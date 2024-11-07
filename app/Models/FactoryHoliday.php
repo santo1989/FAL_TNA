@@ -9,5 +9,13 @@ class FactoryHoliday extends Model
 {
     use HasFactory;
 
-    protected $gaured = [];
+    
+    protected $fillable = [
+        'holiday_date',
+        'description',
+        'is_weekend',
+        'is_default',
+        'is_additional',
+        'is_active',
+    ];
 }
