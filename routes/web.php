@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\BuyerAssignController;
 use App\Http\Controllers\BuyerController;
+use App\Http\Controllers\CapacityPlanController;
 use App\Http\Controllers\CompanyController;
 use App\Http\Controllers\DepartmentController;
 use App\Http\Controllers\DesignationController;
@@ -289,9 +290,26 @@ Route::middleware('auth')->group(function () {
     Route::post('/factory_holidays/{factory_holiday}/factory_holidays_active', [FactoryHolidayController::class, 'factory_holidays_active'])->name('factory_holidays.active');
     //factory_holidays.calander_views
     Route::get('/factory-holidays-calander-views', [FactoryHolidayController::class, 'calander_views'])->name('factory_holidays.calander_views');
-    
+
+    // capacity_plans
+    Route::get('/capacity_plans', [CapacityPlanController::class, 'index'])->name('capacity_plans.index');
+    Route::get('/capacity_plans/create', [CapacityPlanController::class, 'create'])->name('capacity_plans.create');
+    Route::post('/capacity_plans', [CapacityPlanController::class, 'store'])->name('capacity_plans.store');
+    Route::get('/capacity_plans/{capacity_plans}', [CapacityPlanController::class, 'show'])->name('capacity_plans.show');
+    Route::get('/capacity_plans/{capacity_plans}/edit', [CapacityPlanController::class, 'edit'])->name('capacity_plans.edit');
+    Route::put('/capacity_plans/{capacity_plans}', [CapacityPlanController::class, 'update'])->name('capacity_plans.update');
+    Route::delete('/capacity_plans/{capacity_plans}', [CapacityPlanController::class, 'destroy'])->name('capacity_plans.destroy');
 
 });
+// routes/web.php
+Route::get('/get-avg-smv', [CapacityPlanController::class, 'getAvgSMV'])->name('capacity_plans.getAvgSMV');
+
+Route::get('/check_existing_plan', [CapacityPlanController::class, 'checkExistingPlan'])
+    ->name('check_existing_plan');
+// check_existing_capacity
+Route::get('/check_existing_capacity', [CapacityPlanController::class, 'checkExistingCapacity'])
+    ->name('check_existing_capacity');
+
 
 Route::get('/get-styles', [TNAController::class, 'getStyles']);
 

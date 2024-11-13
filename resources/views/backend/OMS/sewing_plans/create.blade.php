@@ -1,5 +1,5 @@
 <x-backend.layouts.master>
-    <!-- packages/YourVendor/ProductionTracking/resources/views/jobs/edit.blade.php -->
+ 
     <!--message show in .swl sweet alert-->
     @if (session('message'))
         <script>
@@ -29,76 +29,81 @@
                             <input type="hidden" name="company_id" value="3">
                             <input type="hidden" name="company_name" value="FAL - Factory">
                             <table class="table">
-                                <tbody>
-                                    {{--   <tr>
-                                      <td class="create_label_column">Job No</td>
-                                        <td class="create_input_column">
-                                            <input type="text" name="job_no" class="form-control"
-                                                placeholder="Job No" value="{{ $jobs_no }}" readonly>
-                                        </td>
-                                        <td class="create_label_column">Buyer</td>
-                                        <td class="create_input_column">
-                                            {{ $basic_info->buyer }}
-                                        </td>
-                                        <td class="create_label_column">Style</td>
-                                        <td class="create_input_column">
-                                            {{ $basic_info->style }}
-                                        </td>
-                                    </tr>
-                                     <tr>
-                                        <td class="create_label_column">PO</td>
-                                        <td class="create_input_column">
-                                            {{ $basic_info->po }}
-                                        </td>
-                                        <td class="create_label_column">Department</td>
-                                        <td class="create_input_column">
-                                            {{ $basic_info->department }}
-                                        </td>
-                                        <td class="create_label_column">Item</td>
-                                        <td class="create_input_column">
-                                            {{ $basic_info->item }}
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="create_label_column">Destination</td>
-                                        <td class="create_input_column">
-                                            {{ $basic_info->destination }}
-                                        </td>
-                                        <td class="create_label_column">Order Quantity</td>
-                                        <td class="create_input_column">
-                                            {{ $basic_info->order_quantity }}
-                                        </td>
-                                        <td class="create_label_column">Total Sweing</td>
-                                        <td class="create_input_column">
-                                            <input type="number" name="total_sewing_balance" class="form-control"
-                                                placeholder="Total Sewing Balance" value="{{ $basic_info->total_sewing_balance }}"
-                                                required readonly id="total_sewing_balance">
-                                        </td>
-                                    </tr>
-                                    <tr>
-                                        <td class="create_label_column">Sweing Balance</td>
-                                        <td class="create_input_column">
-                                            <input type="number" name="sewing_balance" class="form-control"
-                                                placeholder="Sewing Balance" value="{{ $basic_info->sewing_balance }}"
-                                                required readonly id="sewing_balance">
-                                        </td>
-                                        <td class="create_label_column">Total Production Min</td>
-                                        <td class="create_input_column">
-                                            <input type="number" name="Total_Production_Min" class="form-control"
-                                                placeholder="Total Production Min" value="{{ $basic_info->Total_Production_Min }}"
-                                                required readonly id="Total_Production_Min">
-                                        </td>
-                                    </tr> --}}
+                                <tbody> 
                                     <tr>
                                         <td class="create_label_column">Production Plan</td>
                                         <td class="create_input_column">
-                                            <input type="month" name="production_plan" class="form-control"
-                                                placeholder="Production Plan" required>
+                                            <input type="month" name="production_plan" id="productionPlan"
+                                                class="form-control" placeholder="Production Plan" required>
                                         </td>
                                     </tr>
-                                    <!--after input the production plan, then show that month's factory calendar with holidays and count of working days and if there is any holiday then show the message that to adjust the plan and redrect to the factory holiday page index--> 
-                                    
 
+
+
+                                </tbody>
+                            </table>
+                            <table class="table table-bordered table-striped">
+                                <thead>
+                                    <tr>
+                                        <th></th>
+                                        <th>Number of Working Days</th>
+                                        <th>Number of running machines</th>
+                                        <th>Number of helpers</th>
+                                        <th>working hours</th>
+                                        <th>Expected Efficiency%</th>
+                                        <th>SMV</th>
+                                        <th>Daily Capacity Minutes</th>
+                                        <th>Weekly Capacity Minutes</th>
+                                        <th>Monthly Capacity Minutes</th>
+                                        <th>Monthly Capacity Quantity</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>
+                                            Total
+                                        </td>
+                                        <td><input type="text" class="form-control" name="workingDays"
+                                                id="workingDays" readonly></td>
+                                        <td><input type="text" name="running_machines" class="form-control"
+                                                id="runningMachines" readonly></td>
+                                        <td><input type="text" name="helpers" class="form-control" id="helpers"
+                                                readonly></td>
+                                        <td><input type="text" name="working_hours" class="form-control"
+                                                id="workingHours" readonly></td>
+                                        <td><input type="text" name="efficiency" class="form-control" id="efficiency"
+                                                readonly></td>
+                                        <td><input type="text" name="smv" class="form-control" id="smv"
+                                                readonly></td>
+                                        <td><input type="text" class="form-control" name="daily_capacity_minutes"
+                                                id="dailyCapacityMinutes" readonly></td>
+                                        </td>
+                                        <td><input type="text" name="weekly_capacity_minutes" class="form-control"
+                                                id="weeklyCapacityMinutes" readonly></td>
+                                        <td><input type="text" name="monthly_capacity_minutes" class="form-control"
+                                                id="monthlyCapacityMinutes" readonly></td>
+                                        <td><input type="text" name="monthly_capacity_quantity" class="form-control"
+                                                id="monthlyCapacityQuantity" readonly></td>
+
+                                    </tr>
+                                    <tr>
+                                        <td colspan="10" class="text-left">
+                                            Available Capacity
+                                        </td>
+
+                                        {{-- <td><input type="text" class="form-control"
+                                                name="daily_capacity_minutesAvailable"
+                                                id="dailyCapacityMinutesAvailable" readonly></td>
+                                        </td>
+                                        <td><input type="text" name="weekly_capacity_minutesAvailable"
+                                                class="form-control" id="weeklyCapacityMinutesAvailable" readonly></td>
+                                        <td><input type="text" name="monthly_capacity_minutesAvailable"
+                                                class="form-control" id="monthlyCapacityMinutesAvailable" readonly></td> --}}
+                                        <td><input type="text" name="monthly_capacity_quantityAvailable"
+                                                class="form-control" id="monthlyCapacityQuantityAvailable" readonly>
+                                        </td>
+                                       
+                                    </tr>
                                 </tbody>
                             </table>
 
@@ -151,7 +156,8 @@
                                             </td>
                                             <td>
                                                 <input type="number" name="sewing_quantity[]"
-                                                    class="form-control sewing-quantity" placeholder="Sewing Quantity">
+                                                    class="form-control sewing-quantity"
+                                                    placeholder="Sewing Quantity">
                                             </td>
                                         </tr>
                                     @endforeach
@@ -176,6 +182,74 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
+    
+
+    <!--after input the production plan, then show that month's factory calendar with holidays and count of working days and if there is any holiday then show the message that to adjust the plan and redrect to the factory holiday page index-->
+    <script>
+        $(document).ready(function() {
+            var workingDays = document.getElementById('workingDays');
+            var numberOfMachines = document.getElementById('runningMachines');
+            var numberOfHelpers = document.getElementById('helpers');
+            var workingHours = document.getElementById('workingHours');
+            var efficiency = document.getElementById('efficiency');
+            var dailyCapacityMinutes = document.getElementById('dailyCapacityMinutes');
+            var weeklyCapacityMinutes = document.getElementById('weeklyCapacityMinutes');
+            var monthlyCapacityMinutes = document.getElementById('monthlyCapacityMinutes');
+            var capacityQuantity = document.getElementById('monthlyCapacityQuantity');
+            var capacityValue = document.getElementById('monthlyCapacityValue');
+            var smv = document.getElementById('smv');
+            var data = {};
+
+            document.getElementById('productionPlan').addEventListener('change', function() {
+                var production_plan_selected = this.value;
+                $.ajax({
+                    url: "{{ route('check_existing_capacity') }}",
+                    method: "GET",
+                    data: {
+                        production_plan: production_plan_selected
+                    },
+                    success: function(response) {
+                        if (response.exists === true) {
+                            data = response.data;
+                            console.log(response);
+                            workingDays.value = data.workingDays;
+                            numberOfMachines.value = data.running_machines;
+                            numberOfHelpers.value = data.helpers;
+                            workingHours.value = data.working_hours;
+                            efficiency.value = data.efficiency;
+                            dailyCapacityMinutes.value = data.daily_capacity_minutes;
+                            weeklyCapacityMinutes.value = data.weekly_capacity_minutes;
+                            monthlyCapacityMinutes.value = data.monthly_capacity_minutes;
+                            capacityQuantity.value = data.monthly_capacity_quantity;
+                            capacityValue.value = data.monthly_capacity_value;
+                            smv.valu = data.smv;
+
+                        }
+                        if (response.exists === false) {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'No Capacity Plan Exists',
+                                text: 'No capacity plan exists for the selected month. You can proceed to create a new plan.',
+                                showCancelButton: true,
+                                confirmButtonText: 'Edit Existing Plan',
+                                cancelButtonText: 'Create New Plan',
+                                preConfirm: () => {
+                                    window.location.href = response.edit_url;
+                                }
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to check for existing capacity plan. Please try again.'
+                        });
+                    }
+                });
+            });
+        });
+    </script>
     <script>
         $(document).ready(function() {
             // On double-click, set the sewing quantity equal to the remaining quantity
@@ -184,7 +258,14 @@
                 var remaining_quantity = $(this).val();
                 $(this).closest('tr').find('input.sewing-quantity').val(remaining_quantity);
             });
+
+            // On change of sewing quantity, calculate the Monthly Capacity Quantity available and show a warning if the sewing quantity exceeds the available capacity
+             let totalSewingQuantity = 0;
+$('input.sewing-quantity').each(function() {
+    totalSewingQuantity += parseInt($(this).val() || 0);
+});
+$('#monthlyCapacityQuantityAvailable').val(monthly_capacity_quantity - totalSewingQuantity);
+
         });
     </script>
-
 </x-backend.layouts.master>

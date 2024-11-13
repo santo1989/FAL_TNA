@@ -29,12 +29,14 @@
                     <div class="col-12">
                         <div class="card">
                             <div class="card-header">
-                                <a href=" {{ route('home') }} " class="btn btn-lg btn-outline-danger"><i
+                                <a href=" {{ route('jobs.index') }} " class="btn btn-lg btn-outline-danger"><i
                                         class="fas fa-arrow-left"></i>
                                     Close</a>
                                 <x-backend.form.anchor :href="route('factory_holidays.create')" type="create" />
                                 <a href="{{ route('factory_holidays.calander_views') }}" class="btn btn-lg btn-outline-primary"><i
                                         class="fas fa-plus"></i> Calander view</a>
+                                <a href="{{ route('capacity_plans.create') }}" class="btn btn-lg btn-outline-success"><i
+                                        class="fas fa-tachometer-alt"></i> Add Capacity Plan</a>
                             </div>
                             <!-- /.card-header -->
                             <div class="card-body">

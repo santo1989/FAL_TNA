@@ -10,6 +10,10 @@
                          <a href=" {{ route('home') }} " class="btn btn-outline-secondary"><i
                                  class="fas fa-arrow-left"></i>
                              Close</a>
+                         <a href="{{ route('factory_holidays.index') }}" class="btn btn-outline-danger"> <i
+                                 class="fas fa-plus"></i> Holydays Plan</a> 
+                         <a href="{{ route('capacity_plans.create') }}" class="btn  btn-outline-success"><i
+                                        class="fas fa-tachometer-alt"></i> Add Capacity Plan</a>
 
                      </div>
                      <div class="col-6 text-end">
