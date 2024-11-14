@@ -1,5 +1,5 @@
 <x-backend.layouts.master>
- 
+
     <!--message show in .swl sweet alert-->
     @if (session('message'))
         <script>
@@ -29,7 +29,7 @@
                             <input type="hidden" name="company_id" value="3">
                             <input type="hidden" name="company_name" value="FAL - Factory">
                             <table class="table">
-                                <tbody> 
+                                <tbody>
                                     <tr>
                                         <td class="create_label_column">Production Plan</td>
                                         <td class="create_input_column">
@@ -73,7 +73,7 @@
                                                 id="workingHours" readonly></td>
                                         <td><input type="text" name="efficiency" class="form-control" id="efficiency"
                                                 readonly></td>
-                                        <td><input type="text" name="smv" class="form-control" id="smv"
+                                        <td><input type="text" name="smv" class="form-control" id="smv_data"
                                                 readonly></td>
                                         <td><input type="text" class="form-control" name="daily_capacity_minutes"
                                                 id="dailyCapacityMinutes" readonly></td>
@@ -102,7 +102,7 @@
                                         <td><input type="text" name="monthly_capacity_quantityAvailable"
                                                 class="form-control" id="monthlyCapacityQuantityAvailable" readonly>
                                         </td>
-                                       
+
                                     </tr>
                                 </tbody>
                             </table>
@@ -182,50 +182,49 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    
+
 
     <!--after input the production plan, then show that month's factory calendar with holidays and count of working days and if there is any holiday then show the message that to adjust the plan and redrect to the factory holiday page index-->
     <script>
         $(document).ready(function() {
-            var workingDays = document.getElementById('workingDays');
-            var numberOfMachines = document.getElementById('runningMachines');
-            var numberOfHelpers = document.getElementById('helpers');
-            var workingHours = document.getElementById('workingHours');
-            var efficiency = document.getElementById('efficiency');
-            var dailyCapacityMinutes = document.getElementById('dailyCapacityMinutes');
-            var weeklyCapacityMinutes = document.getElementById('weeklyCapacityMinutes');
-            var monthlyCapacityMinutes = document.getElementById('monthlyCapacityMinutes');
-            var capacityQuantity = document.getElementById('monthlyCapacityQuantity');
-            var capacityValue = document.getElementById('monthlyCapacityValue');
-            var smv = document.getElementById('smv');
-            var data = {};
+            var workingDays = $('#workingDays');
+            var runningMachines = $('#runningMachines');
+            var helpers = $('#helpers');
+            var workingHours = $('#workingHours');
+            var efficiency = $('#efficiency');
+            var dailyCapacityMinutes = $('#dailyCapacityMinutes');
+            var weeklyCapacityMinutes = $('#weeklyCapacityMinutes');
+            var monthlyCapacityMinutes = $('#monthlyCapacityMinutes');
+            var monthlyCapacityQuantity = $('#monthlyCapacityQuantity');
+            var smvData = $('#smv_data');
+            var monthlyCapacityQuantityAvailable = $('#monthlyCapacityQuantityAvailable');
 
-            document.getElementById('productionPlan').addEventListener('change', function() {
-                var production_plan_selected = this.value;
+            // Event listener for production plan change
+            $('#productionPlan').on('change', function() {
+                var productionPlan = $(this).val();
                 $.ajax({
                     url: "{{ route('check_existing_capacity') }}",
                     method: "GET",
                     data: {
-                        production_plan: production_plan_selected
+                        production_plan: productionPlan
                     },
                     success: function(response) {
                         if (response.exists === true) {
-                            data = response.data;
-                            console.log(response);
-                            workingDays.value = data.workingDays;
-                            numberOfMachines.value = data.running_machines;
-                            numberOfHelpers.value = data.helpers;
-                            workingHours.value = data.working_hours;
-                            efficiency.value = data.efficiency;
-                            dailyCapacityMinutes.value = data.daily_capacity_minutes;
-                            weeklyCapacityMinutes.value = data.weekly_capacity_minutes;
-                            monthlyCapacityMinutes.value = data.monthly_capacity_minutes;
-                            capacityQuantity.value = data.monthly_capacity_quantity;
-                            capacityValue.value = data.monthly_capacity_value;
-                            smv.valu = data.smv;
+                            let data = response.data;
+                            workingDays.val(data.workingDays);
+                            runningMachines.val(data.running_machines);
+                            helpers.val(data.helpers);
+                            workingHours.val(data.working_hours);
+                            efficiency.val(data.efficiency);
+                            dailyCapacityMinutes.val(data.daily_capacity_minutes);
+                            weeklyCapacityMinutes.val(data.weekly_capacity_minutes);
+                            monthlyCapacityMinutes.val(data.monthly_capacity_minutes);
+                            monthlyCapacityQuantity.val(data.monthly_capacity_quantity);
+                            smvData.val(data.smv);
 
-                        }
-                        if (response.exists === false) {
+                            // Set available capacity initially
+                            calculateAvailableCapacity();
+                        } else {
                             Swal.fire({
                                 icon: 'success',
                                 title: 'No Capacity Plan Exists',
@@ -248,24 +247,47 @@
                     }
                 });
             });
-        });
-    </script>
-    <script>
-        $(document).ready(function() {
-            // On double-click, set the sewing quantity equal to the remaining quantity
+
+            // Double-click to set sewing quantity equal to remaining quantity
             $('input.remaining-quantity').dblclick(function() {
-                // Find the related sewing quantity input in the same row
-                var remaining_quantity = $(this).val();
-                $(this).closest('tr').find('input.sewing-quantity').val(remaining_quantity);
+                var remainingQuantity = $(this).val();
+                $(this).closest('tr').find('input.sewing-quantity').val(remainingQuantity);
+                calculateAvailableCapacity();
             });
 
-            // On change of sewing quantity, calculate the Monthly Capacity Quantity available and show a warning if the sewing quantity exceeds the available capacity
-             let totalSewingQuantity = 0;
-$('input.sewing-quantity').each(function() {
-    totalSewingQuantity += parseInt($(this).val() || 0);
-});
-$('#monthlyCapacityQuantityAvailable').val(monthly_capacity_quantity - totalSewingQuantity);
+            // Calculate and limit sewing quantity input dynamically
+            $('input.sewing-quantity').on('input', function() {
+                calculateAvailableCapacity();
+            });
 
+            // Function to calculate and update available capacity
+            function calculateAvailableCapacity() {
+                let totalSewingQuantity = 0;
+                $('input.sewing-quantity').each(function() {
+                    totalSewingQuantity += parseInt($(this).val() || 0);
+                });
+
+                // Get monthly capacity quantity
+                let maxCapacity = parseInt(monthlyCapacityQuantity.val() || 0);
+                let availableCapacity = maxCapacity - totalSewingQuantity;
+
+                // Update available capacity field
+                monthlyCapacityQuantityAvailable.val(availableCapacity);
+
+                // Limit sewing quantity based on available capacity
+                $('input.sewing-quantity').each(function() {
+                    if (totalSewingQuantity > maxCapacity) {
+                        $(this).val(0); // Reset if exceeds max capacity
+                        Swal.fire({
+                            icon: 'warning',
+                            title: 'Limit Exceeded',
+                            text: 'Sewing quantity exceeds the monthly capacity. Adjust the values.',
+                        });
+                        calculateAvailableCapacity(); // Recalculate after reset
+                    }
+                });
+            }
         });
     </script>
+
 </x-backend.layouts.master>
