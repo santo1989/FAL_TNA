@@ -10,68 +10,15 @@ class FactoryHolidayController extends Controller
     public function index()
     {
         $holidays = FactoryHoliday::all();
-        return view('backend.library.factory_holidays.index', compact('holidays'));
+        return view('backend.OMS.factory_holidays.index', compact('holidays'));
     }
 
     public function create()
     {
-        return view('backend.library.factory_holidays.create');
+        return view('backend.OMS.factory_holidays.create');
     }
 
-    // public function store(Request $request)
-    // {
-    //     dd($request->all());
-    //     $request->validate([
-    //         'holiday_date' => 'required|date',
-    //         'description' => 'nullable|string|max:255',
-    //     ]);
-
-    //     // $table->date('holiday_date');
-    //     // $table->boolean('is_default')->default(false); // For Friday or auto-added holidays
-    //     // $table->boolean('is_weekend')->default(false); // For Saturday or Sunday
-    //     // $table->boolean('is_additional')->default(false); // For Additional holidays
-    //     // $table->boolean('is_active')->default(true);
-    //     // $table->string('description')->nullable(); // Optional description
-
-
-
-    //     FactoryHoliday::create([
-    //         'holiday_date' => $request->holiday_date,
-    //         'is_default' => false,
-    //         'is_active' => true,
-    //         'is_weekend' => false,
-    //         'is_additional' => false,
-    //         'description' => $request->description,
-    //     ]);
-
-    //     return redirect()->route('factory_holidays.index')->with('message', 'Holiday added successfully!');
-    // }
-
-    // public function store(Request $request)
-    // {
-    //     dd($request->all());
-    //     $request->validate([
-    //         'production_month' => 'required',
-    //         'holiday_details' => 'required|array',
-    //         'holiday_details.*.holiday_date' => 'required|date',
-    //         'holiday_details.*.description' => 'nullable|string|max:255',
-    //         'holiday_details.*.is_weekend' => 'required|boolean',
-    //     ]);
-
-    //     // Loop through each holiday entry in holiday_details array
-    //     foreach ($request->holiday_details as $holiday) {
-    //         FactoryHoliday::create([
-    //             'holiday_date' => $holiday['holiday_date'],
-    //             'description' => $holiday['description'],
-    //             'is_weekend' => $holiday['is_weekend'],
-    //             'is_default' => $holiday['is_weekend'], // Mark as default if it's a weekend
-    //             'is_additional' => !$holiday['is_weekend'], // Mark as additional if not weekend
-    //             'is_active' => true, // Set to active by default
-    //         ]);
-    //     }
-
-    //     return redirect()->route('factory_holidays.index')->with('success', 'Holidays saved successfully.');
-    // }
+    
     public function store(Request $request)
     {
         // Decode holiday_details JSON string
@@ -112,7 +59,7 @@ class FactoryHolidayController extends Controller
     public function edit($id)
     {
         $holiday = FactoryHoliday::findOrFail($id);
-        return view('backend.library.factory_holidays.edit', compact('holiday'));
+        return view('backend.OMS.factory_holidays.edit', compact('holiday'));
     }
 
     public function update(Request $request, $id)
@@ -131,7 +78,7 @@ class FactoryHolidayController extends Controller
     public function show($id)
     {
         $holiday = FactoryHoliday::findOrFail($id);
-        return view('backend.library.factory_holidays.show', compact('holiday'));
+        return view('backend.OMS.factory_holidays.show', compact('holiday'));
     }
 
     public function destroy($id)
@@ -148,7 +95,7 @@ class FactoryHolidayController extends Controller
         $currentYear = date('Y');
         $factory_holidays = FactoryHoliday::whereYear('holiday_date', $currentYear)->get();
 
-        return view('backend.library.factory_holidays.calander_views', compact('factory_holidays'));
+        return view('backend.OMS.factory_holidays.calander_views', compact('factory_holidays'));
     }
 
 }

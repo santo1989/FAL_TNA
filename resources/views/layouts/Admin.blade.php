@@ -276,7 +276,17 @@
                                 href="{{ route('BuyerWiseTnaSummary') }}" target="_blank">
                                 <div class="sb-nav-link-icon"><i class="fas fa-user"></i></div>
                                 TNA Pending List
+                            </a> 
+
+                        </div>
+                        <div class="col-3 pt-1 pb-1">
+                            <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                href="{{ route('TnaSummaryReport') }}" target="_blank">
+                                <div class="sb-nav-link-icon"><i class="fas fa-user"></i></div>
+                                TNA Report
                             </a>
+
+                            
 
                         </div>
                         @if (Auth()->user()->role_id == 1 || Auth()->user()->role_id == 4)

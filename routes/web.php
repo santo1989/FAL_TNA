@@ -63,6 +63,8 @@ Route::get('/fal-tnas-update', [TNAController::class, 'fal_tnas_dashboard_update
 
 Route::get('/MailBuyerWiseTnaSummary', [TNAController::class, 'MailBuyerWiseTnaSummary'])->name('MailBuyerWiseTnaSummary');
 
+Route::get('/TnaSummaryReport', [TNAController::class, 'TnaSummaryReport'])->name('TnaSummaryReport');
+
 
 Route::middleware('auth')->group(function () {
     // Route::get('/check', function () {
