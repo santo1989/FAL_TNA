@@ -244,7 +244,7 @@
 
                                              </form>
                                              @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                                                 @if (auth()->user()->email == 'shakib@ntg.com.bd')
+                                                 {{-- @if (auth()->user()->email == 'shakib@ntg.com.bd')
                                                      <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST"
                                                          style="display:inline-block;">
                                                          @csrf
@@ -252,7 +252,7 @@
                                                          <button type="submit" class="btn btn-outline-danger disabled"><i
                                                                  class="fas fa-trash"></i></button>
                                                      </form>
-                                                 @else
+                                                 @else --}}
                                                      <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST"
                                                          style="display:inline-block;">
                                                          @csrf
@@ -260,7 +260,7 @@
                                                          <button type="submit" class="btn btn-outline-danger"><i
                                                                  class="fas fa-trash"></i></button>
                                                      </form>
-                                                 @endif
+                                                 {{-- @endif --}}
 
                                              @endif
                                          @endcan
