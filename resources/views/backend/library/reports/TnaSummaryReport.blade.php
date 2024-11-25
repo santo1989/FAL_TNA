@@ -53,6 +53,9 @@
                                 <!--close or open order select option in checkbox-->
                                 <input type="checkbox" name="order_close" id="order_close" value="1" {{ $order_close == '1' ? 'checked' : '' }}>
                                 <label for="order_close">Close Order</label>
+                                <!-- po_receive_date select option in checkbox-->
+                                <input type="checkbox" name="po_receive_date" id="po_receive_date" value="1" {{ $po_receive_date == '1' ? 'checked' : '' }}>
+                                <label for="po_receive_date">PO Receive Date</label>
 
 
                             </div>
@@ -194,6 +197,30 @@
 
                 // Trigger the download
                 XLSX.writeFile(workbook, 'TnaSummary.xlsx');
+            });
+
+            // if po_receive_date checked then start date and end date will be required 
+            $('#po_receive_date').on('change', function() {
+                if ($(this).is(':checked')) {
+                    $('#start_date').prop('required', true);
+                    $('#end_date').prop('required', true);
+                } else {
+                    $('#start_date').prop('required', false);
+                    $('#end_date').prop('required', false);
+                }
+            });
+
+            // if click search button then any one field must required
+            $('form').submit(function() {
+                if ($('#buyer_id').val() == '' && $('#start_date').val() == '' && $('#end_date').val() == '' && $('#order_close').is(':checked') == false && $('#po_receive_date').is(':checked') == false) {
+                    //sweeet alert
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: 'Please select any one field!',
+                    });
+                    return false;
+                }
             });
         </script>
 </x-backend.layouts.master>

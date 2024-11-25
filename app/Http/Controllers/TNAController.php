@@ -1208,6 +1208,7 @@ class TNAController extends Controller
         $start_date = $request->start_date;
         $end_date = $request->end_date;
         $order_close = $request->order_close;
+        $po_receive_date = $request->po_receive_date;
 
         $query = TNA::select(
             'buyer_id',
@@ -1236,8 +1237,15 @@ class TNAController extends Controller
         }
 
         if ($start_date == !null && $end_date == !null) {
-            $query->whereBetween('shipment_etd', [$start_date, $end_date]);
+            if ($po_receive_date == !null) {
+                $query->whereBetween('po_receive_date', [$start_date, $end_date]);
+            } else {
+                $query->whereBetween('shipment_etd', [$start_date, $end_date]);
+            }
+             
         } 
+
+       
 
         $tna_summary = $query->get();
 
@@ -1269,7 +1277,7 @@ class TNAController extends Controller
             'shipment_dates' => 'Shipment Dates'
         ];
 
-        return view('backend.library.reports.TnaSummaryReport', compact('tna_summary', 'columns', 'total_summary', 'buyer_id', 'start_date', 'end_date' , 'order_close'));
+        return view('backend.library.reports.TnaSummaryReport', compact('tna_summary', 'columns', 'total_summary', 'buyer_id', 'start_date', 'end_date' , 'order_close', 'po_receive_date'));
     }
 
 
