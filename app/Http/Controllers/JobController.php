@@ -4,7 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Buyer;
 use App\Models\Job;
-use App\Models\SewingBlance;
+use App\Models\SewingBalance;
 use App\Models\Shipment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -13,8 +13,15 @@ class JobController extends Controller
 {
     public function index()
     {
-        $jobs = Job::select('buyer', 'job_no', 'style', 'po', 'department', 'item', 'order_quantity', 'delivery_date','order_received_date')->groupBy('buyer', 'job_no', 'style', 'po', 'department', 'item', 'order_quantity', 'delivery_date', 'order_received_date')->get();
-        // dd($jobs);
+        //if job_no is not empty
+        $jobs = Job::select('buyer', 'job_no', 'style', 'po', 'department', 'item', 'order_quantity', 'delivery_date', 'order_received_date')->groupBy('buyer', 'job_no', 'style', 'po', 'department', 'item', 'order_quantity', 'delivery_date', 'order_received_date')->get();
+        // dd($jobs); 
+        //if job_no is empty
+        if ($jobs->isEmpty()) {
+            return view('backend.OMS.jobs.create');
+        }
+
+
         return view('backend.OMS.jobs.index', compact('jobs'));
     }
 
@@ -38,11 +45,11 @@ class JobController extends Controller
     //             'division_name' => $request->input('division_name'),
     //             'buyer' => Buyer::find($request->input('buyer_id'))->name,
     //             'job_no' => $request->input('job_no'),
-    //             'style' => ucwords($request->input('style')),
-    //             'po' => ucwords($request->input('po')),
-    //             'department' => ucwords($request->input('department')),
+    //             'style' => strtoupper($request->input('style')),
+    //             'po' => strtoupper($request->input('po')),
+    //             'department' => strtoupper($request->input('department')),
     //             'item' => $request->input('item'),
-    //             'color' => ucwords($color_name[$key]),
+    //             'color' => strtoupper($color_name[$key]),
     //             'color_quantity' => $color_quantity[$key],
     //             'destination' => $request->input('country'),
     //             'order_quantity' => $request->input('order_quantity'),
@@ -123,20 +130,20 @@ class JobController extends Controller
 
             foreach ($colors as $key => $color) {
                 Job::create([
-                    
+
                     'company_id' => $request->input('company_id'),
                     'division_id' => $request->input('division_id'),
                     'company_name' => $request->input('company_name'),
                     'division_name' => $request->input('division_name'),
                     'buyer_id' => $request->input('buyer_id'),
                     'buyer' => Buyer::find($request->input('buyer_id'))->name,
-                    'job_no' => $request->input('job_no'),
-                    'style' => $request->input('style'),
-                    'po' => $request->input('po'),
-                    'department' => $request->input('department'),
+                    'job_no' => strtoupper($request->input('job_no')),
+                    'style' => strtoupper($request->input('style')),
+                    'po' => strtoupper($request->input('po')),
+                    'department' => strtoupper($request->input('department')),
                     'item' => $request->input('item'),
-                    'color' => $color,
-                    'size' => $sizes[$key],
+                    'color' => strtoupper($color),
+                    'size' => strtoupper($sizes[$key]),
                     'color_quantity' => $colorQuantities[$key],
                     'destination' => $request->input('country'),
                     'order_quantity' => $request->input('order_quantity'),
@@ -150,12 +157,12 @@ class JobController extends Controller
                     'total_cm' => $request->input('total_cm'),
                     'consumption_dzn' => $request->input('consumption_dzn'),
                     'fabric_qnty' => $request->input('fabric_qnty'),
-                    'fabrication' => $request->input('fabrication'),
+                    'fabrication' => strtoupper($request->input('fabrication')),
                     'order_received_date' => $request->input('order_received_date'),
                     'aop' => $request->input('aop'),
                     'print' => $request->input('print'),
                     'embroidery' => $request->input('embroidery'),
-                    'remarks' => $request->input('remarks'),
+                    'remarks' => strtoupper($request->input('remarks')),
                 ]);
             }
 
@@ -184,7 +191,7 @@ class JobController extends Controller
     //     $job->update($request->all());
     //     return redirect()->route('jobs.index');
     // }
-    
+
 
     public function edit_jobs(Request $request, $edit_jobs)
     {
@@ -248,13 +255,13 @@ class JobController extends Controller
                         'division_name' => $request->input('division_name'),
                         'buyer_id' => $request->input('buyer_id'),
                         'buyer' => Buyer::find($request->input('buyer_id'))->name,
-                        'job_no' => $request->input('job_no'),
-                        'style' => $request->input('style'),
-                        'po' => $request->input('po'),
-                        'department' => $request->input('department'),
+                        'job_no' => strtoupper($request->input('job_no')),
+                        'style' => strtoupper($request->input('style')),
+                        'po' => strtoupper($request->input('po')),
+                        'department' => strtoupper($request->input('department')),
                         'item' => $request->input('item'),
-                        'color' => $color,
-                        'size' => $sizes[$key],
+                        'color' => strtoupper($color),
+                        'size' => strtoupper($sizes[$key]),
                         'color_quantity' => $colorQuantities[$key],
                         'destination' => $request->input('country'),
                         'order_quantity' => $request->input('order_quantity'),
@@ -268,12 +275,12 @@ class JobController extends Controller
                         'total_cm' => $request->input('total_cm'),
                         'consumption_dzn' => $request->input('consumption_dzn'),
                         'fabric_qnty' => $request->input('fabric_qnty'),
-                        'fabrication' => $request->input('fabrication'),
+                        'fabrication' => strtoupper($request->input('fabrication')),
                         'order_received_date' => $request->input('order_received_date'),
                         'aop' => $request->input('aop'),
                         'print' => $request->input('print'),
                         'embroidery' => $request->input('embroidery'),
-                        'remarks' => $request->input('remarks'),
+                        'remarks' => strtoupper($request->input('remarks')),
                     ]);
                 }
             }
@@ -295,7 +302,7 @@ class JobController extends Controller
         }
 
         // Find related sewings and shipments using the job ID
-        $sewings = SewingBlance::where('job_id', $job->id)->get();
+        $sewings = SewingBalance::where('job_id', $job->id)->get();
         $shipments = Shipment::where('job_id', $job->id)->get();
 
         // Delete all related sewings
@@ -326,7 +333,7 @@ class JobController extends Controller
         }
 
         // Find related sewings and shipments using the job ID
-        $sewings = SewingBlance::where('job_no', $job_no)->get();
+        $sewings = SewingBalance::where('job_no', $job_no)->get();
         $shipments = Shipment::where('job_no', $job_no)->get();
 
         // Delete all related sewings
@@ -354,27 +361,27 @@ class JobController extends Controller
         $total_order_qty = Job::sum('order_quantity');
 
         $buyers = DB::table('jobs')
-        ->leftJoin('sewing_blances', 'jobs.id', '=', 'sewing_blances.job_id')
-        ->leftJoin('shipments', 'jobs.id', '=', 'shipments.job_id')
-        ->select(
-            'jobs.buyer',
-            DB::raw('COUNT(DISTINCT jobs.job_no) as number_of_orders'),
-            DB::raw('SUM(jobs.order_quantity) as order_qty'),
-            DB::raw('SUM(sewing_blances.sewing_balance) as sewing_balance'),
-            DB::raw('AVG(jobs.target_smv) as avg_smv'),
-            DB::raw('SUM(jobs.production_minutes) as produced_min'),
-            DB::raw('SUM(sewing_blances.production_min_balance) as production_balance'),
-            DB::raw('AVG(jobs.unit_price) as avg_unit_price'),
-            DB::raw('SUM(jobs.total_value) as total_value'),
-            DB::raw('AVG(jobs.cm_pc) as avg_cm_dzn'),
-            DB::raw('SUM(jobs.total_cm) as total_cm'),
-            DB::raw('SUM(shipments.shipped_qty) as shipped_qty'),
-            DB::raw('SUM(jobs.order_quantity) - SUM(shipments.shipped_qty) as shipment_balance'),
-            DB::raw('SUM(shipments.excess_short_shipment_qty) as excess_short_qty'),
-            DB::raw('SUM(shipments.shipped_qty * jobs.unit_price) as shipped_value'),
-            DB::raw('SUM((jobs.order_quantity - shipments.shipped_qty) * jobs.unit_price) as value_balance'),
-            DB::raw('SUM(shipments.excess_short_shipment_value * jobs.unit_price) as excess_short_value')
-        )
+            ->leftJoin('sewing_balances', 'jobs.id', '=', 'sewing_balances.job_id')
+            ->leftJoin('shipments', 'jobs.id', '=', 'shipments.job_id')
+            ->select(
+                'jobs.buyer',
+                DB::raw('COUNT(DISTINCT jobs.job_no) as number_of_orders'),
+                DB::raw('SUM(jobs.order_quantity) as order_qty'),
+                DB::raw('SUM(sewing_balances.sewing_balance) as sewing_balance'),
+                DB::raw('AVG(jobs.target_smv) as avg_smv'),
+                DB::raw('SUM(jobs.production_minutes) as produced_min'),
+                DB::raw('SUM(sewing_balances.production_min_balance) as production_balance'),
+                DB::raw('AVG(jobs.unit_price) as avg_unit_price'),
+                DB::raw('SUM(jobs.total_value) as total_value'),
+                DB::raw('AVG(jobs.cm_pc) as avg_cm_dzn'),
+                DB::raw('SUM(jobs.total_cm) as total_cm'),
+                DB::raw('SUM(shipments.shipped_qty) as shipped_qty'),
+                DB::raw('SUM(jobs.order_quantity) - SUM(shipments.shipped_qty) as shipment_balance'),
+                DB::raw('SUM(shipments.excess_short_shipment_qty) as excess_short_qty'),
+                DB::raw('SUM(shipments.shipped_qty * jobs.unit_price) as shipped_value'),
+                DB::raw('SUM((jobs.order_quantity - shipments.shipped_qty) * jobs.unit_price) as value_balance'),
+                DB::raw('SUM(shipments.excess_short_shipment_value * jobs.unit_price) as excess_short_value')
+            )
             ->groupBy('jobs.buyer')
             ->get();
 
@@ -400,13 +407,13 @@ class JobController extends Controller
         foreach ($quantityRanges as $rangeName => $range) {
             foreach ($buyers as $buyer) {
                 $data = DB::table('jobs')
-                ->select(
-                    DB::raw('COUNT(DISTINCT job_no) as number_of_orders'),
-                    DB::raw('SUM(order_quantity) as total_quantity'),
-                    DB::raw('SUM(total_value) as total_value'),
-                    DB::raw('SUM(production_minutes) as produced_min'),
-                    DB::raw('SUM(total_cm) as total_cm')
-                )
+                    ->select(
+                        DB::raw('COUNT(DISTINCT job_no) as number_of_orders'),
+                        DB::raw('SUM(order_quantity) as total_quantity'),
+                        DB::raw('SUM(total_value) as total_value'),
+                        DB::raw('SUM(production_minutes) as produced_min'),
+                        DB::raw('SUM(total_cm) as total_cm')
+                    )
                     ->where('buyer', $buyer)
                     ->whereBetween('order_quantity', $range)
                     ->first();
@@ -457,7 +464,18 @@ class JobController extends Controller
     public function itemWiseSummary()
     {
         $items = [
-            'T-Shirt', 'Polo Shirt', 'Romper', 'Sweat Shirt', 'Jacket', 'Hoodie', 'Jogger', 'Pant/Bottom', 'Cargo Pant', 'Leggings', 'Ladies/Girls Dress', 'Others'
+            'T-Shirt',
+            'Polo Shirt',
+            'Romper',
+            'Sweat Shirt',
+            'Jacket',
+            'Hoodie',
+            'Jogger',
+            'Pant/Bottom',
+            'Cargo Pant',
+            'Leggings',
+            'Ladies/Girls Dress',
+            'Others'
         ];
 
         $buyers = Job::distinct()->pluck('buyer')->toArray();
@@ -466,15 +484,15 @@ class JobController extends Controller
         foreach ($items as $item) {
             foreach ($buyers as $buyer) {
                 $data = DB::table('jobs')
-                ->join('shipments', 'jobs.id', '=', 'shipments.job_id')
-                ->join('sewing_blances', 'jobs.id', '=', 'sewing_blances.job_id')
-                ->select(
-                    DB::raw('COUNT(DISTINCT jobs.job_no) as number_of_orders'),
-                    DB::raw('SUM(shipments.shipped_qty) as total_quantity'),
-                    DB::raw('SUM(shipments.total_shipped_value) as total_value'),
-                    DB::raw('SUM(sewing_blances.production_min_balance) as produced_min'),
-                    DB::raw('SUM(jobs.total_cm) as total_cm')
-                )
+                    ->join('shipments', 'jobs.id', '=', 'shipments.job_id')
+                    ->join('sewing_balances', 'jobs.id', '=', 'sewing_balances.job_id')
+                    ->select(
+                        DB::raw('COUNT(DISTINCT jobs.job_no) as number_of_orders'),
+                        DB::raw('SUM(shipments.shipped_qty) as total_quantity'),
+                        DB::raw('SUM(shipments.total_shipped_value) as total_value'),
+                        DB::raw('SUM(sewing_balances.production_min_balance) as produced_min'),
+                        DB::raw('SUM(jobs.total_cm) as total_cm')
+                    )
                     ->where('jobs.item', $item)
                     ->where('jobs.buyer', $buyer)
                     ->first();
@@ -611,12 +629,4 @@ class JobController extends Controller
 
         return view('backend.OMS.reports.delivery_summary', compact('summary', 'totals', 'buyers', 'statuses'));
     }
-
-
-    
-
-
-
-
-
 }

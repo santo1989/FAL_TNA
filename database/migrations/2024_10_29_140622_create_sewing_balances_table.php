@@ -4,7 +4,7 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
-class CreateSewingBlancesTable extends Migration
+class CreateSewingBalancesTable extends Migration
 {
     /**
      * Run the migrations.
@@ -13,7 +13,7 @@ class CreateSewingBlancesTable extends Migration
      */
     public function up()
     {
-        Schema::create('sewing_blances', function (Blueprint $table) {
+        Schema::create('sewing_balances', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('job_id')->nullable();
             $table->string('job_no')->nullable();
@@ -34,6 +34,6 @@ class CreateSewingBlancesTable extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('sewing_blances');
+        Schema::dropIfExists('sewing_balances');
     }
 }

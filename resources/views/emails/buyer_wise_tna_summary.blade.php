@@ -1,35 +1,38 @@
-<!-- resources/views/emails/buyer_wise_tna_summary.blade.php -->
-<x-backend.layouts.master>
-    <div class="card mx-5 my-5" style="background-color: white; overflow-x: auto;">
-        <div class="container-fluid pt-2">
-            <h4 class="text-center">Buyer-Wise Pending Tasks Summary</h4>
-            <table class="table table-bordered table-hover text-center text-wrap" style="font-size: 12px;">
-                <thead class="thead-dark">
-                    <tr>
-                        <th>Buyer</th>
-                        @foreach ($columns as $column)
-                            <th>{{ ucwords(str_replace('_', ' ', $column)) }}</th>
-                        @endforeach
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach ($buyers as $buyer => $data)
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Buyer Wise TNA Summary</title>
+</head>
+<body>
+    <h1>Buyer Wise TNA Summary</h1>
+    @foreach ($buyers as $buyerName => $buyerData)
+        <h2>{{ $buyerName }}</h2>
+        <table border="1" cellpadding="5" cellspacing="0">
+            <thead>
+                <tr>
+                    <th>Task</th>
+                    <th>Style</th>
+                    <th>PO</th>
+                    <th>Plan Date</th>
+                    <th>Shipment ETD</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($buyerData['details'] as $task => $details)
+                    @foreach ($details as $detail)
                         <tr>
-                            <td>{{ $buyer }}</td>
-                            @foreach ($columns as $column)
-                                <td>
-                                    @if ($data['data'][$column] > 0)
-                                        {{ $data['data'][$column] }}
-                                    @else
-                                        {{ $data['data'][$column] }}
-                                    @endif
-                                </td>
-                            @endforeach
+                            <td>{{ $task }}</td>
+                            <td>{{ $detail['style'] }}</td>
+                            <td>{{ $detail['po'] }}</td>
+                            <td>{{ $detail['PlanDate'] }}</td>
+                            <td>{{ $detail['shipment_etd'] }}</td>
                         </tr>
                     @endforeach
-                </tbody>
-            </table>
-        </div>
-    </div>
-    For any query, please contact with the Planning or HR of FAL.
-</x-backend.layouts.master>
+                @endforeach
+            </tbody>
+        </table>
+    @endforeach
+
+    
+</body>
+</html>

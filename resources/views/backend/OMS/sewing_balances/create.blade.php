@@ -1,5 +1,5 @@
 <x-backend.layouts.master>
-    <!-- packages/YourVendor/ProductionTracking/resources/views/jobs/edit.blade.php -->
+ 
     <!--message show in .swl sweet alert-->
     @if (session('message'))
         <script>
@@ -71,8 +71,9 @@
                                         <td class="create_label_column">Total Sweing</td>
                                         <td class="create_input_column">
                                             <input type="number" name="total_sewing_balance" class="form-control"
-                                                placeholder="Total Sewing Balance" value="{{ $basic_info->total_sewing_balance }}"
-                                                required readonly id="total_sewing_balance">
+                                                placeholder="Total Sewing Balance"
+                                                value="{{ $basic_info->total_sewing_balance }}" required readonly
+                                                id="total_sewing_balance">
                                         </td>
                                     </tr>
                                     <tr>
@@ -85,8 +86,9 @@
                                         <td class="create_label_column">Total Production Min</td>
                                         <td class="create_input_column">
                                             <input type="number" name="Total_Production_Min" class="form-control"
-                                                placeholder="Total Production Min" value="{{ $basic_info->Total_Production_Min }}"
-                                                required readonly id="Total_Production_Min">
+                                                placeholder="Total Production Min"
+                                                value="{{ $basic_info->Total_Production_Min }}" required readonly
+                                                id="Total_Production_Min">
                                         </td>
                                     </tr>
                                     <tr>
@@ -150,12 +152,14 @@
                                                     }
                                                     $remain_qty = $color->color_quantity - $total_sewing_qty;
                                                 @endphp
-                                                <input type="number" name="color_quantity[]" id="color_quantity"  class="form-control"
-                                                    placeholder="Quantity" value="{{ $remain_qty }}" readonly>
+                                                <input type="number" name="color_quantity[]" id="color_quantity"
+                                                    class="form-control" placeholder="Quantity"
+                                                    value="{{ $remain_qty }}" readonly>
                                             </td>
                                             <td>
                                                 <input type="number" name="sewing_quantity[]"
-                                                    class="form-control sewing_quantity" placeholder="Sewing Quantity">
+                                                    class="form-control sewing_quantity"
+                                                    placeholder="Sewing Quantity">
                                             </td>
                                         </tr>
                                     @endforeach
@@ -178,88 +182,105 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
-    {{-- <script>
-        $(document).ready(function() {
-            $('#style-select').select2();
-            $('#po-select').select2();
-            $('#department-select').select2();
+   
+<script>
+    $(document).ready(function () {
+        // Handle production plan selection and fetch color sizes and quantities
+        $('input[name="production_plan"]').on('change', function () {
+            var production_plan = $(this).val();
+            var job_no = $('input[name="job_no"]').val();
 
-            calculateSewingBalance();
-            calculateProductionMinBalance();
+            $.ajax({
+                url: "{{ route('get_color_sizes_qties') }}",
+                type: 'GET',
+                data: {
+                    job_no: job_no,
+                    production_plan: production_plan
+                },
+                success: function (data) {
+                    $('#colorWayTable tbody').empty();
+                    console.log(data);
 
-            $('.sewing_quantity').on('input', function() {
-                //if sewing quantity is empty, set it to 0 to avoid NaN and if sewing quantity is greater than color quantity, set it to color quantity
-                // if (parseInt($(this).val()) > parseInt($(this).parent().prev().children().val())) {
-                    $(this).val($(this).parent().prev().children().val());
-                // }
-                calculateSewingBalance();
-                calculateProductionMinBalance();
+                    // Populate color sizes and quantities
+                    $.each(data.color_sizes_qties, function (index, color) {
+                        var row = `<tr>
+                            <input type="hidden" name="color_id[]" value="${color.id}">
+                            <td>
+                                <input type="text" name="color[]" class="form-control" value="${color.color}" readonly>
+                            </td>
+                            <td>
+                                <input type="text" name="size[]" class="form-control" value="${color.size}" readonly>
+                            </td>
+                            <td>
+                                ${color.color_quantity}
+                            </td>
+                            <td>
+                                <input type="number" name="color_quantity[]" class="form-control color-quantity" value="${color.color_quantity}" readonly>
+                            </td>
+                            <td>
+                                <input type="number" name="sewing_quantity[]" class="form-control sewing-quantity" placeholder="Sewing Quantity">
+                            </td>
+                        </tr>`;
+                        $('#colorWayTable tbody').append(row);
+                    });
+
+                    // Rebind event handlers for dynamically added rows
+                    $('.sewing-quantity').on('input', function () {
+                        calculateTotals();
+                    });
+                },
+                error: function (xhr, status, error) {
+                    console.error("Error fetching data:", error);
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Error',
+                        text: 'Failed to fetch color sizes and quantities. Please try again.',
+                    });
+                }
+            });
+        });
+
+        // Function to calculate totals and balances
+        function calculateTotals() {
+            let total_sewing_quantity = 0;
+            let total_color_quantity = 0;
+            let total_production_min = 0;
+
+            $('.sewing-quantity').each(function () {
+                total_sewing_quantity += $(this).val() === '' ? 0 : parseInt($(this).val());
+            });
+
+            $('.color-quantity').each(function () {
+                total_color_quantity += $(this).val() === '' ? 0 : parseInt($(this).val());
             });
 
 
 
-            function calculateSewingBalance() {
-                var total_sewing_quantity = 0;
-                $('.sewing_quantity').each(function() {
-                    total_sewing_quantity += $(this).val() === '' ? 0 : parseInt($(this).val());
-                });
-                $('#sewing_balance').val(total_sewing_quantity);
-            }
+            let sewing_balance = total_color_quantity - total_sewing_quantity;
+            let target_smv = $('#target_smv').val() === '' ? 0 : parseFloat($('#target_smv').val());
+            
+            total_production_min = (total_color_quantity * target_smv).toFixed(2);
+            let production_min = (sewing_balance * target_smv).toFixed(2);
+            let production_min_balance = total_production_min- total_sewing_quantity;
 
-            function calculateProductionMinBalance() {
-                var sewing_balance = $('#sewing_balance').val();
-                var target_smv = $('#target_smv').val();
-                var production_min_balance = sewing_balance * target_smv;
-                production_min_balance = production_min_balance.toFixed(2);
-                $('#production_min_balance').val(production_min_balance);
-            }
+            $('#total_sewing_balance').val(total_sewing_quantity);
+            $('#sewing_balance').val(sewing_balance);
+            $('#production_min_balance').val(production_min_balance.toFixed(2));
+            $('#Total_Production_Min').val(total_production_min);
+        }
+
+        // Recalculate balances on changes to target SMV or sewing quantities
+        $('#target_smv').on('input', function () {
+            calculateTotals();
         });
-    </script> --}}
+
+        // Initialize calculations
+        calculateTotals();
+    });
+</script>
 
 
-    <script>
-        $(document).ready(function() {
-            $('#style-select').select2();
-            $('#po-select').select2();
-            $('#department-select').select2();
-
-            calculateSewingBalance();
-            calculateProductionMinBalance();
-
-            $('.sewing_quantity').on('input', function() {
-                // Allow any value to be input without restricting it to the color quantity
-                calculateSewingBalance();
-                calculateProductionMinBalance();
-            });
-
-            function calculateSewingBalance() {
-                var total_sewing_quantity = 0;
-                $('.sewing_quantity').each(function() {
-                    total_sewing_quantity += $(this).val() === '' ? 0 : parseInt($(this).val());
-                });
-                $('#total_sewing_balance').val(total_sewing_quantity);
-
-                // Calculate the total sewing balance from the balance of  (order quantity - sewing quantity)
-                var total_color_quantity_balance = 0;
-                var total_sewing_balance = $('#total_sewing_balance').val();
-                $('#color_quantity').each(function() {
-                    var color_quantity = $(this).val();
-                    total_color_quantity_balance += parseInt(color_quantity) === '' ? 0 : parseInt(color_quantity);
-                }); 
-                var sewing_balance = total_color_quantity_balance - total_sewing_balance;
-                $('#sewing_balance').val(sewing_balance);
-
-            }
-
-            function calculateProductionMinBalance() {
-                var sewing_balance = $('#sewing_balance').val();
-                var target_smv = $('#target_smv').val();
-                var production_min_balance = sewing_balance * target_smv;
-                production_min_balance = production_min_balance.toFixed(2);
-                $('#production_min_balance').val(production_min_balance);
-            }
-        });
-    </script>
+ 
 
 
 </x-backend.layouts.master>

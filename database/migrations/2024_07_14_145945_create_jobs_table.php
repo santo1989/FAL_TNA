@@ -50,12 +50,16 @@ class CreateJobsTable extends Migration
             $table->string('print')->nullable();
             $table->string('embroidery')->nullable();
             $table->text('remarks')->nullable()->nullable();
-            // $table->integer('shipped_qty')->nullable();
-            // $table->date('ex_factory_date')->nullable();
-            // $table->decimal('shipped_value', 8, 2)->nullable();
-            // $table->integer('excess_short_shipment_qty')->nullable();
-            // $table->decimal('excess_short_shipment_value', 8, 2)->nullable();
-            // $table->string('delivery_status')->nullable(); 
+            $table->string('buyer_hold_shipment')->nullable();
+            $table->string('buyer_hold_shipment_reason')->nullable();
+            $table->string('buyer_hold_shipment_date')->nullable();
+            $table->string('buyer_cancel_shipment')->nullable();
+            $table->string('buyer_cancel_shipment_reason')->nullable();
+            $table->string('buyer_cancel_shipment_date')->nullable();
+            $table->string(
+            'order_close')->nullable();
+            $table->string('order_close_reason')->nullable();
+            $table->string('order_close_date')->nullable();
             $table->timestamps();
         });
     }

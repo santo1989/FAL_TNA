@@ -698,28 +698,28 @@
             var orderQuantity = parseFloat(document.querySelector('input[name="order_quantity"]').value);
             var targetSMV = parseFloat(document.querySelector('input[name="target_smv"]').value);
             var productionMinutes = orderQuantity * targetSMV;
-            document.querySelector('input[name="production_minutes"]').value = productionMinutes;
+            document.querySelector('input[name="production_minutes"]').value = productionMinutes.toFixed(3);
         }
 
         function calculateTotalValue() {
             var orderQuantity = parseFloat(document.querySelector('input[name="order_quantity"]').value);
             var unitPrice = parseFloat(document.querySelector('input[name="unit_price"]').value);
             var totalValue = orderQuantity * unitPrice;
-            document.querySelector('input[name="total_value"]').value = totalValue;
+            document.querySelector('input[name="total_value"]').value = totalValue.toFixed(3);
         }
 
         function calculateTotalCM() {
             var orderQuantity = parseFloat(document.querySelector('input[name="order_quantity"]').value);
             var cmPC = parseFloat(document.querySelector('input[name="cm_pc"]').value);
             var totalCM = orderQuantity * cmPC;
-            document.querySelector('input[name="total_cm"]').value = totalCM;
+            document.querySelector('input[name="total_cm"]').value = totalCM.toFixed(3);
         }
 
         function calculateFabricQuantity() {
             var orderQuantity = parseFloat(document.querySelector('input[name="order_quantity"]').value);
             var consumptionDzn = parseFloat(document.querySelector('input[name="consumption_dzn"]').value);
             var fabricQuantity = orderQuantity * (consumptionDzn / 12);
-            document.querySelector('input[name="fabric_qnty"]').value = fabricQuantity;
+            document.querySelector('input[name="fabric_qnty"]').value = Math.ceil(fabricQuantity);
         }
 
         // Event listeners for input changes

@@ -1,4 +1,4 @@
-<x-backend.layouts.master>
+{{-- <x-backend.layouts.master>
     <style>
         .calendar {
             display: grid;
@@ -221,4 +221,326 @@
                         });
                     });
     </script>
+</x-backend.layouts.master> --}}
+
+<x-backend.layouts.master>
+    <x-slot name="pageTitle">Create Holiday</x-slot>
+    <x-slot name="breadCrumb">
+        <x-backend.layouts.elements.breadcrumb>
+            <x-slot name="pageHeader">Holiday Entry</x-slot>
+            <li class="breadcrumb-item"><a href="{{ route('home') }}">Dashboard</a></li>
+            <li class="breadcrumb-item"><a href="{{ route('factory_holidays.index') }}">Holiday</a></li>
+            <li class="breadcrumb-item active">Create Holiday</li>
+        </x-backend.layouts.elements.breadcrumb>
+    </x-slot>
+
+    <x-backend.layouts.elements.errors />
+
+    <form action="{{ route('factory_holidays.store') }}" method="post" enctype="multipart/form-data" id="holidayForm">
+        @csrf
+        <div class="row justify-content-between">
+            <div class="col-md-6 form-group">
+                <label for="production_month">Select Production Month</label>
+                <input type="month" id="production_month" name="production_month" class="form-control"
+                    placeholder="Select a Month" required />
+            </div>
+            <div class="col-md-6 form-group">
+                <label for="weekend">Select Weekend</label>
+                <select id="weekend" name="weekend" class="form-control" required>
+                    <option value="" disabled selected>Select a weekend</option>
+                    <option value="0">Sunday</option>
+                    <option value="1">Monday</option>
+                    <option value="2">Tuesday</option>
+                    <option value="3">Wednesday</option>
+                    <option value="4">Thursday</option>
+                    <option value="5">Friday</option>
+                    <option value="6">Saturday</option>
+                </select>
+            </div>
+        </div>
+
+        <div>
+            <div id="calendarContainer" class="calendar"></div>
+            <button type="submit" class="btn btn-primary" id="saveBtn">Save</button>
+            <button type="reset" class="btn btn-secondary">Reset</button>
+            <a href="{{ route('factory_holidays.index') }}" class="btn btn-danger">Cancel</a>
+        </div>
+    </form>
+
+    <!-- Holiday Detail Modal -->
+    <div class="modal fade" id="holidayModal" tabindex="-1" aria-labelledby="holidayModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="holidayModalLabel">Add Holiday Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <input type="hidden" id="selected_date" name="selected_date">
+                    <div class="mb-3">
+                        <label for="holiday_description" class="form-label">Description</label>
+                        <input type="text" id="holiday_description" name="holiday_description" class="form-control"
+                            placeholder="Enter description">
+                    </div>
+                    <div class="form-check">
+                        <input type="checkbox" id="is_weekend" class="form-check-input">
+                        <label for="is_weekend" class="form-check-label">Set as Weekend</label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="addHolidayDetail">Add</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- JavaScript to Handle Calendar and Holiday Details -->
+    <script>
+        // document.addEventListener('DOMContentLoaded', function () {
+        //     const productionMonth = document.getElementById('production_month');
+        //     const calendarContainer = document.getElementById('calendarContainer');
+        //     let holidayData = @json($factory_holidays) ?? [];
+        //     let weekendDay = null;
+
+        //     function generateCalendar(year, month) {
+        //         calendarContainer.innerHTML = "";
+        //         const firstDay = new Date(year, month, 1);
+        //         const lastDay = new Date(year, month + 1, 0);
+
+        //         for (let i = 0; i < firstDay.getDay(); i++) {
+        //             calendarContainer.appendChild(document.createElement("div"));
+        //         }
+
+        //         for (let date = 1; date <= lastDay.getDate(); date++) {
+        //             const currentDate = new Date(year, month, date);
+        //             const fullDate = `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+
+        //             const dayElement = document.createElement("div");
+        //             dayElement.classList.add("calendar-day");
+
+        //             const dayNameDiv = document.createElement("div");
+        //             dayNameDiv.classList.add("day-name");
+        //             dayNameDiv.textContent = currentDate.toLocaleDateString('en-US', {
+        //                 weekday: 'short'
+        //             });
+
+        //             dayElement.append(dayNameDiv, document.createTextNode(date));
+
+        //             const holiday = holidayData.find(h => h.holiday_date === fullDate);
+
+        //             if (holiday) {
+        //                 dayElement.classList.add("calendar-holiday");
+        //                 const descriptionDiv = document.createElement("div");
+        //                 descriptionDiv.classList.add("holiday-description");
+        //                 descriptionDiv.textContent = holiday.description;
+        //                 dayElement.appendChild(descriptionDiv);
+
+        //                 dayElement.style.pointerEvents = 'none';
+        //                 dayElement.style.backgroundColor = '#d3d3d3';
+        //             } else if (weekendDay !== null && weekendDay === currentDate.getDay()) {
+        //                 dayElement.classList.add("calendar-weekend");
+        //             }
+
+        //             dayElement.addEventListener("click", function () {
+        //                 $('#selected_date').val(fullDate);
+        //                 $('#holidayModal').modal('show');
+        //             });
+
+        //             calendarContainer.appendChild(dayElement);
+        //         }
+        //     }
+
+        //     productionMonth.addEventListener('change', function () {
+        //         const [year, month] = productionMonth.value.split("-").map(Number);
+        //         fetch(`/factory-holidays/${year}/${month}`)
+        //             .then(response => response.json())
+        //             .then(data => {
+        //                 holidayData = data;
+        //                 generateCalendar(year, month - 1);
+        //             });
+        //     });
+
+        //     $('#weekend').on('change', function () {
+        //         weekendDay = parseInt($(this).val());
+        //         const [year, month] = productionMonth.value.split("-").map(Number);
+        //         generateCalendar(year, month - 1);
+        //     });
+
+        //     $('#saveBtn').on('click', function (e) {
+        //         e.preventDefault();
+        //         $('<input>').attr({
+        //             type: 'hidden',
+        //             name: 'holiday_details',
+        //             value: JSON.stringify(holidayData)
+        //         }).appendTo('#holidayForm');
+        //         $('#holidayForm').submit();
+        //     });
+
+        //     if (productionMonth.value) {
+        //         const [year, month] = productionMonth.value.split("-").map(Number);
+        //         generateCalendar(year, month - 1);
+        //     }
+        // });
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const productionMonth = document.getElementById('production_month');
+            const calendarContainer = document.getElementById('calendarContainer');
+            let holidayData = @json($factory_holidays) ?? [];
+            let weekendDay = null;
+
+            function generateCalendar(year, month) {
+                calendarContainer.innerHTML = "";
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+
+                for (let i = 0; i < firstDay.getDay(); i++) {
+                    calendarContainer.appendChild(document.createElement("div"));
+                }
+
+                for (let date = 1; date <= lastDay.getDate(); date++) {
+                    const currentDate = new Date(year, month, date);
+                    const fullDate =
+                        `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+
+                    const dayElement = document.createElement("div");
+                    dayElement.classList.add("calendar-day");
+
+                    const dayNameDiv = document.createElement("div");
+                    dayNameDiv.classList.add("day-name");
+                    dayNameDiv.textContent = currentDate.toLocaleDateString('en-US', {
+                        weekday: 'short'
+                    });
+
+                    dayElement.append(dayNameDiv, document.createTextNode(date));
+
+                    const holiday = holidayData.find(h => h.holiday_date === fullDate);
+
+                    if (holiday) {
+                        dayElement.classList.add("calendar-holiday");
+                        const descriptionDiv = document.createElement("div");
+                        descriptionDiv.classList.add("holiday-description");
+                        descriptionDiv.textContent = holiday.description;
+                        dayElement.appendChild(descriptionDiv);
+                        const is_weekend = document.createElement("div");
+                        is_weekend.classList.add("is_weekend");
+                        is_weekend.textContent = holiday.is_weekend;
+                        dayElement.appendChild(is_weekend);
+                        
+
+
+                        dayElement.style.pointerEvents = 'none';
+                        dayElement.style.backgroundColor = '#ff4d4d';
+                    } else if (weekendDay !== null && weekendDay === currentDate.getDay()) {
+                        dayElement.classList.add("calendar-weekend");
+
+                        // push the weekendDay data to the holidayData array, first check if the weekendDay is already in the array before pushing
+                        if (!holidayData.find(h => h.holiday_date === fullDate)) {
+                            holidayData.push({
+                                holiday_date: fullDate,
+                                description: 'Weekend',
+                                is_weekend: true
+                            });
+                        }
+                    }
+
+                    dayElement.addEventListener("click", function() {
+                        $('#selected_date').val(fullDate);
+                        $('#holidayModal').modal('show');
+                    });
+
+                    calendarContainer.appendChild(dayElement);
+                }
+            }
+
+            $('#addHolidayDetail').on('click', function() {
+                const selectedDate = $('#selected_date').val();
+                const holidayDescription = $('#holiday_description').val();
+                const isWeekend = $('#is_weekend').is(':checked');
+
+                if (selectedDate) {
+                    holidayData.push({
+                        holiday_date: selectedDate,
+                        description: holidayDescription,
+                        is_weekend: isWeekend
+                    });
+
+                    // Close modal and refresh calendar
+                    $('#holidayModal').modal('hide');
+                    const [year, month] = productionMonth.value.split("-").map(Number);
+                    generateCalendar(year, month - 1);
+                } else {
+                    alert('Please select a date.');
+                }
+            });
+
+            $('#saveBtn').on('click', function(e) {
+                e.preventDefault();
+                // Remove disabled fields from the form
+                $('#holidayForm :input:disabled').prop('disabled', false);
+
+                $('<input>').attr({
+                    type: 'hidden',
+                    name: 'holiday_details',
+                    value: JSON.stringify(holidayData)
+                }).appendTo('#holidayForm');
+                $('#holidayForm').submit();
+            });
+
+            productionMonth.addEventListener('change', function() {
+                const [year, month] = productionMonth.value.split("-").map(Number);
+                fetch(`/factory-holidays/${year}/${month}`)
+                    .then(response => response.json())
+                    .then(data => {
+                        holidayData = data;
+                        generateCalendar(year, month - 1);
+                    });
+            });
+
+            $('#weekend').on('change', function() {
+                weekendDay = parseInt($(this).val());
+                const [year, month] = productionMonth.value.split("-").map(Number);
+                generateCalendar(year, month - 1);
+            });
+
+            if (productionMonth.value) {
+                const [year, month] = productionMonth.value.split("-").map(Number);
+                generateCalendar(year, month - 1);
+            }
+        });
+    </script>
+
+    <style>
+        .calendar {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+        }
+
+        .calendar-day {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: center;
+            position: relative;
+        }
+
+        .calendar-holiday {
+            background-color: #ff4d4d;
+            color: white;
+        }
+
+        .holiday-description {
+            font-size: 0.8em;
+            color: #555;
+            margin-top: 5px;
+        }
+
+        .calendar-weekend {
+            background-color: #ffe6e6;
+        }
+
+        .day-name {
+            font-weight: bold;
+        }
+    </style>
 </x-backend.layouts.master>

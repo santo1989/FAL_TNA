@@ -3,7 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Job;
-use App\Models\SewingBlance;
+use App\Models\SewingBalance;
 use App\Models\Shipment;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -29,7 +29,7 @@ class ShipmentController extends Controller
 
     public function create(Request $request, $job_no)
     {
-        $color_sizes_qties = SewingBlance::where('job_no', $job_no)
+        $color_sizes_qties = SewingBalance::where('job_no', $job_no)
             ->select(
                 'job_id',
                 'job_no',

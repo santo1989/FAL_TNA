@@ -87,18 +87,23 @@
 
                                     </tr>
                                     <tr>
-                                        <td colspan="10" class="text-left">
-                                            Available Capacity
+                                        <td colspan="5" class="text-left">
+                                            Old Capacity
                                         </td>
 
-                                        {{-- <td><input type="text" class="form-control"
-                                                name="daily_capacity_minutesAvailable"
-                                                id="dailyCapacityMinutesAvailable" readonly></td>
+                                        <td> @php
+                                            //check the existing capacity plan for the selected month and if already sewin plan exists in the selected month dynamically then show the available capacity
+                                            $existing_capacity = $color_sizes_qties->sum('total_sewing_quantity');
+                                            $monthly_existing_capacity_quantity = $existing_capacity;
+                                        @endphp
+                                            <input type="text" name="monthly_existing_capacity_quantity"
+                                                id="monthly_existing_capacity_quantity"
+                                                value="{{ $monthly_existing_capacity_quantity }}" readonly
+                                                class="form-control">
                                         </td>
-                                        <td><input type="text" name="weekly_capacity_minutesAvailable"
-                                                class="form-control" id="weeklyCapacityMinutesAvailable" readonly></td>
-                                        <td><input type="text" name="monthly_capacity_minutesAvailable"
-                                                class="form-control" id="monthlyCapacityMinutesAvailable" readonly></td> --}}
+                                        <td colspan="4" class="text-left">
+                                            Available Capacity
+                                        </td>
                                         <td><input type="text" name="monthly_capacity_quantityAvailable"
                                                 class="form-control" id="monthlyCapacityQuantityAvailable" readonly>
                                         </td>
@@ -155,7 +160,7 @@
                                                     value="{{ $color->remaining_quantity }}" readonly>
                                             </td>
                                             <td>
-                                                <input type="number" name="sewing_quantity[]"
+                                                <input type="number" name="color_quantity[]"
                                                     class="form-control sewing-quantity"
                                                     placeholder="Sewing Quantity">
                                             </td>
@@ -167,7 +172,7 @@
 
 
                             <div class="button-container">
-                                <a href="{{ route('jobs.index') }}" class="btn btn-outline-secondary">
+                                <a href="{{ route('sewing_plans.index') }}" class="btn btn-outline-secondary">
                                     <i class="fas fa-arrow-left"></i> Cancel
                                 </a>
                                 <button type="submit" id="saveButton" class="btn btn-outline-success">
@@ -185,7 +190,7 @@
 
 
     <!--after input the production plan, then show that month's factory calendar with holidays and count of working days and if there is any holiday then show the message that to adjust the plan and redrect to the factory holiday page index-->
-    <script>
+    {{-- <script>
         $(document).ready(function() {
             var workingDays = $('#workingDays');
             var runningMachines = $('#runningMachines');
@@ -196,7 +201,9 @@
             var weeklyCapacityMinutes = $('#weeklyCapacityMinutes');
             var monthlyCapacityMinutes = $('#monthlyCapacityMinutes');
             var monthlyCapacityQuantity = $('#monthlyCapacityQuantity');
+            var monthly_existing_capacity_quantity = $('#monthly_existing_capacity_quantity');
             var smvData = $('#smv_data');
+            //dynamic available capacity of monthlyCapacityQuantityAvailable = monthlyCapacityQuantity - monthly_existing_capacity_quantity
             var monthlyCapacityQuantityAvailable = $('#monthlyCapacityQuantityAvailable');
 
             // Event listener for production plan change
@@ -286,6 +293,117 @@
                         calculateAvailableCapacity(); // Recalculate after reset
                     }
                 });
+            }
+        });
+    </script> --}}
+    <script>
+        $(document).ready(function() {
+            // Cache selectors for performance
+            const workingDays = $('#workingDays');
+            const runningMachines = $('#runningMachines');
+            const helpers = $('#helpers');
+            const workingHours = $('#workingHours');
+            const efficiency = $('#efficiency');
+            const dailyCapacityMinutes = $('#dailyCapacityMinutes');
+            const weeklyCapacityMinutes = $('#weeklyCapacityMinutes');
+            const monthlyCapacityMinutes = $('#monthlyCapacityMinutes');
+            const monthlyCapacityQuantity = $('#monthlyCapacityQuantity');
+            const monthly_existing_capacity_quantity = $('#monthly_existing_capacity_quantity');
+            const smvData = $('#smv_data');
+            const monthlyCapacityQuantityAvailable = $('#monthlyCapacityQuantityAvailable');
+            const sewingQuantities = $('input.sewing-quantity');
+
+            let recalculating = false; // Flag to prevent recursive recalculation
+
+            // Event listener for production plan change
+            $('#productionPlan').on('change', function() {
+                const productionPlan = $(this).val();
+                $.ajax({
+                    url: "{{ route('check_existing_capacity') }}",
+                    method: "GET",
+                    data: {
+                        production_plan: productionPlan
+                    },
+                    success: function(response) {
+                        if (response.exists === true) {
+                            const data = response.data;
+                            workingDays.val(data.workingDays);
+                            runningMachines.val(data.running_machines);
+                            helpers.val(data.helpers);
+                            workingHours.val(data.working_hours);
+                            efficiency.val(data.efficiency);
+                            dailyCapacityMinutes.val(data.daily_capacity_minutes);
+                            weeklyCapacityMinutes.val(data.weekly_capacity_minutes);
+                            monthlyCapacityMinutes.val(data.monthly_capacity_minutes);
+                            monthlyCapacityQuantity.val(data.monthly_capacity_quantity);
+                            smvData.val(data.smv);
+
+                            calculateAvailableCapacity(); // Recalculate with new data
+                        } else {
+                            Swal.fire({
+                                icon: 'success',
+                                title: 'No Capacity Plan Exists',
+                                text: 'No capacity plan exists for the selected month. You can proceed to create a new plan.',
+                                showCancelButton: true,
+                                confirmButtonText: 'Edit Existing Plan',
+                                cancelButtonText: 'Create New Plan',
+                                preConfirm: () => {
+                                    window.location.href = response.edit_url;
+                                }
+                            });
+                        }
+                    },
+                    error: function() {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Error',
+                            text: 'Failed to check for existing capacity plan. Please try again.'
+                        });
+                    }
+                });
+            });
+
+            // Double-click to set sewing quantity equal to remaining quantity
+            $('input.remaining-quantity').on('dblclick', function() {
+                const remainingQuantity = $(this).val();
+                $(this).closest('tr').find('input.sewing-quantity').val(remainingQuantity);
+                calculateAvailableCapacity();
+            });
+
+            // Event listener for sewing quantity input changes
+            sewingQuantities.on('input', function() {
+                calculateAvailableCapacity();
+            });
+
+            // Function to calculate and update available capacity
+            function calculateAvailableCapacity() {
+                if (recalculating) return; // Prevent recursive recalculations
+
+                recalculating = true;
+                let totalSewingQuantity = 0;
+
+                sewingQuantities.each(function() {
+                    totalSewingQuantity += Number($(this).val()) || 0;
+                });
+
+                const maxCapacity = Number(monthlyCapacityQuantity.val()) || 0;
+                const availableCapacity = maxCapacity - totalSewingQuantity;
+
+                monthlyCapacityQuantityAvailable.val(Math.max(availableCapacity, 0)); // Ensure non-negative values
+
+                // Limit sewing quantity dynamically
+                if (totalSewingQuantity > maxCapacity) {
+                    sewingQuantities.each(function() {
+                        $(this).val(0); // Reset values
+                    });
+                    Swal.fire({
+                        icon: 'warning',
+                        title: 'Limit Exceeded',
+                        text: 'Sewing quantity exceeds the monthly capacity. Adjust the values.'
+                    });
+                }
+
+                recalculating = false; // Reset flag
             }
         });
     </script>

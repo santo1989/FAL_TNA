@@ -1,10 +1,23 @@
 <x-backend.layouts.master>
+    <!--message show in .swl sweet alert-->
+    @if (session('messages'))
+        <div class="alert alert-success">
+            <span class="close" data-dismiss="alert">&times;</span>
+            <strong>{{ session('messages') }}.</strong>
+        </div>
+    @endif
     <div class="card mx-5 my-5" style="background-color: white; overflow-x: auto;">
+
         <div class="container-fluid pt-2">
             <h4 class="text-center">Buyer-Wise Pending Tasks Summary</h4>
             <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary">
                 <i class="fas fa-arrow-left"></i> Close
             </a>
+            @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 4)
+               <a href="{{ route('MailBuyerWiseTnaSummary') }}" class="btn btn-outline-secondary float-right">
+                <i class="fas fa-envelope"></i> Mail Report to Marchandiser </a>   
+            @endif
+            
             <table class="table table-bordered table-hover text-center text-wrap" style="font-size: 12px;">
                 <thead class="thead-dark">
                     <tr>
@@ -92,10 +105,10 @@
         //     details.forEach(function(detail) {
         //         detailsBody.append(
         //             `<tr>
-        //                 <td>${detail.style}</td>
-        //                 <td>${detail.po}</td>
-        //                 <td>${detail.PlanDate}</td>
-        //             </tr>`
+    //                 <td>${detail.style}</td>
+    //                 <td>${detail.po}</td>
+    //                 <td>${detail.PlanDate}</td>
+    //             </tr>`
         //         );
         //     });
         //     console.log(details);
@@ -132,68 +145,67 @@
         // let currentTableHash = getTableHash(data);
 
         $(document).ready(function() {
-    // Initial data fetch and hash calculation
-    let currentTableHash;
+            // Initial data fetch and hash calculation
+            let currentTableHash;
 
-    function fetchDataAndUpdateTable() {
-        $.ajax({
-            url: '{{ route('FAL_BuyerWiseTnaSummary') }}',
-            type: 'GET',
-            success: function(data) {
-                const newTableHash = getTableHash(data);
-                // Update the table only if the data has changed
-                if (currentTableHash !== newTableHash) {
-                    $('#tbody').html(data);
-                    currentTableHash = newTableHash;
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Failed to update data:', error);
+            function fetchDataAndUpdateTable() {
+                $.ajax({
+                    url: '{{ route('FAL_BuyerWiseTnaSummary') }}',
+                    type: 'GET',
+                    success: function(data) {
+                        const newTableHash = getTableHash(data);
+                        // Update the table only if the data has changed
+                        if (currentTableHash !== newTableHash) {
+                            $('#tbody').html(data);
+                            currentTableHash = newTableHash;
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Failed to update data:', error);
+                    }
+                });
             }
-        });
-    }
 
-    // Initial data fetch
-    fetchDataAndUpdateTable();
+            // Initial data fetch
+            fetchDataAndUpdateTable();
 
-    // Update tbody with the new data every 10 seconds if new data is available
-    setInterval(fetchDataAndUpdateTable, 10000);
+            // Update tbody with the new data every 10 seconds if new data is available
+            setInterval(fetchDataAndUpdateTable, 10000);
 
-    // Function to generate a unique hash for the table data
-    function getTableHash(data) {
-        const tableContent = JSON.stringify(data);
-        // Simple hash function for the content
-        return Array.from(tableContent).reduce((hash, char) => {
-            hash = ((hash << 5) - hash) + char.charCodeAt(0);
-            return hash & hash; // Convert to 32bit integer
-        }, 0);
-    }
+            // Function to generate a unique hash for the table data
+            function getTableHash(data) {
+                const tableContent = JSON.stringify(data);
+                // Simple hash function for the content
+                return Array.from(tableContent).reduce((hash, char) => {
+                    hash = ((hash << 5) - hash) + char.charCodeAt(0);
+                    return hash & hash; // Convert to 32bit integer
+                }, 0);
+            }
 
-    // Modal show event handler
-    $('#detailsModal').on('show.bs.modal', function(event) {
-        const button = $(event.relatedTarget);
-        const buyer = button.data('buyer');
-        const task = button.data('task');
-        const details = button.data('details');
-        const modal = $(this);
-        const detailsBody = $('#detailsBody');
+            // Modal show event handler
+            $('#detailsModal').on('show.bs.modal', function(event) {
+                const button = $(event.relatedTarget);
+                const buyer = button.data('buyer');
+                const task = button.data('task');
+                const details = button.data('details');
+                const modal = $(this);
+                const detailsBody = $('#detailsBody');
 
-        detailsBody.empty(); // Clear previous data
+                detailsBody.empty(); // Clear previous data
 
-        details.forEach(function(detail) {
-            detailsBody.append(
-                `<tr>
+                details.forEach(function(detail) {
+                    detailsBody.append(
+                        `<tr>
                     <td>${detail.style}</td>
                     <td>${detail.po}</td>
                     <td>${detail.PlanDate}</td>
                     <td>${detail.shipment_etd}</td>
                 </tr>`
-            );
+                    );
+                });
+                modal.find('.modal-title').text(`Task Details for ${buyer} - ${task}`);
+            });
         });
-        modal.find('.modal-title').text(`Task Details for ${buyer} - ${task}`);
-    });
-});
-
     </script>
- 
+
 </x-backend.layouts.master>

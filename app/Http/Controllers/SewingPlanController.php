@@ -2,8 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\CapacityPlan;
 use App\Models\Job;
-use App\Models\SewingBlance;
+use App\Models\SewingBalance;
 use App\Models\SewingPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
@@ -12,103 +13,130 @@ class SewingPlanController extends Controller
 {
     public function index()
     {
-        $sewing_plan = SewingPlan::select(
-            'job_no',
-            'color',
-            'size',
-            'production_plan',
-            DB::raw('SUM(color_quantity) as total_color_quantity')
-        )
-            ->groupBy('job_no', 'color', 'size', 'production_plan')
-            ->get();
+        $sewing_plan = SewingPlan::latest()->get();
         // dd($sewing_plan);
         //push buyer, style, po_no, item,
         return view('backend.OMS.sewing_plans.index', compact('sewing_plan'));
     }
+     
     public function create()
     {
-        // Fetch the color, size, and quantity details from the jobs table
-        $color_sizes_qties = Job::select('id', 'job_no', 'color', 'size', 'color_quantity')->get();
+        // Use DB transaction to prevent null/empty values or deadlocks
+        DB::beginTransaction();
 
-        // Fetch old sewing plan entries based on job number (to get existing sewing balances)
-        $old_sewing_balances = SewingBlance::select('job_no', 'color', 'size', 'sewing_balance')->get();
+        try {
+            // Fetch color, size, and quantity details from the jobs table
+            $color_sizes_qties = Job::select('id', 'job_no', 'color', 'size', 'color_quantity')
+            ->whereNull('buyer_hold_shipment')
+            ->whereNull('buyer_cancel_shipment')
+            ->whereNull('order_close')
+            ->get();
 
-        // Loop through each job entry and calculate the remaining quantity
-        foreach ($color_sizes_qties as $color_size) {
-            $completed_qty = $old_sewing_balances
-                ->where('job_no', $color_size->job_no)
-                ->where('color', $color_size->color)
-                ->where('size', $color_size->size)
-                ->sum('sewing_balance');
+            // Fetch sewing balance entries
+            $old_sewing_balances = SewingBalance::select('job_no', 'color', 'size', 'sewing_balance')->get();
 
-            // Calculate remaining quantity
-            $color_size->remaining_quantity = $color_size->color_quantity - $completed_qty;
-            // calculate total sewing quantity
-            $color_size->total_sewing_quantity = $completed_qty;
+            // Fetch sewing plan entries
+            $old_sewing_plans = SewingPlan::select('job_no', 'color', 'size', 'color_quantity')->get();
+
+            // Calculate remaining quantity and total sewing quantity for each job entry
+            foreach ($color_sizes_qties as $color_size) {
+                // Calculate already completed quantity from SewingBalance
+                $completed_qty = $old_sewing_balances
+                    ->where('job_no', $color_size->job_no)
+                    ->where('color', $color_size->color)
+                    ->where('size', $color_size->size)
+                    ->sum('sewing_balance');
+
+                // Calculate planned quantity from SewingPlan
+                $planned_qty = $old_sewing_plans
+                    ->where('job_no', $color_size->job_no)
+                    ->where('color', $color_size->color)
+                    ->where('size', $color_size->size)
+                    ->sum('color_quantity');
+
+                // Calculate remaining quantity and total sewing quantity
+                $color_size->remaining_quantity = $color_size->color_quantity - $completed_qty - $planned_qty;
+                $color_size->total_sewing_quantity = $completed_qty + $planned_qty;
+
+                // Prevent negative remaining quantities
+                if ($color_size->remaining_quantity < 0) {
+                    $color_size->remaining_quantity = 0;
+                }
+            }
+
+            // Filter out entries with no remaining quantity
+            $color_sizes_qties = $color_sizes_qties->filter(function ($color_size) {
+                return isset($color_size->remaining_quantity) && $color_size->remaining_quantity > 0;
+            });
+
+            // Commit the transaction
+            DB::commit();
+
+            // Return the view with the calculated data
+            return view('backend.OMS.sewing_plans.create', compact('color_sizes_qties'));
+        } catch (\Exception $e) {
+            // Rollback the transaction in case of an error
+            DB::rollBack();
+            return redirect()->back()->withErrors(['error' => $e->getMessage()]);
         }
-
-        // if  $color_size->remaining_quantity =< 0, remove it from the collection
-        $color_sizes_qties = $color_sizes_qties->filter(function ($color_size) {
-            return $color_size->remaining_quantity > 0;
-        });
-
-        // Return a response or redirect as needed
-        return view('backend.OMS.sewing_plans.create', compact('color_sizes_qties'));
-
-        // // Assuming job_no is passed through the request or you define it here
-        // $job_no = request('job_no');
-
-        // // Fetch basic info of the job to display in the form
-        // $basic_info = Job::where('job_no', $job_no)->first();
-        // $jobs_no = $basic_info->job_no;
-
-        // // Fetch sewing balances of the selected job
-        // $old_sewing_balances = SewingPlan::where('job_no', $job_no)->get();
-
-        // // Return the view with the necessary data
-        // return view('backend.OMS.sewing_plans.create', compact('color_sizes_qties', 'basic_info', 'old_sewing_balances', 'jobs_no'));
     }
+
 
 
 
     public function store(Request $request)
     {
-        // dd($request->all());
         // Validate the request data
         $request->validate([
-            'job_no' => 'required|string|max:255',
+            'job_no' => 'required|array',
+            'job_no.*' => 'required|string',
             'production_plan' => 'required|date_format:Y-m',
-            'production_min_balance' => 'required|numeric',
             'color_id' => 'required|array',
             'color_id.*' => 'required|integer',
             'color' => 'required|array',
             'color.*' => 'required|string',
             'size' => 'required|array',
             'size.*' => 'required|string',
-            'sewing_quantity' => 'required|array',
-            'sewing_quantity.*' => 'required|integer',
+            'color_quantity' => 'required|array', // Validate the array itself
+            'color_quantity.*' => 'nullable|integer|min:0', // Allow null but enforce integer >= 0
         ]);
+
+        // Check if at least one color_quantity is greater than 0
+        $hasValidQuantity = collect($request->color_quantity)
+            ->filter(fn($qty) => $qty !== null) // Exclude null values
+            ->some(fn($qty) => $qty > 0); // Ensure at least one value > 0
+
+        if (!$hasValidQuantity) {
+            return redirect()->back()->withErrors([
+                'color_quantity' => 'At least one color quantity must be greater than 0.'
+            ])->withInput();
+        }
 
         // Iterate over the color and size arrays and save each combination
         foreach ($request->color_id as $key => $value) {
+            // Skip if the color_quantity is 0 or null
+            if (empty($request->color_quantity[$key]) || $request->color_quantity[$key] == 0) {
+                continue;
+            }
+
             // Find the job
             $job = Job::findOrFail($value);
 
-            // Create a new sewing balance
-            $sewing_plan = SewingPlan::create([
+            // Create a new sewing plan
+            SewingPlan::create([
                 'job_id' => $job->id,
-                'job_no' => $request->job_no,
+                'job_no' => $request->job_no[$key],
                 'color' => $request->color[$key],
                 'size' => $request->size[$key],
-                'sewing_plan' => $request->sewing_quantity[$key],
+                'color_quantity' => $request->color_quantity[$key],
                 'production_plan' => $request->production_plan,
-                'production_min_balance' => $request->production_min_balance,
             ]);
         }
 
         // Redirect back with a success message
-        return redirect()->route('jobs.index')->withMessage('Sewing balances saved successfully.');
+        return redirect()->route('sewing_plans.index')->withMessage('Sewing balances saved successfully.');
     }
+
 
     public function show(Request $request, $job_no)
     {
@@ -128,36 +156,165 @@ class SewingPlanController extends Controller
         return view('backend.OMS.sewing_plans.show', compact('basic_info', 'old_sewing_balances', 'jobs_no'));
     }
 
-
     public function edit(Request $request, $job_no)
     {
-        // dd($job_no); 
+        // dd($job_no);
 
-        $old_sewing_balances = SewingPlan::where('id', $job_no)->get();
-        $old_sewing_basic_info = SewingPlan::where('id', $job_no)->first();
-        $color_sizes_qties = Job::where('job_no', $old_sewing_basic_info->job_no)->get();
+        $old_sewing_basic_info = SewingPlan::where('job_no', $job_no)->first();
 
-        $basic_info = Job::where('job_no', $old_sewing_basic_info->job_no)->first();
+        // dd($old_sewing_basic_info);
+
+        if (!$old_sewing_basic_info) {
+            return redirect()->route('sewing_plans.index')->withErrors(['message' => 'No sewing plan found for this job number.']);
+        }
+
+        // Fetch color, size, and quantity details for the selected job
+        $color_sizes_qties = Job::where('job_no', $job_no)->get(); // Fetch the color, size, and quantity details from the jobs table
+
+        // Fetch old sewing balance entries
+        $old_sewing_balances = SewingBalance::select('job_no', 'color', 'size', 'sewing_balance')->where('job_no', $job_no)->get();
+
+        // Fetch sewing plan entries
+        $old_sewing_plans = SewingPlan::select('job_no', 'color', 'size', 'color_quantity')->where('job_no', $job_no)->get();
+
+        // dd($old_sewing_balances, $old_sewing_plans);
+
+        // Merge sewing plans into old sewing balances if not already present
+        foreach ($old_sewing_plans as $sewing_plan) {
+            $matching_balance = $old_sewing_balances->firstWhere(function ($balance) use ($sewing_plan) {
+                return $balance->job_no === $sewing_plan->job_no &&
+                    $balance->color === $sewing_plan->color &&
+                    $balance->size === $sewing_plan->size;
+            });
+
+            if (!$matching_balance) {
+                // Add the sewing plan as a new balance
+                $old_sewing_balances->push((object)[
+                    'job_no' => $sewing_plan->job_no,
+                    'color' => $sewing_plan->color,
+                    'size' => $sewing_plan->size,
+                    'sewing_balance' => $sewing_plan->color_quantity,
+                ]);
+            }
+        }
+
+        // dd($old_sewing_balances);
+
+        // Loop through each job entry and calculate the remaining and total sewing quantities
+        foreach ($color_sizes_qties as $color_size) {
+            $completed_qty = $old_sewing_balances
+                ->where('job_no', $color_size->job_no)
+                ->where('color', $color_size->color)
+                ->where('size', $color_size->size)
+                ->sum('sewing_balance');
+
+            // Calculate remaining quantity and total sewing quantity
+            $color_size->remaining_quantity = $color_size->color_quantity - $completed_qty;
+            $color_size->total_sewing_quantity = $completed_qty;
+        }
+
+        // dd($color_sizes_qties);
+
+        // Filter out jobs with no remaining quantity
+        $color_sizes_qties = $color_sizes_qties->filter(function ($color_size) {
+            return isset($color_size->remaining_quantity) && $color_size->remaining_quantity > 0;
+        });
+
+        // dd($color_sizes_qties);
+
+        // Get basic job information
+        $basic_info = Job::where('job_no', $job_no)->first();
         $jobs_no = $basic_info->job_no;
+        $production_plan = $old_sewing_basic_info->production_plan;
+        $capacity_plan = CapacityPlan::where('production_plan', $production_plan)->first();
 
-        // dd($color_sizes_qties, $basic_info, $old_sewing_balances, $jobs_no); 
-
-        return view('backend.OMS.sewing_plans.edit', compact('color_sizes_qties', 'basic_info', 'old_sewing_balances', 'jobs_no', 'old_sewing_basic_info'));
+        // Pass data to the edit view
+        return view('backend.OMS.sewing_plans.edit', compact(
+            'color_sizes_qties',
+            'basic_info',
+            'old_sewing_balances',
+            'jobs_no',
+            'old_sewing_basic_info',
+            'capacity_plan'
+        ));
     }
 
-    public function update(Request $request, SewingPlan $sewingPlan)
+    public function update(Request $request, $job_no)
     {
-        //
+        // Validate the request data
+        $request->validate([
+            'job_no' => 'required|array',
+            'job_no.*' => 'required|string',
+            'production_plan' => 'required|date_format:Y-m',
+            'color_id' => 'required|array',
+            'color_id.*' => 'required|integer',
+            'color' => 'required|array',
+            'color.*' => 'required|string',
+            'size' => 'required|array',
+            'size.*' => 'required|string',
+            'color_quantity' => 'required|array',
+            'color_quantity.*' => 'nullable|integer|min:0',
+        ]);
+
+        // Check if at least one color_quantity is greater than 0
+        $hasValidQuantity = collect($request->color_quantity)
+            ->filter(fn($qty) => $qty !== null)
+            ->some(fn($qty) => $qty > 0);
+
+        if (!$hasValidQuantity) {
+            return redirect()->back()->withErrors([
+                'color_quantity' => 'At least one color quantity must be greater than 0.'
+            ])->withInput();
+        }
+
+        // Fetch the existing sewing plans for the job number
+        $existing_plans = SewingPlan::where('job_no', $job_no)->get()->keyBy(function ($plan) {
+            return $plan->color . '-' . $plan->size;
+        });
+
+        // Iterate through the submitted data and update or create sewing plans
+        foreach ($request->color_id as $key => $value) {
+            // Skip if the color_quantity is 0 or null
+            if (empty($request->color_quantity[$key]) || $request->color_quantity[$key] == 0) {
+                continue;
+            }
+
+            $color = $request->color[$key];
+            $size = $request->size[$key];
+            $unique_key = $color . '-' . $size;
+
+            // Check if the sewing plan already exists
+            if ($existing_plans->has($unique_key)) {
+                // Update the existing sewing plan
+                $existing_plans[$unique_key]->update([
+                    'color_quantity' => $request->color_quantity[$key],
+                    'production_plan' => $request->production_plan,
+                ]);
+            } else {
+                // Find the job
+                $job = Job::findOrFail($value);
+
+                // Create a new sewing plan
+                SewingPlan::create([
+                    'job_id' => $job->id,
+                    'job_no' => $request->job_no[$key],
+                    'color' => $request->color[$key],
+                    'size' => $request->size[$key],
+                    'color_quantity' => $request->color_quantity[$key],
+                    'production_plan' => $request->production_plan,
+                ]);
+            }
+        }
+
+        // Redirect back with a success message
+        return redirect()->route('sewing_plans.index')->withMessage('Sewing plan updated successfully.');
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\SewingPlan  $sewingPlan
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(SewingPlan $sewingPlan)
+    // Controller
+    public function sewing_plans_destroy(SewingPlan $sewing_plan)
     {
-        //
+        $sewing_plan->delete();
+
+        return redirect()->route('sewing_plans.index')->with('message', 'Sewing plan deleted successfully.');
     }
 }

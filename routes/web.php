@@ -12,7 +12,7 @@ use App\Http\Controllers\JobController;
 use App\Http\Controllers\MarchentSOPController;
 use App\Http\Controllers\NotificationController;
 use App\Http\Controllers\RoleController;
-use App\Http\Controllers\SewingBlanceController;
+use App\Http\Controllers\SewingBalanceController;
 use App\Http\Controllers\SewingPlanController;
 use App\Http\Controllers\ShipmentController;
 use App\Http\Controllers\SOPController;
@@ -64,6 +64,10 @@ Route::get('/fal-tnas-update', [TNAController::class, 'fal_tnas_dashboard_update
 Route::get('/MailBuyerWiseTnaSummary', [TNAController::class, 'MailBuyerWiseTnaSummary'])->name('MailBuyerWiseTnaSummary');
 
 Route::get('/TnaSummaryReport', [TNAController::class, 'TnaSummaryReport'])->name('TnaSummaryReport');
+
+Route::get('/factory-holidays/{year}/{month}', [FactoryHolidayController::class, 'getHolidays']);
+
+Route::post('/update-task-details', [TNAController::class, 'updateTaskDetails'])->name('task.update');
 
 
 Route::middleware('auth')->group(function () {
@@ -179,7 +183,7 @@ Route::middleware('auth')->group(function () {
     //tnas
     // Route::get('/tnas', [TNAController::class, 'index'])->name('tnas.index');
     // Existing route that returns the view
-    Route::get('/tnas', [TNAController::class, 'index'])->name('tnas.index'); 
+    Route::get('/tnas', [TNAController::class, 'index'])->name('tnas.index');
 
     Route::get('/tnas/create', [TNAController::class, 'create'])->name('tnas.create');
     Route::post('/tnas', [TNAController::class, 'store'])->name('tnas.store');
@@ -205,7 +209,7 @@ Route::middleware('auth')->group(function () {
     //tnas_update
     Route::post('/tnas_update_COTTON_ROSE', [TNAController::class, 'tnas_update_COTTON_ROSE'])->name('tnas_update_COTTON_ROSE');
     //Cutting_TNA
-    Route::post('/Cutting_actual', [TNAController::class, 'Cutting_actual'])->name('actual_cutting'); 
+    Route::post('/Cutting_actual', [TNAController::class, 'Cutting_actual'])->name('actual_cutting');
     Route::post('/Cutting_plan', [TNAController::class, 'Cutting_plan'])->name('Cutting_plan');
 
     //tnas_dashboard
@@ -224,6 +228,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/archives_dashboard_update', [TNAController::class, 'archives_dashboard_update'])->name('archives_dashboard_update');
     //Reports
     Route::get('/buyer-wise-tna-summary', [TNAController::class, 'BuyerWiseTnaSummary'])->name('BuyerWiseTnaSummary');
+    Route::get('/BuyerWiseProductionLeadTimeSummary', [TNAController::class, 'BuyerWiseProductionLeadTimeSummary'])->name('BuyerWiseProductionLeadTimeSummary');
 
     //OMS//
 
@@ -247,28 +252,30 @@ Route::middleware('auth')->group(function () {
     Route::get('/delivery-summary', [JobController::class, 'deliverySummary'])->name('delivery_summary');
 
     //sewing_plans
-    Route::get('/sewing_plans', [SewingPlanController::class, 'sewing_plans'])->name('sewing_plans.index');
+    Route::get('/sewing_plans', [SewingPlanController::class, 'index'])->name('sewing_plans.index');
     Route::get('/sewing_plans/create', [SewingPlanController::class, 'create'])->name('sewing_plans.create');
     Route::post('/sewing_plans', [SewingPlanController::class, 'store'])->name('sewing_plans.store');
     Route::get('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'show'])->name('sewing_plans.show');
     Route::get('/sewing_plans/{sewing_plan}/edit', [SewingPlanController::class, 'edit'])->name('sewing_plans.edit');
     Route::put('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'update'])->name('sewing_plans.update');
-    Route::delete('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'destroy'])->name('sewing_plans.destroy');
+
+    // Route
+    Route::delete('/sewingPlans/{sewing_plan}', [SewingPlanController::class, 'sewing_plans_destroy'])->name('sewing_plans_destroy');
 
 
 
 
 
-
+    Route::get('/get_color_sizes_qties', [SewingBalanceController::class, 'get_color_sizes_qties'])->name('get_color_sizes_qties');
 
     //sewing_balances
-    Route::get('/sewing_balances', [SewingBlanceController::class, 'index'])->name('sewing_balances.index');
-    Route::get('/sewing_balances/create/{sewing_balances}', [SewingBlanceController::class, 'create_sewing_balances'])->name('sewing_balances.create');
-    Route::post('/sewing_balances/{sewing_balances}', [SewingBlanceController::class, 'store'])->name('sewing_balances_store');
-    Route::get('/sewing_balances/{sewing_blance}', [SewingBlanceController::class, 'show'])->name('sewing_balances.show');
-    Route::get('/sewing_balances/{sewing_blance}/edit', [SewingBlanceController::class, 'edit'])->name('sewing_balances.edit');
-    Route::put('/sewing_balances/{sewing_blance}', [SewingBlanceController::class, 'update'])->name('sewing_balances.update');
-    Route::delete('/sewing_balances/{sewing_blance}', [SewingBlanceController::class, 'destroy'])->name('sewing_balances.destroy');
+    Route::get('/sewing_balances', [SewingBalanceController::class, 'index'])->name('sewing_balances.index');
+    Route::get('/sewing_balances/create/{sewing_balances}', [SewingBalanceController::class, 'create_sewing_balances'])->name('sewing_balances.create');
+    Route::post('/sewing_balances/{sewing_balances}', [SewingBalanceController::class, 'store'])->name('sewing_balances_store');
+    Route::get('/sewing_balances/{sewing_balance}', [SewingBalanceController::class, 'show'])->name('sewing_balances.show');
+    Route::get('/sewing_balances/{sewing_balance}/edit', [SewingBalanceController::class, 'edit'])->name('sewing_balances.edit');
+    Route::put('/sewing_balances/{sewing_balance}', [SewingBalanceController::class, 'update'])->name('sewing_balances.update');
+    Route::delete('/sewing_balances/{sewing_balance}', [SewingBalanceController::class, 'destroy'])->name('sewing_balances.destroy');
 
     //shipments
     Route::get('/shipments', [ShipmentController::class, 'index'])->name('shipments.index');
@@ -286,12 +293,15 @@ Route::middleware('auth')->group(function () {
     Route::get('/factory_holidays/{factory_holiday}', [FactoryHolidayController::class, 'show'])->name('factory_holidays.show');
     Route::get('/factory_holidays/{factory_holiday}/edit', [FactoryHolidayController::class, 'edit'])->name('factory_holidays.edit');
     Route::put('/factory_holidays/{factory_holiday}', [FactoryHolidayController::class, 'update'])->name('factory_holidays.update');
+    Route::delete('/factory_holidays/bulk-delete', [FactoryHolidayController::class, 'bulkDelete'])->name('factory_holidays.bulk_delete');
     Route::delete('/factory_holidays/{factory_holiday}', [FactoryHolidayController::class, 'destroy'])->name('factory_holidays.destroy');
 
     //active_inactive
     Route::post('/factory_holidays/{factory_holiday}/factory_holidays_active', [FactoryHolidayController::class, 'factory_holidays_active'])->name('factory_holidays.active');
     //factory_holidays.calander_views
     Route::get('/factory-holidays-calander-views', [FactoryHolidayController::class, 'calander_views'])->name('factory_holidays.calander_views');
+    
+
 
     // capacity_plans
     Route::get('/capacity_plans', [CapacityPlanController::class, 'index'])->name('capacity_plans.index');
@@ -300,8 +310,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/capacity_plans/{capacity_plans}', [CapacityPlanController::class, 'show'])->name('capacity_plans.show');
     Route::get('/capacity_plans/{capacity_plans}/edit', [CapacityPlanController::class, 'edit'])->name('capacity_plans.edit');
     Route::put('/capacity_plans/{capacity_plans}', [CapacityPlanController::class, 'update'])->name('capacity_plans.update');
-    Route::delete('/capacity_plans/{capacity_plans}', [CapacityPlanController::class, 'destroy'])->name('capacity_plans.destroy');
-
+    Route::delete('/capacity_plans/{capacity_plans}', [CapacityPlanController::class, 'destroy'])->name('cp_destroy');
 });
 // routes/web.php
 Route::get('/get-avg-smv', [CapacityPlanController::class, 'getAvgSMV'])->name('capacity_plans.getAvgSMV');

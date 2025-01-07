@@ -133,16 +133,20 @@
                                                 <a href="{{ route('capacity_plans.show', $capacity_plan->id) }}"
                                                     class="btn btn-outline-info">
                                                     <i class="fas fa-eye"></i> View </a>
-                                                <a href="{{ route('capacity_plans.destroy', $capacity_plan->id) }}"
-                                                    class="btn btn-outline-danger">
-                                                    <i class="fas fa-trash"></i> Delete </a>
+                                                <form action="{{ route('cp_destroy', $capacity_plan->id) }}" method="POST"
+                                                         style="display:inline-block;">
+                                                         @csrf
+                                                         @method('DELETE')
+                                                         <button type="submit" class="btn btn-outline-danger"><i
+                                                                 class="fas fa-trash"></i>Delete</button>
+                                                     </form>
                                             </td>
 
 
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="14" class="text-center">No data found!</td>
+                                            <td colspan="18" class="text-center">No data found!</td>
                                         </tr>
                                     @endforelse
                                 </tbody>

@@ -1,4 +1,5 @@
  <x-backend.layouts.master>
+
      <div class="card mx-5 my-5" style="background-color: white; ">
 
          <div class="row p-1">
@@ -10,25 +11,31 @@
                          <a href=" {{ route('home') }} " class="btn btn-outline-secondary"><i
                                  class="fas fa-arrow-left"></i>
                              Close</a>
-                         <a href="{{ route('factory_holidays.index') }}" class="btn btn-outline-danger"> <i
-                                 class="fas fa-plus"></i> Holydays Plan</a> 
+                         <a href="{{ route('factory_holidays.create') }}" class="btn btn-outline-danger"> <i
+                                 class="fas fa-plus"></i> Create Holydays</a>
                          <a href="{{ route('capacity_plans.create') }}" class="btn  btn-outline-success"><i
-                                        class="fas fa-tachometer-alt"></i> Add Capacity Plan</a>
+                                 class="fas fa-plus"></i> Add Capacity Plan</a>
+                         <a href="{{ route('sewing_plans.create') }}" class="btn btn-outline-primary"> <i
+                                 class="fas fa-plus"></i> Add Sewing Plan</a>
 
                      </div>
                      <div class="col-6 text-end">
-                          <a href="{{ route('sewing_plans.create') }}" class="btn btn-outline-primary"> <i
-                                 class="fas fa-plus"></i> Add Sewing Plan</a> 
+
+                         <button type="button" class="btn btn-outline-primary" data-toggle="modal"
+                             data-target="#PlanModal"> <i class="fas fa-tachometer-alt"></i>
+                             Plan
+                         </button>
                          <button type="button" class="btn btn-outline-success" data-toggle="modal"
-                             data-target="#ReportModal">
+                             data-target="#ReportModal"> <i class="fas fa-tachometer-alt"></i>
                              Report
+                         </button>
+                         <button type="button" class="btn btn-outline-info" data-toggle="modal"
+                             data-target="#HistoryModal"> <i class="fas fa-tachometer-alt"></i>
+                             History
                          </button>
 
 
-                         <a href="{{ route('sewing_balances.index') }}" class="btn btn-outline-info"> <i
-                                 class="fas fa-tachometer-alt"></i> Sewing History</a>
-                         <a href="{{ route('shipments.index') }}" class="btn btn-outline-warning"> <i
-                                 class="fas fa-tachometer-alt"></i> Shipment History</a>
+
 
 
                          @can('TNA-CURD')
@@ -92,11 +99,11 @@
                                              <td>{{ $job->order_quantity }}</td>
                                              <td>
                                                  @php
-                                                     $sewing_qty = DB::table('sewing_blances')
+                                                     $sewing_qty = DB::table('sewing_balances')
                                                          ->where('job_no', $job->job_no)
                                                          ->get()
                                                          ->sum('sewing_balance');
-                                                     $total_sewing_qty = $job->order_quantity - $sewing_qty;
+                                                     $total_sewing_qty = $job->order_quantity - $sewing_qty ?? 0;
                                                  @endphp
                                                  <button type="button" class="btn btn-outline-danger"
                                                      data-toggle="modal" data-target="#sewingModal"
@@ -158,6 +165,32 @@
          </div>
      </div>
 
+     <!-- PlanModal Start-->
+     <div class="modal fade text-center" id="PlanModal" tabindex="-1" role="dialog" aria-labelledby="PlanModalLabel"
+         aria-hidden="true">
+         <div class="modal-dialog  modal-lg" role="document">
+             <div class="modal-content">
+                 <div class="modal-header">
+                     <h5 class="modal-title" id="PlanModalLabel">Report
+                         <span id="modalJobNo"></span>
+                     </h5>
+                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                         <span aria-hidden="true">&times;</span>
+                     </button>
+                 </div>
+                 <div class="modal-body justify-content-center">
+                     <a href="{{ route('factory_holidays.index') }}" class="btn btn-outline-danger"> <i
+                             class="fas fa-tachometer-alt"></i> Holydays Plan</a>
+                     <a href="{{ route('capacity_plans.index') }}" class="btn  btn-outline-success"><i
+                             class="fas fa-tachometer-alt"></i> Capacity Plan</a>
+                     <a href="{{ route('sewing_plans.index') }}" class="btn btn-outline-primary"> <i
+                             class="fas fa-tachometer-alt"></i> Sewing Plan</a>
+                 </div>
+             </div>
+         </div>
+     </div>
+     <!-- PlanModal End-->
+
      <!-- ReportModal Start-->
      <div class="modal fade text-center" id="ReportModal" tabindex="-1" role="dialog"
          aria-labelledby="ReportModalLabel" aria-hidden="true">
@@ -186,9 +219,33 @@
      </div>
      <!-- ReportModal End-->
 
+     <!-- HistoryModal Start-->
+     <div class="modal fade text-center" id="HistoryModal" tabindex="-1" role="dialog"
+         aria-labelledby="HistoryModalLabel" aria-hidden="true">
+         <div class="modal-dialog  modal-lg" role="document">
+             <div class="modal-content">
+                 <div class="modal-header">
+                     <h5 class="modal-title" id="HistoryModalLabel">History
+                         <span id="modalJobNo"></span>
+                     </h5>
+                     <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                         <span aria-hidden="true">&times;</span>
+                     </button>
+                 </div>
+                 <div class="modal-body justify-content-center">
+                     <a href="{{ route('sewing_balances.index') }}" class="btn btn-outline-info"> <i
+                             class="fas fa-tachometer-alt"></i> Sewing History</a>
+                     <a href="{{ route('shipments.index') }}" class="btn btn-outline-warning"> <i
+                             class="fas fa-tachometer-alt"></i> Shipment History</a>
+                 </div>
+             </div>
+         </div>
+     </div>
+     <!-- HistoryModal End-->
+
      <!-- JobModal Start-->
-     <div class="modal fade text-center" id="jobModal" tabindex="-1" role="dialog" aria-labelledby="jobModalLabel"
-         aria-hidden="true">
+     <div class="modal fade text-center" id="jobModal" tabindex="-1" role="dialog"
+         aria-labelledby="jobModalLabel" aria-hidden="true">
          <div class="modal-dialog  modal-lg" role="document">
              <div class="modal-content">
                  <div class="modal-header">
@@ -208,7 +265,7 @@
                          @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
                              <a href="#" id="SewingBalance" class="btn btn-outline-secondary"><i
                                      class="fas fa-boxes"></i> Sewing
-                                 Balance</a>
+                                 </a>
                              <a href="#" id="calendarJobLink" class="btn btn-outline-primary"><i
                                      class="fas fa-ship"></i> Shipment</a>
                          @endif
@@ -244,7 +301,7 @@
                  </div>
                  <div class="modal-body">
                      @php
-                         $sewing_balance = App\Models\SewingBlance::select(
+                         $sewing_balance = App\Models\SewingBalance::select(
                              'job_no',
                              'color',
                              'size',
@@ -296,7 +353,7 @@
                                      </tr>
                                  @empty
                                      <tr>
-                                         <td colspan="5" class="text-center">No Sewing
+                                         <td colspan="8" class="text-center">No Sewing
                                              Balance Found</td>
                                      </tr>
                                  @endforelse
@@ -465,8 +522,7 @@
                  }
              });
          }, 5000); // Poll every 5 seconds
-     </script>
-     <script>
+
          $('#jobModal').on('show.bs.modal', function(event) {
              var button = $(event.relatedTarget); // Button that triggered the modal
              var jobId = button.data('job-id'); // Extract info from data-* attributes

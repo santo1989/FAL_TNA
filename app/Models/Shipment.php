@@ -25,15 +25,13 @@ class Shipment extends Model
     {
         return $this->belongsTo(Division::class);
     }
-    
+
     public function job()
     {
         return $this->belongsTo(Job::class);
     }
-    public function sewingblance()
+    public function SewingBalance()
     {
-        return $this->hasMany(SewingBlance::class);
-    } 
-    
-
+        return $this->hasMany(SewingBalance::class);
+    }
 }

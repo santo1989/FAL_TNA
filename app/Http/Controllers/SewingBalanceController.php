@@ -3,46 +3,72 @@
 namespace App\Http\Controllers;
 
 use App\Models\Job;
-use App\Models\SewingBlance;
+use App\Models\SewingBalance;
+use App\Models\SewingPlan;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
-class SewingBlanceController extends Controller
+class SewingBalanceController extends Controller
 {
-    
+
     public function index()
     {
-        $sewing_balance = SewingBlance::select(
+        $sewing_balance = SewingBalance::select(
             'job_no',
             'color',
             'size',
             DB::raw('SUM(sewing_balance) as total_sewing_balance'),
             DB::raw('SUM(production_min_balance) as total_production_min_balance')
         )
-        ->groupBy('job_no', 'color', 'size')
-        ->get();
+            ->groupBy('job_no', 'color', 'size')
+            ->get();
         // dd($sewing_balance);
         //push buyer, style, po_no, item,
         return view('backend.OMS.sewing_balances.index', compact('sewing_balance'));
-
-
-        
-    } 
+    }
     public function create_sewing_balances(Request  $request, $job_no)
     {
-        
 
-        $color_sizes_qties = Job::where('job_no', $job_no)->get();
+
+        // $color_sizes_qties = SewingPlan::where('job_no', $job_no)->get();
+        $color_sizes_qties = [];
+
+        if($request->has('production_plan')){
+            $color_sizes_qties = SewingPlan::where('job_no', $request->job_no)->where('production_plan', $request->production_plan)->where('sewing_quantity', '>', 0)->get();
+        }
+        
 
         $basic_info = Job::where('job_no', $job_no)->first();
-         $jobs_no = $basic_info->job_no;
-        $old_sewing_balances = SewingBlance::where('job_no', $job_no)->get();
-// dd($color_sizes_qties, $basic_info, $old_sewing_balances, $jobs_no);
-     
-    // Return a response or redirect as needed
-        
+        $jobs_no = $basic_info->job_no;
+        $old_sewing_balances = SewingBalance::where('job_no', $job_no)->get();
+        // dd($color_sizes_qties, $basic_info, $old_sewing_balances, $jobs_no);
+
+        // Return a response or redirect as needed
+
         return view('backend.OMS.sewing_balances.create', compact('color_sizes_qties', 'basic_info', 'old_sewing_balances', 'jobs_no'));
     }
+
+    // get_color_sizes_qties
+    public function get_color_sizes_qties(Request $request)
+    {
+        $color_sizes_qties = SewingPlan::where('job_no', $request->job_no)
+            ->where('production_plan', $request->production_plan)
+            ->where('color_quantity', '>', 0)
+            ->get();
+
+        $basic_info = Job::where('job_no', $request->job_no)->first();
+        $old_sewing_balances = SewingBalance::where('job_no', $request->job_no)->get();
+
+        return response()->json([
+            'color_sizes_qties' => $color_sizes_qties,
+            'basic_info' => $basic_info,
+            'old_sewing_balances' => $old_sewing_balances,
+            'jobs_no' => $basic_info->job_no,
+        ]);
+    }
+
+
+    
 
 
     public function store(Request $request)
@@ -62,14 +88,16 @@ class SewingBlanceController extends Controller
             'sewing_quantity' => 'required|array',
             'sewing_quantity.*' => 'required|integer',
         ]);
-
+// dd($request->all());
         // Iterate over the color and size arrays and save each combination
         foreach ($request->color_id as $key => $value) {
             // Find the job
             $job = Job::findOrFail($value);
 
+            dd($job);
+
             // Create a new sewing balance
-            $sewing_balance = SewingBlance::create([
+            $sewing_balance = SewingBalance::create([
                 'job_id' => $job->id,
                 'job_no' => $request->job_no,
                 'color' => $request->color[$key],
@@ -83,12 +111,12 @@ class SewingBlanceController extends Controller
         // Redirect back with a success message
         return redirect()->route('jobs.index')->withMessage('Sewing balances saved successfully.');
     }
- 
+
     public function show(Request $request, $job_no)
-    { 
+    {
         $basic_info = Job::where('job_no', $job_no)->first();
         $jobs_no = $basic_info->job_no;
-        $old_sewing_balances = SewingBlance::where('job_no', $job_no)->get();
+        $old_sewing_balances = SewingBalance::where('job_no', $job_no)->get();
         //push buyer, style, po_no, item, in $old_sewing_balances array
         foreach ($old_sewing_balances as $key => $value) {
             $old_sewing_balances[$key]['buyer'] = $basic_info->buyer;
@@ -102,42 +130,31 @@ class SewingBlanceController extends Controller
         return view('backend.OMS.sewing_balances.show', compact('basic_info', 'old_sewing_balances', 'jobs_no'));
     }
 
-   
+
     public function edit(Request $request, $job_no)
     {
         // dd($job_no); 
-        
-        $old_sewing_balances = SewingBlance::where('id', $job_no)->get();
-        $old_sewing_basic_info = SewingBlance::where('id', $job_no)->first();
+
+        $old_sewing_balances = SewingBalance::where('id', $job_no)->get();
+        $old_sewing_basic_info = SewingBalance::where('id', $job_no)->first();
         $color_sizes_qties = Job::where('job_no', $old_sewing_basic_info->job_no)->get();
 
         $basic_info = Job::where('job_no', $old_sewing_basic_info->job_no)->first();
         $jobs_no = $basic_info->job_no;
-       
+
         // dd($color_sizes_qties, $basic_info, $old_sewing_balances, $jobs_no); 
 
-        return view('backend.OMS.sewing_balances.edit', compact('color_sizes_qties', 'basic_info', 'old_sewing_balances', 'jobs_no', 'old_sewing_basic_info'));	
+        return view('backend.OMS.sewing_balances.edit', compact('color_sizes_qties', 'basic_info', 'old_sewing_balances', 'jobs_no', 'old_sewing_basic_info'));
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\SewingBlance  $sewingBlance
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, SewingBlance $sewingBlance)
+    
+    public function update(Request $request, SewingBalance $SewingBalance)
     {
-        //
+       dd($request->all());
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\SewingBlance  $sewingBlance
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(SewingBlance $sewingBlance)
+    
+    public function destroy(SewingBalance $SewingBalance)
     {
         //
     }

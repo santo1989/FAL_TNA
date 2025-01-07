@@ -33,18 +33,30 @@
                                         class="fas fa-arrow-left"></i>
                                     Close</a>
                                 <x-backend.form.anchor :href="route('factory_holidays.create')" type="create" />
-                                <a href="{{ route('factory_holidays.calander_views') }}" class="btn btn-lg btn-outline-primary"><i
-                                        class="fas fa-plus"></i> Calander view</a>
+                                <a href="{{ route('factory_holidays.calander_views') }}"
+                                    class="btn btn-lg btn-outline-primary"><i class="fas fa-plus"></i> Calander view</a>
                                 <a href="{{ route('capacity_plans.create') }}" class="btn btn-lg btn-outline-success"><i
                                         class="fas fa-tachometer-alt"></i> Add Capacity Plan</a>
+                                @can('Admin')
+                                    <button id="deleteSelected" class="btn btn-lg btn-outline-danger">Delete
+                                        Selected</button>
+                                    <button id="deleteAll" class="btn btn-lg btn-outline-warning">Delete All</button>
+                                @endcan
+
                             </div>
+
+
                             <!-- /.card-header -->
                             <div class="card-body">
-                                {{-- holiday Table goes here --}}
+                                <!--checkbox for select all-->
+                                @can('Admin')
+                                    <input type="checkbox" id="selectAll" class="rowCheckbox ml-2">Delete All
+                                @endcan
 
                                 <table id="datatablesSimple" class="table table-bordered table-hover">
                                     <thead>
                                         <tr>
+
                                             <th>Sl#</th>
                                             <th>Date</th>
                                             <th>Description</th>
@@ -59,8 +71,12 @@
 
                                         @forelse ($holidays as $holiday)
                                             <tr>
-                                                <td>{{ ++$sl }}</td>
-                                                <td> {{ Carbon\Carbon::parse($holiday->holiday_date)->format('d-M-Y') }} </td> 
+
+
+                                                <td><input type="checkbox" class="rowCheckbox"
+                                                        value="{{ $holiday->id }}"> {{ ++$sl }}</td>
+                                                <td> {{ Carbon\Carbon::parse($holiday->holiday_date)->format('d-M-Y') }}
+                                                </td>
                                                 <td>{{ $holiday->description }}</td>
                                                 <td>
                                                     @if ($holiday->is_weekend == 1)
@@ -140,6 +156,50 @@
                     form.method = 'POST';
                     form.action = url;
                     form.innerHTML = `@csrf @method('delete')`;
+                    document.body.appendChild(form);
+                    form.submit();
+                }
+            });
+        }
+    </script>
+    <script>
+        document.getElementById('selectAll').addEventListener('change', function() {
+            const checkboxes = document.querySelectorAll('.rowCheckbox');
+            checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+        });
+
+        document.getElementById('deleteSelected').addEventListener('click', function() {
+            const selectedIds = Array.from(document.querySelectorAll('.rowCheckbox:checked')).map(cb => cb.value);
+            if (selectedIds.length === 0) {
+                Swal.fire('No rows selected', 'Please select at least one row.', 'warning');
+                return;
+            }
+            confirmDeleteAction(selectedIds, 'Are you sure you want to delete the selected holidays?');
+        });
+
+        document.getElementById('deleteAll').addEventListener('click', function() {
+            confirmDeleteAction([], 'Are you sure you want to delete all holidays?');
+        });
+
+        function confirmDeleteAction(ids, message) {
+            Swal.fire({
+                title: 'Are you sure?',
+                text: message,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Yes, delete it!',
+            }).then(result => {
+                if (result.isConfirmed) {
+                    let form = document.createElement('form');
+                    form.method = 'POST';
+                    form.action = '{{ route('factory_holidays.bulk_delete') }}';
+                    form.innerHTML = `
+                @csrf
+                @method('delete')
+                <input type="hidden" name="ids" value='${JSON.stringify(ids.filter(id => !isNaN(id)))}'>
+            `;
                     document.body.appendChild(form);
                     form.submit();
                 }

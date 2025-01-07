@@ -2,10 +2,10 @@
     <div class="card mx-5 my-5" style="background-color: white;">
         <div class="row p-1">
             <div class="col-12">
-                <h3 class="text-center p-1">Sewing Balance History</h3>
+                <h3 class="text-center p-1">Sewing Plan History</h3>
                 <div class="row p-1">
                     <div class="col-6 text-start">
-                        <a href="{{ route('home') }}" class="btn btn-outline-secondary">
+                        <a href="{{ route('sewing_plans.index') }}" class="btn btn-outline-secondary">
                             <i class="fas fa-arrow-left"></i> Close
                         </a>
 
@@ -44,13 +44,12 @@
                                         <th>Itam</th>
                                         <th>Color</th>
                                         <th>Size</th>
-                                        <th>Sewing Balance</th>
-                                        <th>Production Min Balance</th>
-                                        <th>Actions</th>
+                                        <th>Sewing Plan Qty</th>  
                                     </tr>
                                 </thead>
                                 <tbody>
                                     @forelse ($old_sewing_balances as $balance)
+                                    {{-- @dd($balance) --}}
                                         <tr>
                                             <td>{{ $balance->id }}</td>
                                             <td>{{ $balance->job_no }}</td>
@@ -60,27 +59,11 @@
                                             <td>{{ $balance->item }}</td>
                                             <td>{{ $balance->color }}</td>
                                             <td>{{ $balance->size }}</td>
-                                            <td>{{ $balance->sewing_balance }}</td>
-                                            <td>{{ $balance->production_min_balance }}</td>
-                                            <td>
-                                                <a href="{{ route('sewing_balances.edit', $balance->id) }}"
-                                                    class="btn btn-sm btn-outline-primary">
-                                                    <i class="bi bi-pencil"></i> Edit
-                                                </a>
-                                                <form action="{{ route('sewing_balances.destroy', $balance->id) }}"
-                                                    method="POST"
-                                                    onsubmit="return confirm('Are you sure you want to delete this sewing balance?');">
-                                                    @csrf
-                                                    @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger">
-                                                        <i class="bi bi-trash"></i> Delete
-                                                    </button>
-                                                </form>
-                                            </td>
+                                            <td>{{ $balance->color_quantity }}</td>  
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="5" class="text-center">No Sewing Balance Found</td>
+                                            <td colspan="8" class="text-center">No Sewing Plan Found</td>
                                         </tr>
                                     @endforelse
                                 </tbody>

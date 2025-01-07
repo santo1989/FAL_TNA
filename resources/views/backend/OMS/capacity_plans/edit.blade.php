@@ -84,6 +84,7 @@
                     <div class="card">
                         <div class="card-body" style="overflow-x:auto;">
                             <input type="hidden" name="created_by" value="{{ auth()->user()->id }}">
+                            <input type="hidden" name="capacity_plan_id" value="{{ $capacity_plan->id }}">
 
                             <table class="table">
                                 <tbody>
@@ -92,7 +93,7 @@
                                         <td>
                                             <input type="month" id="productionPlan" name="production_plan"
                                                 class="form-control" required
-                                                value="{{ $capacity_plan->production_plan }}">
+                                                value="{{ $capacity_plan->production_plan }}" readonly>
 
                                         </td>
                                         <td>Running Machines</td>
@@ -148,25 +149,40 @@
                                         <tr>
                                             <td>
                                                 <input type="text" name="daily_capacity_minutes" class="form-control"
+                                                    id="dailyCapacityMinutes_old" readonly
+                                                    value="{{ $capacity_plan->daily_capacity_minutes }}">
+                                                <input type="text" name="daily_capacity_minutes" class="form-control"
                                                     id="dailyCapacityMinutes" readonly
                                                     value="{{ $capacity_plan->daily_capacity_minutes }}">
                                             </td>
                                             <td>
+                                                <input type="text" name="weekly_capacity_minutes"
+                                                    class="form-control" id="weeklyCapacityMinutes_old" readonly
+                                                    value="{{ $capacity_plan->weekly_capacity_minutes }}">
                                                 <input type="text" name="weekly_capacity_minutes"
                                                     class="form-control" id="weeklyCapacityMinutes" readonly
                                                     value="{{ $capacity_plan->weekly_capacity_minutes }}">
                                             </td>
                                             <td>
                                                 <input type="text" name="monthly_capacity_minutes"
+                                                    class="form-control" id="monthlyCapacityMinutes_old" readonly
+                                                    value="{{ $capacity_plan->monthly_capacity_minutes }}">
+                                                <input type="text" name="monthly_capacity_minutes"
                                                     class="form-control" id="monthlyCapacityMinutes" readonly
                                                     value="{{ $capacity_plan->monthly_capacity_minutes }}">
                                             </td>
                                             <td>
                                                 <input type="text" name="monthly_capacity_quantity"
+                                                    class="form-control" id="monthlyCapacityQuantity_old" readonly
+                                                    value="{{ $capacity_plan->monthly_capacity_quantity }}">
+                                                <input type="text" name="monthly_capacity_quantity"
                                                     class="form-control" id="monthlyCapacityQuantity" readonly
                                                     value="{{ $capacity_plan->monthly_capacity_quantity }}">
                                             </td>
                                             <td>
+                                                <input type="text" name="monthly_capacity_value" class="form-control"
+                                                    id="monthlyCapacityValue_old" readonly
+                                                    value="{{ $capacity_plan->monthly_capacity_value }}">
                                                 <input type="text" name="monthly_capacity_value" class="form-control"
                                                     id="monthlyCapacityValue" readonly
                                                     value="{{ $capacity_plan->monthly_capacity_value }}">
@@ -194,7 +210,191 @@
 
 
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    {{-- <script>
+  
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const calendarContainer = document.getElementById('factoryCalendar');
+            const holidays = @json($factory_holidays);
+            let workingDays = 0;
+            let avgUnitPrice = 0;
+
+            //find old avgUnitPrice from the capacity plan object
+            avgUnitPrice = parseFloat(document.getElementById('monthlyCapacityValue').value) / parseFloat(document
+                .getElementById('monthlyCapacityQuantity').value);
+            old_avgUnitPrice = avgUnitPrice.toFixed(2);
+
+            console.log('avgUnitPrice:', avgUnitPrice);
+            // find old working days from the capacity plan object
+            workingDays = parseInt(document.getElementById('monthlyCapacityMinutes').value) / parseFloat(document
+                .getElementById('smv').value);
+            old_workingDays = workingDays.toFixed(2);
+
+            // Generate Monthly Calendar with Holidays and Working Days
+            function generateMonthlyCalendar(year, month) {
+                calendarContainer.innerHTML = '';
+
+                // Calendar Structure
+                const monthDiv = document.createElement("div");
+                monthDiv.classList.add("month-calendar");
+
+                const monthHeader = document.createElement("div");
+                monthHeader.classList.add("month-header");
+                monthHeader.textContent = new Date(year, month).toLocaleString('en-US', {
+                    month: 'long',
+                    year: 'numeric'
+                });
+                monthDiv.appendChild(monthHeader);
+
+                const dayNamesContainer = document.createElement("div");
+                dayNamesContainer.classList.add("day-names");
+                const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+                dayNames.forEach(day => {
+                    const dayNameDiv = document.createElement("div");
+                    dayNameDiv.classList.add("day-name");
+                    dayNameDiv.textContent = day;
+                    dayNamesContainer.appendChild(dayNameDiv);
+                });
+                monthDiv.appendChild(dayNamesContainer);
+
+                const daysContainer = document.createElement("div");
+                daysContainer.classList.add("month-days");
+
+                const firstDay = new Date(year, month, 1);
+                const lastDay = new Date(year, month + 1, 0);
+
+                workingDays = 0;
+                let holidayCount = 0;
+
+                for (let i = 0; i < firstDay.getDay(); i++) {
+                    const blankDay = document.createElement("div");
+                    blankDay.classList.add("calendar-day", "blank-day");
+                    daysContainer.appendChild(blankDay);
+                }
+
+                for (let date = 1; date <= lastDay.getDate(); date++) {
+                    const dayDiv = document.createElement("div");
+                    dayDiv.classList.add("calendar-day");
+
+                    const fullDate =
+                        `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
+                    const holiday = holidays.find(h => h.holiday_date === fullDate);
+
+                    dayDiv.textContent = date;
+
+                    if (holiday) {
+                        dayDiv.classList.add("calendar-holiday");
+                        const descriptionDiv = document.createElement("div");
+                        descriptionDiv.classList.add("holiday-description");
+                        descriptionDiv.textContent = holiday.description;
+                        dayDiv.appendChild(descriptionDiv);
+                        holidayCount++;
+                    } else if (new Date(fullDate).getDay() !== 5) {
+                        workingDays++;
+                    }
+
+                    daysContainer.appendChild(dayDiv);
+                }
+
+                monthDiv.appendChild(daysContainer);
+                calendarContainer.appendChild(monthDiv);
+
+                const workingDaysDiv = document.createElement('div');
+                workingDaysDiv.innerHTML = `<p><strong>Working Days:</strong> ${workingDays}</p>`;
+                calendarContainer.appendChild(workingDaysDiv);
+
+                calculateCapacity(workingDays);
+            }
+
+            // Initialize the Calendar on Page Load (Default or from selected production_plan)
+            const productionPlanValue = document.getElementById('productionPlan').value;
+            if (productionPlanValue) {
+                const [year, month] = productionPlanValue.split('-').map(Number);
+                generateMonthlyCalendar(year, month - 1); // Months are 0-based
+            } else {
+                const now = new Date();
+                generateMonthlyCalendar(now.getFullYear(), now.getMonth()); // Current Month
+            }
+
+            // Event Listener for Production Plan Change
+            const productionPlan = document.getElementById('productionPlan');
+            if (productionPlan) {
+                productionPlan.addEventListener('change', function() {
+                    const [year, month] = this.value.split('-').map(Number);
+                    generateMonthlyCalendar(year, month - 1);
+
+                    $.ajax({
+                        url: "{{ route('capacity_plans.getAvgSMV') }}",
+                        method: "GET",
+                        data: {
+                            production_plan: this.value
+                        },
+                        success: function(response) {
+                            console.log('Response:', response);
+                            document.getElementById('smv').value = response.avg_smv || 0;
+                            avgUnitPrice = response.avg_unit_price || 0;
+                            calculateCapacity(workingDays, avgUnitPrice);
+                        },
+                        error: function() {
+                            Swal.fire({
+                                icon: 'error',
+                                title: 'Error',
+                                text: 'Failed to retrieve SMV. Please try again.'
+                            });
+                        }
+                    });
+                });
+            } else {
+                console.error("Element with ID 'productionPlan' not found.");
+            }
+
+            const inputs = ['running_machines', 'helpers', 'working_hours', 'efficiency', 'smv'];
+
+
+
+
+            inputs.forEach(id => {
+                const inputElement = document.getElementById(id);
+                if (inputElement) {
+                    inputElement.addEventListener('input', () => calculateCapacity(workingDays,
+                        avgUnitPrice));
+                } else {
+                    console.error(`Element with ID '${id}' not found.`);
+                }
+            });
+
+            // Dynamically Calculate Helpers Based on Running Machines
+            document.getElementById('running_machines').addEventListener('input', function() {
+                const machines = parseInt(this.value) || 0;
+                const helpers = Math.ceil(machines * 0.2);
+                document.getElementById('helpers').value = helpers;
+                calculateCapacity(workingDays, avgUnitPrice);
+            });
+
+            // Capacity Calculation Function
+             
+            function calculateCapacity(workingDays, avgUnitPrice = 0) {
+                const machines = parseInt(document.getElementById('running_machines').value) || 0;
+                const helpers = parseInt(document.getElementById('helpers').value) || 0;
+                const workingHours = parseInt(document.getElementById('working_hours').value) || 0;
+                const efficiency = parseFloat(document.getElementById('efficiency').value) / 100 || 0;
+                const avgSMV = parseFloat(document.getElementById('smv').value) || 0;
+
+                const dailyCapacityMinutes = machines * helpers * workingHours * 60 * efficiency;
+                const weeklyCapacityMinutes = dailyCapacityMinutes * 5;
+                const monthlyCapacityMinutes = dailyCapacityMinutes * workingDays;
+                const capacityQuantity = avgSMV > 0 ? monthlyCapacityMinutes / avgSMV : 0;
+                const capacityValue = capacityQuantity * avgUnitPrice;
+
+                document.getElementById('dailyCapacityMinutes').value = dailyCapacityMinutes.toFixed(2);
+                document.getElementById('weeklyCapacityMinutes').value = weeklyCapacityMinutes.toFixed(2);
+                document.getElementById('monthlyCapacityMinutes').value = monthlyCapacityMinutes.toFixed(2);
+                document.getElementById('monthlyCapacityQuantity').value = capacityQuantity.toFixed(2);
+                document.getElementById('monthlyCapacityValue').value = capacityValue.toFixed(2);
+            }
+        });
+    </script>
+
+      {{-- <script>
         document.addEventListener('DOMContentLoaded', function() {
             const calendarContainer = document.getElementById('factoryCalendar');
             const holidays = @json($factory_holidays);
@@ -350,169 +550,4 @@
             }
         });
     </script> --}}
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-    const calendarContainer = document.getElementById('factoryCalendar');
-    const holidays = @json($factory_holidays);
-    let workingDays = 0;
-    let avgUnitPrice = 0;
-
-    // Generate Monthly Calendar with Holidays and Working Days
-    function generateMonthlyCalendar(year, month) {
-        calendarContainer.innerHTML = '';
-
-        // Calendar Structure
-        const monthDiv = document.createElement("div");
-        monthDiv.classList.add("month-calendar");
-
-        const monthHeader = document.createElement("div");
-        monthHeader.classList.add("month-header");
-        monthHeader.textContent = new Date(year, month).toLocaleString('en-US', {
-            month: 'long',
-            year: 'numeric'
-        });
-        monthDiv.appendChild(monthHeader);
-
-        const dayNamesContainer = document.createElement("div");
-        dayNamesContainer.classList.add("day-names");
-        const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-        dayNames.forEach(day => {
-            const dayNameDiv = document.createElement("div");
-            dayNameDiv.classList.add("day-name");
-            dayNameDiv.textContent = day;
-            dayNamesContainer.appendChild(dayNameDiv);
-        });
-        monthDiv.appendChild(dayNamesContainer);
-
-        const daysContainer = document.createElement("div");
-        daysContainer.classList.add("month-days");
-
-        const firstDay = new Date(year, month, 1);
-        const lastDay = new Date(year, month + 1, 0);
-
-        workingDays = 0;
-        let holidayCount = 0;
-
-        for (let i = 0; i < firstDay.getDay(); i++) {
-            const blankDay = document.createElement("div");
-            blankDay.classList.add("calendar-day", "blank-day");
-            daysContainer.appendChild(blankDay);
-        }
-
-        for (let date = 1; date <= lastDay.getDate(); date++) {
-            const dayDiv = document.createElement("div");
-            dayDiv.classList.add("calendar-day");
-
-            const fullDate =
-                `${year}-${String(month + 1).padStart(2, '0')}-${String(date).padStart(2, '0')}`;
-            const holiday = holidays.find(h => h.holiday_date === fullDate);
-
-            dayDiv.textContent = date;
-
-            if (holiday) {
-                dayDiv.classList.add("calendar-holiday");
-                const descriptionDiv = document.createElement("div");
-                descriptionDiv.classList.add("holiday-description");
-                descriptionDiv.textContent = holiday.description;
-                dayDiv.appendChild(descriptionDiv);
-                holidayCount++;
-            } else if (new Date(fullDate).getDay() !== 5) {
-                workingDays++;
-            }
-
-            daysContainer.appendChild(dayDiv);
-        }
-
-        monthDiv.appendChild(daysContainer);
-        calendarContainer.appendChild(monthDiv);
-
-        const workingDaysDiv = document.createElement('div');
-        workingDaysDiv.innerHTML = `<p><strong>Working Days:</strong> ${workingDays}</p>`;
-        calendarContainer.appendChild(workingDaysDiv);
-
-        calculateCapacity(workingDays);
-    }
-
-    // Initialize the Calendar on Page Load (Default or from selected production_plan)
-    const productionPlanValue = document.getElementById('productionPlan').value;
-    if (productionPlanValue) {
-        const [year, month] = productionPlanValue.split('-').map(Number);
-        generateMonthlyCalendar(year, month - 1); // Months are 0-based
-    } else {
-        const now = new Date();
-        generateMonthlyCalendar(now.getFullYear(), now.getMonth()); // Current Month
-    }
-
-    // Event Listener for Production Plan Change
-    const productionPlan = document.getElementById('productionPlan');
-    if (productionPlan) {
-        productionPlan.addEventListener('change', function() {
-            const [year, month] = this.value.split('-').map(Number);
-            generateMonthlyCalendar(year, month - 1);
-
-            $.ajax({
-                url: "{{ route('capacity_plans.getAvgSMV') }}",
-                method: "GET",
-                data: {
-                    production_plan: this.value
-                },
-                success: function(response) {
-                    document.getElementById('smv').value = response.avg_smv || 0;
-                    avgUnitPrice = response.avg_unit_price || 0;
-                    calculateCapacity(workingDays, avgUnitPrice);
-                },
-                error: function() {
-                    Swal.fire({
-                        icon: 'error',
-                        title: 'Error',
-                        text: 'Failed to retrieve SMV. Please try again.'
-                    });
-                }
-            });
-        });
-    } else {
-        console.error("Element with ID 'productionPlan' not found.");
-    }
-
-    const inputs = ['running_machines', 'helpers', 'working_hours', 'efficiency', 'smv'];
-    inputs.forEach(id => {
-        const inputElement = document.getElementById(id);
-        if (inputElement) {
-            inputElement.addEventListener('input', () => calculateCapacity(workingDays, avgUnitPrice));
-        } else {
-            console.error(`Element with ID '${id}' not found.`);
-        }
-    });
-
-    // Dynamically Calculate Helpers Based on Running Machines
-    document.getElementById('running_machines').addEventListener('input', function() {
-        const machines = parseInt(this.value) || 0;
-        const helpers = Math.ceil(machines * 0.2);
-        document.getElementById('helpers').value = helpers;
-        calculateCapacity(workingDays, avgUnitPrice);
-    });
-
-    // Capacity Calculation Function
-    function calculateCapacity(workingDays, avgUnitPrice = 0) {
-        const machines = parseInt(document.getElementById('running_machines').value) || 0;
-        const helpers = parseInt(document.getElementById('helpers').value) || 0;
-        const workingHours = parseInt(document.getElementById('working_hours').value) || 0;
-        const efficiency = parseFloat(document.getElementById('efficiency').value) / 100 || 0;
-        const avgSMV = parseFloat(document.getElementById('smv').value) || 0;
-
-        const dailyCapacityMinutes = machines * helpers * workingHours * 60 * efficiency;
-        const weeklyCapacityMinutes = dailyCapacityMinutes * 5;
-        const monthlyCapacityMinutes = dailyCapacityMinutes * workingDays;
-        const capacityQuantity = avgSMV > 0 ? monthlyCapacityMinutes / avgSMV : 0;
-        const capacityValue = capacityQuantity * avgUnitPrice;
-
-        document.getElementById('dailyCapacityMinutes').value = dailyCapacityMinutes.toFixed(2);
-        document.getElementById('weeklyCapacityMinutes').value = weeklyCapacityMinutes.toFixed(2);
-        document.getElementById('monthlyCapacityMinutes').value = monthlyCapacityMinutes.toFixed(2);
-        document.getElementById('monthlyCapacityQuantity').value = capacityQuantity.toFixed(2);
-        document.getElementById('monthlyCapacityValue').value = capacityValue.toFixed(2);
-    }
-});
-
-    </script>
 </x-backend.layouts.master>

@@ -5,7 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
-class SewingBlance extends Model
+class SewingBalance extends Model
 {
     use HasFactory;
 
@@ -20,6 +20,4 @@ class SewingBlance extends Model
     {
         return $this->belongsTo(Buyer::class);
     }
-
-    
 }

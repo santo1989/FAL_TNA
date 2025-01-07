@@ -70,11 +70,13 @@ class CapacityPlanController extends Controller
     public function edit($id)
     {
         $capacity_plan = CapacityPlan::findOrFail($id);
+        // dd($capacity_plan);
         return view('backend.OMS.capacity_plans.edit', compact('capacity_plan'));
     }
 
     public function update(Request $request, $id)
     {
+        // dd($request->all(), $id);
         $request->validate([
             'production_plan' => 'required|date_format:Y-m',
             'running_machines' => 'required|integer',
@@ -101,9 +103,9 @@ class CapacityPlanController extends Controller
             $data['helpers'] = $request->input('helpers');
         }
 
-        if ($request->has('working_hours')) {
-            $data['working_hours'] = $request->input('working_hours');
-        }
+        // if ($request->has('working_hours')) {
+        //     $data['working_hours'] = $request->input('working_hours');
+        // }
 
         if ($request->has('efficiency')) {
             $data['efficiency'] = $request->input('efficiency');
@@ -144,6 +146,7 @@ class CapacityPlanController extends Controller
     public function show($id)
     {
         $capacity_plan = CapacityPlan::findOrFail($id);
+        // dd($capacity_plan);
         return view('backend.OMS.capacity_plans.show', compact('capacity_plan'));
     }
 
@@ -153,40 +156,13 @@ class CapacityPlanController extends Controller
     public function destroy($id)
     {
         $capacity_plan = CapacityPlan::findOrFail($id);
+        // dd($capacity_plan);
+
         $capacity_plan->delete();
         return redirect()->route('capacity_plans.index')->withMessage( 'Capacity Plan deleted successfully!');
     }
 
-    // CapacityPlanController.php
-    // public function getAvgSMV(Request $request)
-    // {
-    //     $productionPlan = $request->input('production_plan');
-    //     $avgSMV = Job::whereBetween('shipment_date', [$productionPlan . '-01', $productionPlan . '-31'])
-    //         ->select(
-    //         'color_quantity',
-    //         'unit_price',
-    //         'target_smv',
-    //         DB::raw('SUM(color_quantity) as total_color_quantity'),
-    //         DB::raw('SUM(unit_price * color_quantity) as total_value'),
-    //         DB::raw('SUM(color_quantity * target_smv) as total_production_minutes')
-    //     )
-    //         ->groupBy('color_quantity', 'unit_price', 'target_smv')
-    //         ->get()
-    //         ->map(function ($job) {
-    //             return [
-    //                 'total_color_quantity' => $job->total_color_quantity,
-    //                 'total_value' => $job->total_value,
-    //                 'total_production_minutes' => $job->total_production_minutes,
-    //                 'avg_smv' => $job->total_production_minutes / $job->total_color_quantity,
-    //             ];
-    //         })
-    //         ->avg('avg_smv');
-
-
-    //     return response()->json(['avg_smv' => $avgSMV]);
-    // }
-
-    public function getAvgSMV(Request $request)
+     public function getAvgSMV(Request $request)
     {
         $productionPlan = $request->input('production_plan');
         // Use Carbon to generate the start and end dates of the selected month
