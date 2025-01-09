@@ -289,6 +289,15 @@
                             
 
                         </div>
+
+                         <div class="col-3 pt-1 pb-1">
+                            <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                href="{{ route('BuyerWiseProductionLeadTimeSummary') }}" target="_blank">
+                                <div class="sb-nav-link-icon"><i class="fas fa-user"></i></div>
+                                Lead Time Summary
+                            </a>
+                        </div>
+                        
                         @if (Auth()->user()->role_id == 1 || Auth()->user()->role_id == 4)
                             <div class="col-3 pt-1 pb-1">
                                 <a href="{{ route('monthly_order_summary') }}" class="btn btn-sm btn-outline-primary"
