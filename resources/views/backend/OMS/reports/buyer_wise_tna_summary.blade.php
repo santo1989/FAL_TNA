@@ -14,10 +14,11 @@
                 <i class="fas fa-arrow-left"></i> Close
             </a>
             @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 4)
-               <a href="{{ route('MailBuyerWiseTnaSummary') }}" class="btn btn-outline-secondary float-right">
-                <i class="fas fa-envelope"></i> Mail Report to Marchandiser </a>   
+                <a href="{{ route('MailBuyerWiseTnaSummary') }}" class="btn btn-outline-secondary float-right">
+                    <i class="fas fa-envelope"></i> Mail Report to Marchandiser </a>
+            @else
             @endif
-            
+
             <table class="table table-bordered table-hover text-center text-wrap" style="font-size: 12px;">
                 <thead class="thead-dark">
                     <tr>

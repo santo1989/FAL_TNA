@@ -1,6 +1,6 @@
 <x-backend.layouts.report_master>
 
-   <style>
+    <style>
         .bg-red {
             background-color: red !important;
             color: white;
@@ -50,12 +50,11 @@ $buyerList = DB::table('t_n_a_s')->where('order_close', '0')->select('buyer')->d
             @endphp
 
             <div class="col-12">
-                <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light btn-sm"
+                {{-- <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light btn-sm"
                     style="width: 10rem;">
                     <i class="fas fa-arrow-left"></i> Back
-                </a>
-                <button class="btn btn-outline-secondary bg-light btn-sm" onclick="downloadExcel()"
-                    style="width: 10rem;">
+                </a> --}}
+                <button class="btn btn-outline-secondary bg-light btn-sm" onclick="downloadExcel()" style="width: 10rem;">
                     <i class="fas fa-download"></i> Download</button>
                 <button class="btn btn-sm btn-outline-primary bg-light" style="width: 10rem;" id="all-buyers-btn">
                     All Buyers
@@ -263,11 +262,20 @@ $buyerList = DB::table('t_n_a_s')->where('order_close', '0')->select('buyer')->d
     </div> <!-- container -->
 
     </div>
-    <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light m-2">
+    {{-- <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary bg-light m-2">
         <i class="fas fa-arrow-left"></i> Cancel
     </a>
     <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-secondary bg-light m-2">
-        <i class="fas fa-sync"></i> Refresh Page </a>
+        <i class="fas fa-sync"></i> Refresh Page </a> --}}
+    <br>
+    <div class="text-center bg-dark p-2">
+        <span class="text-center text-white"> &copy;
+            copyright: FASHION ASIA LIMITED @php
+                echo date('Y');
+            @endphp
+        </span>
+    </div>
+
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <!-- Add jQuery and Bootstrap JS -->

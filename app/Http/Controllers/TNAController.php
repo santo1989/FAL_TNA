@@ -918,6 +918,7 @@ class TNAController extends Controller
     {
         $tnas = $this->falfetchTnasData();
         // dd($tnas);
+        
         return view('backend.library.tnas.fal_tnas_dashboard', compact('tnas'));
     }
 
@@ -1677,83 +1678,169 @@ class TNAController extends Controller
     //     ]);
     // }
 
+    // public function BuyerWiseProductionLeadTimeSummary(Request $request)
+    // {
+    //     // Define the threshold for OK lead time
+    //     $okLeadTimeThreshold = 20;
+
+    //     // Retrieve the current user's role and assigned buyers
+    //     $user = auth()->user();
+    //     $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
+
+    //     // Query TNAs based on role, assigned buyers, and date range
+    //     $query = Tna::where('order_close', '0')->orderBy('shipment_etd', 'asc');
+
+    //     // Apply buyer filtering based on role
+    //     if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
+    //         $query->whereIn('buyer_id', $buyerIds);
+    //     }
+
+    //     // Apply date filters if provided
+    //     if ($request->has('from_date') && $request->has('to_date')) {
+    //         $query->whereBetween('shipment_etd', [$request->from_date, $request->to_date]);
+    //     }
+
+    //     // Fetch data
+    //     $tnaData = $query->get();
+
+    //     // Process data to generate the table (same logic as before)
+    //     $buyerSummary = [];
+    //     foreach ($tnaData as $tna) {
+    //         $buyerName = $tna->buyer;
+    //         $leadTime = $tna->pp_meeting_actual ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->shipment_etd)) : 0;
+
+    //         if (!isset($buyerSummary[$buyerName])) {
+    //             $buyerSummary[$buyerName] = [
+    //                 'inadequate_orders' => 0,
+    //                 'adequate_orders' => 0,
+    //                 'lead_time_total' => 0,
+    //                 'total_orders' => 0,
+    //             ];
+    //         }
+
+    //         // Increment Total Orders
+    //         $buyerSummary[$buyerName]['total_orders']++;
+    //         $buyerSummary[$buyerName]['lead_time_total'] += $leadTime;
+
+    //         // Check if lead time is adequate or inadequate
+    //         if ($leadTime >= $okLeadTimeThreshold) {
+    //             $buyerSummary[$buyerName]['adequate_orders']++;
+    //         } else {
+    //             $buyerSummary[$buyerName]['inadequate_orders']++;
+    //         }
+    //     }
+
+    //     // Calculate percentages and averages
+    //     foreach ($buyerSummary as $buyerName => &$summary) {
+    //         $totalOrders = $summary['total_orders'];
+    //         $summary['inadequate_percentage'] = $totalOrders > 0 ? round(($summary['inadequate_orders'] / $totalOrders) * 100, 2) : 0;
+    //         $summary['adequate_percentage'] = $totalOrders > 0 ? round(($summary['adequate_orders'] / $totalOrders) * 100, 2) : 0;
+    //         $summary['average_lead_time'] = $totalOrders > 0 ? round($summary['lead_time_total'] / $totalOrders, 2) : 0;
+    //     }
+
+    //     // Calculate overall totals
+    //     $overallSummary = [
+    //         'inadequate_orders' => array_sum(array_column($buyerSummary, 'inadequate_orders')),
+    //         'adequate_orders' => array_sum(array_column($buyerSummary, 'adequate_orders')),
+    //         'total_orders' => array_sum(array_column($buyerSummary, 'total_orders')),
+    //         'lead_time_total' => array_sum(array_column($buyerSummary, 'lead_time_total')),
+    //     ];
+    //     $overallSummary['inadequate_percentage'] = $overallSummary['total_orders'] > 0 ? round(($overallSummary['inadequate_orders'] / $overallSummary['total_orders']) * 100, 2) : 0;
+    //     $overallSummary['adequate_percentage'] = $overallSummary['total_orders'] > 0 ? round(($overallSummary['adequate_orders'] / $overallSummary['total_orders']) * 100, 2) : 0;
+    //     $overallSummary['average_lead_time'] = $overallSummary['total_orders'] > 0 ? round($overallSummary['lead_time_total'] / $overallSummary['total_orders'], 2) : 0;
+
+    //     foreach ($tnaData as $tna) {
+    //         $buyerName = $tna->buyer;
+    //         $leadTime = $tna->pp_meeting_actual
+    //         ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->shipment_etd))
+    //         : 0;
+
+    //         if (!isset($buyerSummary[$buyerName])) {
+    //             $buyerSummary[$buyerName] = [
+    //                 'inadequate_orders' => 0,
+    //                 'adequate_orders' => 0,
+    //                 'inadequate_details' => [],
+    //                 'adequate_details' => [],
+    //                 'lead_time_total' => 0,
+    //                 'total_orders' => 0,
+    //             ];
+    //         }
+
+    //         // Increment Total Orders
+    //         $buyerSummary[$buyerName]['total_orders']++;
+    //         $buyerSummary[$buyerName]['lead_time_total'] += $leadTime;
+
+    //         // Check if lead time is adequate or inadequate
+    //         $orderDetails = [
+    //             'style' => $tna->style ?? 'N/A',
+    //             'po' => $tna->po ?? 'N/A',
+    //             'shipment_etd' => $tna->shipment_etd ?? 'N/A',
+    //             // 7 days before shipment_etd
+    //             // 'inspection_plan' => $tna->shipment_etd ? Carbon::parse($tna->shipment_etd)->subDays(7)->format('Y-m-d') : 'N/A', 
+    //             'inspection_actual_date' => $tna->inspection_actual_date,
+    //             // 'pp_meeting_plan' => $tna->pp_meeting_plan ?? 'N/A',
+    //             'pp_meeting_actual' => $tna->pp_meeting_actual,
+    //         ];
+
+    //         if ($leadTime >= $okLeadTimeThreshold) {
+    //             $buyerSummary[$buyerName]['adequate_orders']++;
+    //             $buyerSummary[$buyerName]['adequate_details'][] = $orderDetails;
+    //         } else {
+    //             $buyerSummary[$buyerName]['inadequate_orders']++;
+    //             $buyerSummary[$buyerName]['inadequate_details'][] = $orderDetails;
+    //         }
+    //     }
+
+    //     // FAL Planning department users from users table
+
+    //     // dd($isPlanningDepartment);
+    //     if(auth()->user()->role_id == 1 || auth()->user()->role_id == 4){
+    //         $user = User::where('role_id', auth()->user()->role_id)->get();
+    //         $isPlanningDepartment = 'planning';
+    //     } 
+
+
+
+    //     // Return summarized data to view
+    //     return view('backend.OMS.reports.buyer_wise_production_lead_time', [
+    //         'buyerSummary' => $buyerSummary,
+    //         'overallSummary' => $overallSummary,
+    //         'from_date' => $request->from_date,
+    //         'to_date' => $request->to_date,
+    //         'isPlanningDepartment' => $isPlanningDepartment,
+    //     ]);
+    // }
 
     public function BuyerWiseProductionLeadTimeSummary(Request $request)
     {
-        // Define the threshold for OK lead time
         $okLeadTimeThreshold = 20;
-
-        // Retrieve the current user's role and assigned buyers
         $user = auth()->user();
         $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
 
-        // Query TNAs based on role, assigned buyers, and date range
         $query = Tna::where('order_close', '0')->orderBy('shipment_etd', 'asc');
 
-        // Apply buyer filtering based on role
         if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
             $query->whereIn('buyer_id', $buyerIds);
         }
 
-        // Apply date filters if provided
         if ($request->has('from_date') && $request->has('to_date')) {
-            $query->whereBetween('shipment_etd', [$request->from_date, $request->to_date]);
+            $query->whereBetween('inspection_actual_date', [$request->from_date, $request->to_date]);
         }
 
-        // Fetch data
         $tnaData = $query->get();
-
-        // Process data to generate the table (same logic as before)
         $buyerSummary = [];
-        foreach ($tnaData as $tna) {
-            $buyerName = $tna->buyer;
-            $leadTime = $tna->pp_meeting_actual ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->shipment_etd)) : 0;
-
-            if (!isset($buyerSummary[$buyerName])) {
-                $buyerSummary[$buyerName] = [
-                    'inadequate_orders' => 0,
-                    'adequate_orders' => 0,
-                    'lead_time_total' => 0,
-                    'total_orders' => 0,
-                ];
-            }
-
-            // Increment Total Orders
-            $buyerSummary[$buyerName]['total_orders']++;
-            $buyerSummary[$buyerName]['lead_time_total'] += $leadTime;
-
-            // Check if lead time is adequate or inadequate
-            if ($leadTime >= $okLeadTimeThreshold) {
-                $buyerSummary[$buyerName]['adequate_orders']++;
-            } else {
-                $buyerSummary[$buyerName]['inadequate_orders']++;
-            }
-        }
-
-        // Calculate percentages and averages
-        foreach ($buyerSummary as $buyerName => &$summary) {
-            $totalOrders = $summary['total_orders'];
-            $summary['inadequate_percentage'] = $totalOrders > 0 ? round(($summary['inadequate_orders'] / $totalOrders) * 100, 2) : 0;
-            $summary['adequate_percentage'] = $totalOrders > 0 ? round(($summary['adequate_orders'] / $totalOrders) * 100, 2) : 0;
-            $summary['average_lead_time'] = $totalOrders > 0 ? round($summary['lead_time_total'] / $totalOrders, 2) : 0;
-        }
-
-        // Calculate overall totals
         $overallSummary = [
-            'inadequate_orders' => array_sum(array_column($buyerSummary, 'inadequate_orders')),
-            'adequate_orders' => array_sum(array_column($buyerSummary, 'adequate_orders')),
-            'total_orders' => array_sum(array_column($buyerSummary, 'total_orders')),
-            'lead_time_total' => array_sum(array_column($buyerSummary, 'lead_time_total')),
+            'inadequate_orders' => 0,
+            'adequate_orders' => 0,
+            'total_orders' => 0,
+            'lead_time_total' => 0,
         ];
-        $overallSummary['inadequate_percentage'] = $overallSummary['total_orders'] > 0 ? round(($overallSummary['inadequate_orders'] / $overallSummary['total_orders']) * 100, 2) : 0;
-        $overallSummary['adequate_percentage'] = $overallSummary['total_orders'] > 0 ? round(($overallSummary['adequate_orders'] / $overallSummary['total_orders']) * 100, 2) : 0;
-        $overallSummary['average_lead_time'] = $overallSummary['total_orders'] > 0 ? round($overallSummary['lead_time_total'] / $overallSummary['total_orders'], 2) : 0;
 
         foreach ($tnaData as $tna) {
             $buyerName = $tna->buyer;
             $leadTime = $tna->pp_meeting_actual
-            ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->shipment_etd))
-            : 0;
+                ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->inspection_actual_date))
+                : 0;
 
             if (!isset($buyerSummary[$buyerName])) {
                 $buyerSummary[$buyerName] = [
@@ -1766,20 +1853,16 @@ class TNAController extends Controller
                 ];
             }
 
-            // Increment Total Orders
             $buyerSummary[$buyerName]['total_orders']++;
             $buyerSummary[$buyerName]['lead_time_total'] += $leadTime;
 
-            // Check if lead time is adequate or inadequate
             $orderDetails = [
+                'id' => $tna->id,
                 'style' => $tna->style ?? 'N/A',
                 'po' => $tna->po ?? 'N/A',
-                'shipment_etd' => $tna->shipment_etd ?? 'N/A',
-                // 7 days before shipment_etd
-                // 'inspection_plan' => $tna->shipment_etd ? Carbon::parse($tna->shipment_etd)->subDays(7)->format('Y-m-d') : 'N/A', 
-                'inspection_actual_date' => $tna->inspection_actual_date,
-                // 'pp_meeting_plan' => $tna->pp_meeting_plan ?? 'N/A',
-                'pp_meeting_actual' => $tna->pp_meeting_actual,
+                'shipment_etd' => $tna->shipment_etd ?? ' ',
+                'inspection_actual_date' => $tna->inspection_actual_date ?? ' ',
+                'pp_meeting_actual' => $tna->pp_meeting_actual ?? ' ',
             ];
 
             if ($leadTime >= $okLeadTimeThreshold) {
@@ -1789,19 +1872,41 @@ class TNAController extends Controller
                 $buyerSummary[$buyerName]['inadequate_orders']++;
                 $buyerSummary[$buyerName]['inadequate_details'][] = $orderDetails;
             }
+
+            $overallSummary['total_orders']++;
+            $overallSummary['lead_time_total'] += $leadTime;
+            if ($leadTime >= $okLeadTimeThreshold) {
+                $overallSummary['adequate_orders']++;
+            } else {
+                $overallSummary['inadequate_orders']++;
+            }
         }
 
-        // FAL Planning department users from users table
-        
-        // dd($isPlanningDepartment);
-        if(auth()->user()->role_id == 1 || auth()->user()->role_id == 4){
-            $user = User::where('role_id', auth()->user()->role_id)->get();
-            $isPlanningDepartment = 'planning';
-        } 
-       
+        foreach ($buyerSummary as &$summary) {
+            $totalOrders = $summary['total_orders'];
+            $summary['inadequate_percentage'] = $totalOrders > 0
+                ? round(($summary['inadequate_orders'] / $totalOrders) * 100, 2)
+                : 0;
+            $summary['adequate_percentage'] = $totalOrders > 0
+                ? round(($summary['adequate_orders'] / $totalOrders) * 100, 2)
+                : 0;
+            $summary['average_lead_time'] = $totalOrders > 0
+                ? round($summary['lead_time_total'] / $totalOrders, 2)
+                : 0;
+        }
 
+        $overallSummary['inadequate_percentage'] = $overallSummary['total_orders'] > 0
+            ? round(($overallSummary['inadequate_orders'] / $overallSummary['total_orders']) * 100, 2)
+            : 0;
+        $overallSummary['adequate_percentage'] = $overallSummary['total_orders'] > 0
+            ? round(($overallSummary['adequate_orders'] / $overallSummary['total_orders']) * 100, 2)
+            : 0;
+        $overallSummary['average_lead_time'] = $overallSummary['total_orders'] > 0
+            ? round($overallSummary['lead_time_total'] / $overallSummary['total_orders'], 2)
+            : 0;
 
-        // Return summarized data to view
+        $isPlanningDepartment = in_array($user->role_id, [1, 4]);
+
         return view('backend.OMS.reports.buyer_wise_production_lead_time', [
             'buyerSummary' => $buyerSummary,
             'overallSummary' => $overallSummary,
@@ -1814,18 +1919,158 @@ class TNAController extends Controller
     public function updateTaskDetails(Request $request)
     {
         $updates = $request->input('updates', []);
-
         foreach ($updates as $update) {
-            DB::table('tnas')
-            ->where('id', $update['id'])
-                ->update([
-                    'inspection_actual_date' => $update['inspection_actual_date'],
-                    'pp_meeting_actual' => $update['pp_meeting_actual'],
-                ]);
+            DB::table('t_n_a_s')->where('id', $update['id'])->update([
+                'inspection_actual_date' => $update['inspection_actual_date'] ?? null,
+                'pp_meeting_actual' => $update['pp_meeting_actual'] ?? null,
+            ]);
         }
-
         return response()->json(['message' => 'Updates saved successfully!'], 200);
     }
+
+
+
+    // public function BuyerWiseProductionLeadTimeSummary(Request $request)
+    // {
+    //     // Define the threshold for OK lead time
+    //     $okLeadTimeThreshold = 20;
+
+    //     // Retrieve the current user's role and assigned buyers
+    //     $user = auth()->user();
+    //     $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
+
+    //     // Query TNAs based on role, assigned buyers, and date range
+    //     $query = Tna::where('order_close', '0')->orderBy('shipment_etd', 'asc');
+
+    //     // Apply buyer filtering based on role
+    //     if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
+    //         $query->whereIn('buyer_id', $buyerIds);
+    //     }
+
+    //     // Apply date filters if provided
+    //     if ($request->has('from_date') && $request->has('to_date')) {
+    //         $query->whereBetween('shipment_etd', [$request->from_date, $request->to_date]);
+    //     }
+
+    //     // Fetch data
+    //     $tnaData = $query->get();
+
+    //     // Initialize buyer summary
+    //     $buyerSummary = [];
+    //     $overallSummary = [
+    //         'inadequate_orders' => 0,
+    //         'adequate_orders' => 0,
+    //         'total_orders' => 0,
+    //         'lead_time_total' => 0,
+    //     ];
+
+    //     // Process data to generate summaries
+    //     foreach ($tnaData as $tna) {
+    //         $buyerName = $tna->buyer;
+    //         $leadTime = $tna->pp_meeting_actual
+    //             ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->shipment_etd))
+    //             : 0;
+
+    //         // Initialize buyer summary if not set
+    //         if (!isset($buyerSummary[$buyerName])) {
+    //             $buyerSummary[$buyerName] = [
+    //                 'inadequate_orders' => 0,
+    //                 'adequate_orders' => 0,
+    //                 'inadequate_details' => [],
+    //                 'adequate_details' => [],
+    //                 'lead_time_total' => 0,
+    //                 'total_orders' => 0,
+    //             ];
+    //         }
+
+    //         // Increment Total Orders and Lead Time
+    //         $buyerSummary[$buyerName]['total_orders']++;
+    //         $buyerSummary[$buyerName]['lead_time_total'] += $leadTime;
+
+    //         // Prepare order details
+    //         $orderDetails = [
+    //             'style' => $tna->style ?? 'N/A',
+    //             'po' => $tna->po ?? 'N/A',
+    //             'shipment_etd' => $tna->shipment_etd ?? 'N/A',
+    //             'inspection_actual_date' => $tna->inspection_actual_date ?? 'N/A',
+    //             'pp_meeting_actual' => $tna->pp_meeting_actual ?? 'N/A',
+    //         ];
+
+    //         // Classify orders based on lead time
+    //         if ($leadTime >= $okLeadTimeThreshold) {
+    //             $buyerSummary[$buyerName]['adequate_orders']++;
+    //             $buyerSummary[$buyerName]['adequate_details'][] = $orderDetails;
+    //         } else {
+    //             $buyerSummary[$buyerName]['inadequate_orders']++;
+    //             $buyerSummary[$buyerName]['inadequate_details'][] = $orderDetails;
+    //         }
+
+    //         // Update overall summary
+    //         $overallSummary['total_orders']++;
+    //         $overallSummary['lead_time_total'] += $leadTime;
+    //         if ($leadTime >= $okLeadTimeThreshold) {
+    //             $overallSummary['adequate_orders']++;
+    //         } else {
+    //             $overallSummary['inadequate_orders']++;
+    //         }
+    //     }
+
+    //     // Calculate percentages and averages
+    //     foreach ($buyerSummary as $buyerName => &$summary) {
+    //         $totalOrders = $summary['total_orders'];
+    //         $summary['inadequate_percentage'] = $totalOrders > 0
+    //             ? round(($summary['inadequate_orders'] / $totalOrders) * 100, 2)
+    //             : 0;
+    //         $summary['adequate_percentage'] = $totalOrders > 0
+    //             ? round(($summary['adequate_orders'] / $totalOrders) * 100, 2)
+    //             : 0;
+    //         $summary['average_lead_time'] = $totalOrders > 0
+    //             ? round($summary['lead_time_total'] / $totalOrders, 2)
+    //             : 0;
+    //     }
+
+    //     $overallSummary['inadequate_percentage'] = $overallSummary['total_orders'] > 0
+    //     ? round(($overallSummary['inadequate_orders'] / $overallSummary['total_orders']) * 100, 2)
+    //         : 0;
+    //     $overallSummary['adequate_percentage'] = $overallSummary['total_orders'] > 0
+    //     ? round(($overallSummary['adequate_orders'] / $overallSummary['total_orders']) * 100, 2)
+    //         : 0;
+    //     $overallSummary['average_lead_time'] = $overallSummary['total_orders'] > 0
+    //     ? round($overallSummary['lead_time_total'] / $overallSummary['total_orders'], 2)
+    //     : 0;
+
+    //     // Check user department for special handling
+    //     $isPlanningDepartment = null;
+    //     if (in_array(auth()->user()->role_id, [1, 4])) {
+    //         $isPlanningDepartment = 'planning';
+    //     }
+
+    //     // Return summarized data to view
+    //     return view('backend.OMS.reports.buyer_wise_production_lead_time', [
+    //         'buyerSummary' => $buyerSummary,
+    //         'overallSummary' => $overallSummary,
+    //         'from_date' => $request->from_date,
+    //         'to_date' => $request->to_date,
+    //         'isPlanningDepartment' => $isPlanningDepartment,
+    //     ]);
+    // }
+
+
+    //    public function updateTaskDetails(Request $request)
+    // {
+    //     $updates = $request->input('updates', []);
+
+    //     foreach ($updates as $update) {
+    //         DB::table('tnas')
+    //         ->where('id', $update['id'])
+    //             ->update([
+    //                 'inspection_actual_date' => $update['inspection_actual_date'],
+    //                 'pp_meeting_actual' => $update['pp_meeting_actual'],
+    //             ]);
+    //     }
+
+    //     return response()->json(['message' => 'Updates saved successfully!'], 200);
+    // }
 
 
 }
