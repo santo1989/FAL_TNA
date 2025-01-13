@@ -1542,16 +1542,16 @@ class TNAController extends Controller
         }
 
         //check date format validation
-        $validator = Validator::make($request->all(), [
-            'updates.*.shipment_actual_date' => 'required|date',
-        ]);
+        // $validator = Validator::make($request->all(), [
+        //     'updates.*.shipment_actual_date' => 'required|date',
+        // ]);
 
         
 
 
-        if ($validator->fails()) {
-            return response()->json(['message' => 'Invalid date format'], 422);
-        }
+        // if ($validator->fails()) {
+        //     return response()->json(['message' => 'Invalid date format'], 422);
+        // }
 
       
 
@@ -1559,11 +1559,21 @@ class TNAController extends Controller
         $updates = $request->input('updates', []);
           //change date format to Y-m-d before saving to database
         foreach ($updates as $update) {
+            //if shipment_actual_date is empty, then skib that record and continue to next record
+            if (empty($update['shipment_actual_date'])) {
+                continue;
+            }
             $update['shipment_actual_date'] = Carbon::parse($update['shipment_actual_date'])->format('Y-m-d');
         }
         foreach ($updates as $update) {
             DB::table('t_n_a_s')->where('id', $update['id'])->update([
                 'shipment_actual_date' => $update['shipment_actual_date'] ?? null,
+            ]);
+
+            // etd_actual also needs to be updated same as shipment_actual_date and order_close to 1
+            DB::table('t_n_a_s')->where('id', $update['id'])->update([
+                'etd_actual' => $update['shipment_actual_date'] ?? null,
+                'order_close' => 1,
             ]);
         }
 
