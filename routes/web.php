@@ -69,6 +69,9 @@ Route::get('/factory-holidays/{year}/{month}', [FactoryHolidayController::class,
 
 Route::post('/update-task-details', [TNAController::class, 'updateTaskDetails'])->name('task.update');
 
+// updateShipmentActualDates
+Route::post('/update-shipment-actual-dates', [TNAController::class, 'updateShipmentActualDates'])->name('updateShipmentActualDates');
+
 
 Route::middleware('auth')->group(function () {
     // Route::get('/check', function () {
@@ -229,6 +232,8 @@ Route::middleware('auth')->group(function () {
     //Reports
     Route::get('/buyer-wise-tna-summary', [TNAController::class, 'BuyerWiseTnaSummary'])->name('BuyerWiseTnaSummary');
     Route::get('/BuyerWiseProductionLeadTimeSummary', [TNAController::class, 'BuyerWiseProductionLeadTimeSummary'])->name('BuyerWiseProductionLeadTimeSummary');
+    //BuyerWiseOnTimeShipmentSummary
+    Route::get('/BuyerWiseOnTimeShipmentSummary', [TNAController::class, 'BuyerWiseOnTimeShipmentSummary'])->name('BuyerWiseOnTimeShipmentSummary');
 
     //OMS//
 
