@@ -1444,7 +1444,7 @@ class TNAController extends Controller
         $user = auth()->user();
         $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
 
-        $query = Tna::where('order_close', '1')
+        $query = Tna::where('order_close', '0')
             ->orderBy('shipment_etd', 'asc');
 
         if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
@@ -1452,7 +1452,9 @@ class TNAController extends Controller
         }
 
         if ($request->has('from_date') && $request->has('to_date')) {
-            $query->whereBetween('shipment_etd', [$request->from_date, $request->to_date]);
+            $query = Tna::where('order_close', '1')
+                ->orderBy('shipment_etd', 'asc');
+            $query->whereBetween('shipment_actual_date', [$request->from_date, $request->to_date]);
         }
 
         $tnaData = $query->get();
