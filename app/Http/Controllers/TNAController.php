@@ -1466,7 +1466,7 @@ class TNAController extends Controller
         foreach ($tnaData as $tna) {
             $buyerName = $tna->buyer;
             $shipmentDifference = $tna->shipment_actual_date
-                ? Carbon::parse($tna->shipment_actual_date)->diffInDays(Carbon::parse($tna->shipment_etd), false)
+                ? Carbon::parse($tna->etd_plan)->diffInDays(Carbon::parse($tna->shipment_actual_date), false)
                 : null;
 
             if (!isset($buyerSummary[$buyerName])) {
@@ -1546,18 +1546,18 @@ class TNAController extends Controller
         //     'updates.*.shipment_actual_date' => 'required|date',
         // ]);
 
-        
+
 
 
         // if ($validator->fails()) {
         //     return response()->json(['message' => 'Invalid date format'], 422);
         // }
 
-      
+
 
 
         $updates = $request->input('updates', []);
-          //change date format to Y-m-d before saving to database
+        //change date format to Y-m-d before saving to database
         foreach ($updates as $update) {
             //if shipment_actual_date is empty, then skib that record and continue to next record
             if (empty($update['shipment_actual_date'])) {
