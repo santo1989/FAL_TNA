@@ -53,9 +53,12 @@
                             <th>Buyer</th>
                             <th colspan="2">On Time Orders</th>
                             <th colspan="2">Late Orders</th>
+                            <th colspan="2">Pending Orders</th>
+                            
                             <th>Total Orders</th>
                             <th>On Time Percentage</th>
                             <th>Late Percentage</th>
+                            <th>Pending Percentage</th>
                         </tr>
                         <tr>
                             <th></th>
@@ -63,6 +66,9 @@
                             <th>Percentage</th>
                             <th>Orders</th>
                             <th>Percentage</th>
+                            <th>Orders</th>
+                            <th>Percentage</th>
+                            <th></th>
                             <th></th>
                             <th></th>
                             <th></th>
@@ -72,7 +78,7 @@
                         @foreach ($buyerSummary as $buyer => $data)
                             <tr>
                                 <td>{{ $buyer }}</td>
-                                {{-- On Time Orders --}}
+                                <!-- On Time Orders -->
                                 <td>
                                     @if ($data['on_time_orders'] > 0)
                                         <button class="btn btn-info btn-sm" data-toggle="modal"
@@ -87,7 +93,7 @@
                                 </td>
                                 <td>{{ $data['on_time_percentage'] }}%</td>
 
-                                {{-- Late Orders --}}
+                                <!-- Late Orders -->
                                 <td>
                                     @if ($data['late_orders'] > 0)
                                         <button class="btn btn-info btn-sm" data-toggle="modal"
@@ -101,10 +107,25 @@
                                     @endif
                                 </td>
                                 <td>{{ $data['late_percentage'] }}%</td>
+                                <!-- Pending Orders -->
+                                <td>
+                                    @if ($data['pending_orders'] > 0)
+                                        <button class="btn btn-info btn-sm" data-toggle="modal"
+                                            data-target="#detailsModal" data-buyer="{{ $buyer }}"
+                                            data-type="pending"
+                                            data-details="{{ json_encode($data['pending_details'] ?? []) }}">
+                                            {{ $data['pending_orders'] }}
+                                        </button>
+                                    @else
+                                        {{ $data['pending_orders'] }}
+                                    @endif
+                                </td>
+                                <td>{{ $data['pending_percentage'] }}%</td>
 
                                 <td>{{ $data['total_orders'] }}</td>
                                 <td>{{ $data['on_time_percentage'] }}%</td>
                                 <td>{{ $data['late_percentage'] }}%</td>
+                                <td>{{ $data['pending_percentage'] }}%</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -115,9 +136,12 @@
                             <td>{{ $overallSummary['on_time_percentage'] }}%</td>
                             <td>{{ $overallSummary['late_orders'] }}</td>
                             <td>{{ $overallSummary['late_percentage'] }}%</td>
+                            <td>{{ $overallSummary['pending_orders'] }}</td>
+                            <td>{{ $overallSummary['pending_percentage'] }}%</td>
                             <td>{{ $overallSummary['total_orders'] }}</td>
                             <td>{{ $overallSummary['on_time_percentage'] }}%</td>
                             <td>{{ $overallSummary['late_percentage'] }}%</td>
+                            <td>{{ $overallSummary['pending_percentage'] }}%</td>
                         </tr>
                     </tfoot>
                 </table>
@@ -125,7 +149,7 @@
                 <!-- Modal for Order Details -->
                 <div class="modal fade" id="detailsModal" tabindex="-1" role="dialog"
                     aria-labelledby="detailsModalLabel" aria-hidden="true">
-                    <div class="modal-dialog modal-lg" role="document">
+                    <div class="modal-dialog modal-fullscreen" role="document">
                         <div class="modal-content">
                             <div class="modal-header">
                                 <h5 class="modal-title" id="detailsModalLabel">Order Details</h5>

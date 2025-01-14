@@ -95,6 +95,9 @@
                                          <th>PO Date</th>
                                          <th>Shipment Date</th>
                                          {{-- <th>Lead Days</th> --}}
+                                         @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
+                                             <th>Update Date</th>
+                                         @endif
                                          <th>Action</th>
                                      </tr>
                                  </thead>
@@ -112,8 +115,11 @@
                                              <td>{{ $tna->qty_pcs }}</td>
                                              <td>{{ $tna->po_receive_date }}</td>
                                              <td>{{ $tna->shipment_etd }}</td>
-                                             {{-- <td>{{ $tna->total_lead_time }} --}}
-                                             </td>
+                                             @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
+                                             <td>{{ $tna->updated_at->diffForHumans() }}</td>
+                                                @endif
+                                             {{-- <td>{{ $tna->total_lead_time }} 
+                                             </td>--}}
 
                                              <td>
                                                  <a href="{{ route('tnas.show', $tna->id) }}"

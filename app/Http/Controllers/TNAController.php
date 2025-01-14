@@ -515,11 +515,11 @@ class TNAController extends Controller
     {
         $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
         if (auth()->user()->role_id == 3) {
-            $tnas = TNA::where('order_close', '1')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
+            $tnas = TNA::where('order_close', '1')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->orderBy('updated_at', 'desc')->get();
         } elseif (auth()->user()->role_id == 2 && $marchent_buyer_assigns->count() > 0) {
-            $tnas = TNA::where('order_close', '1')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
+            $tnas = TNA::where('order_close', '1')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->orderBy('updated_at', 'desc')->get();
         } else {
-            $tnas = TNA::where('order_close', '1')->latest()->get();
+            $tnas = TNA::where('order_close', '1')->orderBy('updated_at', 'desc')->get();
         }
         return view('backend.library.tnas.archives', compact('tnas'));
     }
@@ -1444,17 +1444,15 @@ class TNAController extends Controller
         $user = auth()->user();
         $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
 
-        $query = Tna::where('order_close', '0')
-            ->orderBy('shipment_etd', 'asc');
+        $query = Tna::latest()->orderBy('shipment_etd', 'asc');
 
         if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
             $query->whereIn('buyer_id', $buyerIds);
         }
 
         if ($request->has('from_date') && $request->has('to_date')) {
-            $query = Tna::where('order_close', '1')
-                ->orderBy('shipment_etd', 'asc');
-            $query->whereBetween('shipment_actual_date', [$request->from_date, $request->to_date]);
+            $query = Tna::latest()
+                ->orderBy('shipment_etd', 'asc')->whereBetween('shipment_actual_date', [$request->from_date, $request->to_date]);
         }
 
         $tnaData = $query->get();
@@ -1462,6 +1460,7 @@ class TNAController extends Controller
         $overallSummary = [
             'on_time_orders' => 0,
             'late_orders' => 0,
+            'pending_orders' => 0,
             'total_orders' => 0,
         ];
 
@@ -1475,8 +1474,10 @@ class TNAController extends Controller
                 $buyerSummary[$buyerName] = [
                     'on_time_orders' => 0,
                     'late_orders' => 0,
+                    'pending_orders' => 0,
                     'on_time_details' => [],
                     'late_details' => [],
+                    'pending_details' => [],
                     'total_orders' => 0,
                 ];
             }
@@ -1494,7 +1495,11 @@ class TNAController extends Controller
             if ($shipmentDifference !== null && $shipmentDifference <= 0) {
                 $buyerSummary[$buyerName]['on_time_orders']++;
                 $buyerSummary[$buyerName]['on_time_details'][] = $orderDetails;
-            } else {
+            } elseif($shipmentDifference == null){
+                $buyerSummary[$buyerName]['pending_orders']++;
+                $buyerSummary[$buyerName]['pending_details'][] = $orderDetails;
+            } else
+            {
                 $buyerSummary[$buyerName]['late_orders']++;
                 $buyerSummary[$buyerName]['late_details'][] = $orderDetails;
             }
@@ -1502,7 +1507,10 @@ class TNAController extends Controller
             $overallSummary['total_orders']++;
             if ($shipmentDifference !== null && $shipmentDifference <= 0) {
                 $overallSummary['on_time_orders']++;
-            } else {
+            }elseif($shipmentDifference == null){
+                $overallSummary['pending_orders']++;
+            }
+             else {
                 $overallSummary['late_orders']++;
             }
         }
@@ -1511,6 +1519,9 @@ class TNAController extends Controller
             $totalOrders = $summary['total_orders'];
             $summary['on_time_percentage'] = $totalOrders > 0
                 ? round(($summary['on_time_orders'] / $totalOrders) * 100, 2)
+                : 0;
+            $summary['pending_percentage'] = $totalOrders > 0
+                ? round(($summary['pending_orders'] / $totalOrders) * 100, 2)
                 : 0;
             $summary['late_percentage'] = $totalOrders > 0
                 ? round(($summary['late_orders'] / $totalOrders) * 100, 2)
@@ -1523,8 +1534,13 @@ class TNAController extends Controller
         $overallSummary['late_percentage'] = $overallSummary['total_orders'] > 0
             ? round(($overallSummary['late_orders'] / $overallSummary['total_orders']) * 100, 2)
             : 0;
+        $overallSummary['pending_percentage'] = $overallSummary['total_orders'] > 0 
+            ? round(($overallSummary['pending_orders'] / $overallSummary['total_orders']) * 100, 2)
+            : 0;
 
         $isPlanningDepartment = in_array($user->role_id, [1, 4]);
+
+        // dd($buyerSummary, $overallSummary);
 
         return view('backend.OMS.reports.buyer_wise_ontime_shipment', [
             'buyerSummary' => $buyerSummary,
@@ -1539,48 +1555,89 @@ class TNAController extends Controller
     {
         $user = auth()->user();
 
+        // Check if the user is authorized to make the updates
         if (!in_array($user->role_id, [1, 4])) {
             return response()->json(['message' => 'Unauthorized'], 403);
         }
 
-        //check date format validation
-        // $validator = Validator::make($request->all(), [
-        //     'updates.*.shipment_actual_date' => 'required|date',
-        // ]);
-
-
-
-
-        // if ($validator->fails()) {
-        //     return response()->json(['message' => 'Invalid date format'], 422);
-        // }
-
-
-
-
         $updates = $request->input('updates', []);
-        //change date format to Y-m-d before saving to database
+
+        // Change date format to Y-m-d before saving to database
         foreach ($updates as $update) {
-            //if shipment_actual_date is empty, then skib that record and continue to next record
+            // If shipment_actual_date is empty, skip the record and continue to the next one
             if (empty($update['shipment_actual_date'])) {
                 continue;
             }
+
+            // Format the shipment_actual_date to Y-m-d
             $update['shipment_actual_date'] = Carbon::parse($update['shipment_actual_date'])->format('Y-m-d');
         }
+
+        // Loop through updates and update the respective fields in the database
         foreach ($updates as $update) {
+            // First, update the shipment_actual_date
             DB::table('t_n_a_s')->where('id', $update['id'])->update([
                 'shipment_actual_date' => $update['shipment_actual_date'] ?? null,
             ]);
 
-            // etd_actual also needs to be updated same as shipment_actual_date and order_close to 1
+            // Then, update the etd_actual and set order_close to 1
             DB::table('t_n_a_s')->where('id', $update['id'])->update([
-                'etd_actual' => $update['shipment_actual_date'] ?? null,
-                'order_close' => 1,
+                'etd_actual' => $update['shipment_actual_date'] ?? null,  // Same date as shipment_actual_date
+                //if shipment_actual_date is not empty then set order_close to 1
+                'order_close' => $update['shipment_actual_date'] ? 1 : 0,
             ]);
         }
 
         return response()->json(['message' => 'Updates saved successfully!'], 200);
     }
+
+
+    // public function updateShipmentActualDates(Request $request)
+    // {
+    //     $user = auth()->user();
+
+    //     if (!in_array($user->role_id, [1, 4])) {
+    //         return response()->json(['message' => 'Unauthorized'], 403);
+    //     }
+
+    //     //check date format validation
+    //     // $validator = Validator::make($request->all(), [
+    //     //     'updates.*.shipment_actual_date' => 'required|date',
+    //     // ]);
+
+
+
+
+    //     // if ($validator->fails()) {
+    //     //     return response()->json(['message' => 'Invalid date format'], 422);
+    //     // }
+
+
+
+
+    //     $updates = $request->input('updates', []);
+    //     //change date format to Y-m-d before saving to database
+    //     foreach ($updates as $update) {
+    //         //if shipment_actual_date is empty, then skib that record and continue to next record
+    //         if (empty($update['shipment_actual_date'])) {
+    //             continue;
+    //         }
+    //         $update['shipment_actual_date'] = Carbon::parse($update['shipment_actual_date'])->format('Y-m-d');
+    //     }
+    //     foreach ($updates as $update) {
+    //         DB::table('t_n_a_s')->where('id', $update['id'])->update([
+    //             'shipment_actual_date' => $update['shipment_actual_date'] ?? null,
+    //         ]);
+
+    //         // etd_actual also needs to be updated same as shipment_actual_date and order_close to 1
+    //         DB::table('t_n_a_s')->where('id', $update['id'])->update([
+    //             'etd_actual' => $update['shipment_actual_date'] ?? null,
+    //             'order_close' => $update['order_close'] ? 1 : 0,
+    //         ]);
+    //     }
+
+    //     return response()->json(['message' => 'Updates saved successfully!'], 200);
+    // }
 
 
     // public function MailBuyerWiseTnaSummary()
