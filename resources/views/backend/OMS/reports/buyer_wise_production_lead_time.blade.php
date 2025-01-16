@@ -57,11 +57,14 @@
                         <th>Buyer</th>
                         <th colspan="2">Inadequate Lead Time</th>
                         <th colspan="2">Adequate Lead Time</th>
+                        <th colspan="2">Pending Orders</th>
                         <th>Total Orders</th>
                         <th>Average Lead Time</th>
                     </tr>
                     <tr>
                         <th></th>
+                        <th>Orders</th>
+                        <th>Percentage</th>
                         <th>Orders</th>
                         <th>Percentage</th>
                         <th>Orders</th>
@@ -102,6 +105,28 @@
                                 @endif
                             </td>
                             <td>{{ $data['adequate_percentage'] }}%</td>
+                            
+                            {{-- Pending Orders --}}
+                            <td>
+                                @if ($data['pending_orders'] > 0)
+                                    <button class="btn btn-info btn-sm" data-toggle="modal" data-target="#detailsModal"
+                                        data-buyer="{{ $buyer }}" data-type="pending"
+                                        data-details="{{ json_encode($data['pending_details'] ?? []) }}">
+                                        {{ $data['pending_orders'] }}
+                                    </button>
+                                @else
+                                    {{ $data['pending_orders'] }}
+                                @endif
+                            </td>
+                            <td>
+                                @php
+                                    $totalOrders = $data['inadequate_orders'] + $data['adequate_orders'] + $data['pending_orders'];
+                                    $pendingPercentage = $totalOrders > 0 ? round(($data['pending_orders'] / $totalOrders) * 100, 2) : 0;
+                                @endphp
+                                {{ $pendingPercentage }}%
+                                
+                            </td>
+
 
                             <td>{{ $data['total_orders'] }}</td>
                             <td>{{ $data['average_lead_time'] }}</td>
@@ -116,6 +141,12 @@
                         <td>{{ $overallSummary['inadequate_percentage'] }}%</td>
                         <td>{{ $overallSummary['adequate_orders'] }}</td>
                         <td>{{ $overallSummary['adequate_percentage'] }}%</td>
+                        <td>{{ $overallSummary['pending_orders'] }}</td>
+                        <td> @php
+                            $totalOrders = $overallSummary['inadequate_orders'] + $overallSummary['adequate_orders'] + $overallSummary['pending_orders'];
+                            $pendingPercentage = $totalOrders > 0 ? round(($overallSummary['pending_orders'] / $totalOrders) * 100, 2) : 0;
+                        @endphp
+                        {{ $pendingPercentage }}%</td>
                         <td>{{ $overallSummary['total_orders'] }}</td>
                         <td>{{ $overallSummary['average_lead_time'] }}</td>
                     </tr>
@@ -127,7 +158,7 @@
     <!-- Modal for Task Details -->
     <div class="modal fade" id="detailsModal" tabindex="-1" role="dialog" aria-labelledby="detailsModalLabel"
         aria-hidden="true">
-        <div class="modal-dialog modal-lg" role="document">
+        <div class="modal-dialog modal-fullscreen" role="document">
             <div class="modal-content">
                 <div class="modal-header">
                     <h5 class="modal-title" id="detailsModalLabel">Task Details</h5>
@@ -355,8 +386,9 @@ $(document).ready(function () {
                 method: 'POST',
                 data: { updates, _token: '{{ csrf_token() }}' },
                 success: function (response) {
-                    alert(response.message);
-                    $('#detailsModal').modal('hide');
+                    // alert(response.message);
+                    // $('#detailsModal').modal('hide');
+                    location.reload();
                 },
                 error: function () {
                     alert('Failed to save changes.');

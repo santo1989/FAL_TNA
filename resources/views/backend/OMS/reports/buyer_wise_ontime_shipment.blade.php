@@ -251,8 +251,9 @@
                                         _token: '{{ csrf_token() }}'
                                     },
                                     success: function(response) {
-                                        alert(response.message);
-                                        $('#detailsModal').modal('hide');
+                                        // alert(response.message);
+                                        // $('#detailsModal').modal('hide');
+                                        location.reload();
                                     },
                                     error: function() {
                                         alert('Failed to save changes.');
