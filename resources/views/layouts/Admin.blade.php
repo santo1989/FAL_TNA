@@ -207,6 +207,115 @@
 
                             </div>
                         @endcan
+                         @can('Factory Merchandise')
+                            <div class="row justify-content-center">
+                                 
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('tnas.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        TNA
+                                    </a>
+
+                                </div>
+
+                            </div>
+                        @endcan
+                         @can('Factory Planning')
+                            <div class="row justify-content-center">
+                                 
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('tnas.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        TNA
+                                    </a>
+
+                                </div>
+
+                            </div>
+                        @endcan
+                         @can('IE and Maintenance')
+                            <div class="row justify-content-center">
+                                {{-- <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('home') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
+                                        Home
+                                    </a>
+                                </div>
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('users.show', ['user' => auth()->user()->id]) }}">
+                                        <div class="sb-nav-link-icon"><i class="far fa-address-card"></i></div>
+                                        Profile
+                                    </a>
+                                </div> --}}
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('tnas.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        TNA
+                                    </a>
+
+                                </div>
+
+                            </div>
+                        @endcan
+                         @can('CAD')
+                            <div class="row justify-content-center">
+                                {{-- <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('home') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
+                                        Home
+                                    </a>
+                                </div>
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('users.show', ['user' => auth()->user()->id]) }}">
+                                        <div class="sb-nav-link-icon"><i class="far fa-address-card"></i></div>
+                                        Profile
+                                    </a>
+                                </div> --}}
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('tnas.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        TNA
+                                    </a>
+
+                                </div>
+
+                            </div>
+                        @endcan
+                        @can('Store')
+                            <div class="row justify-content-center">
+                                {{-- <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('home') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-home"></i></div>
+                                        Home
+                                    </a>
+                                </div>
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('users.show', ['user' => auth()->user()->id]) }}">
+                                        <div class="sb-nav-link-icon"><i class="far fa-address-card"></i></div>
+                                        Profile
+                                    </a>
+                                </div> --}}
+                                <div class="col-3 pt-1 pb-1">
+                                    <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                        href="{{ route('tnas.index') }}">
+                                        <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                        TNA
+                                    </a>
+
+                                </div>
+
+                            </div>
+                        @endcan
                         @can('SuperVisor')
                             <div class="row justify-content-center">
                                 <div class="col-3 pt-1 pb-1">
@@ -251,6 +360,7 @@
                             </div>
                         </div>
                     @endcan
+                    
                 </div>
             </div>
         </div>

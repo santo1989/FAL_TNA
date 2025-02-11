@@ -24,7 +24,7 @@
 <form action="{{ route('roles.update', ['role' => $role->id]) }}" method="post">
 <div>
 @csrf
-@method('patch')
+@method('put')
 
 
   <div class="row m-4">

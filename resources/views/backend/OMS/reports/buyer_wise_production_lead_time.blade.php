@@ -17,6 +17,12 @@
                     <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left"></i> Close
                     </a>
+                    <!--excel download button-->
+                    <button class="btn btn-outline-success"
+                        onclick="exportTableToExcel('printTable', 'BuyerWiseProductionLeadTimeSummary')">
+                        <i class="fas fa-file-excel"></i> Excel Download
+                    </button>
+
 
                 </div>
                 <div class="col-md-6">
@@ -51,7 +57,8 @@
             </div>
 
             <!-- Data Table -->
-            <table class="table table-bordered table-hover text-center text-wrap" style="font-size: 12px;">
+            <table class="table table-bordered table-hover text-center text-wrap" style="font-size: 12px;"
+                id="printTable">
                 <thead class="thead-dark">
                     <tr>
                         <th>Buyer</th>
@@ -74,7 +81,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($buyerSummary as $buyer => $data)
+                    @forelse ($buyerSummary as $buyer => $data)
                         <tr>
                             <td>{{ $buyer }}</td>
 
@@ -105,7 +112,7 @@
                                 @endif
                             </td>
                             <td>{{ $data['adequate_percentage'] }}%</td>
-                            
+
                             {{-- Pending Orders --}}
                             <td>
                                 @if ($data['pending_orders'] > 0)
@@ -120,35 +127,51 @@
                             </td>
                             <td>
                                 @php
-                                    $totalOrders = $data['inadequate_orders'] + $data['adequate_orders'] + $data['pending_orders'];
-                                    $pendingPercentage = $totalOrders > 0 ? round(($data['pending_orders'] / $totalOrders) * 100, 2) : 0;
+                                    $totalOrders =
+                                        $data['inadequate_orders'] + $data['adequate_orders'] + $data['pending_orders'];
+                                    $pendingPercentage =
+                                        $totalOrders > 0 ? round(($data['pending_orders'] / $totalOrders) * 100, 2) : 0;
                                 @endphp
                                 {{ $pendingPercentage }}%
-                                
+
                             </td>
 
 
                             <td>{{ $data['total_orders'] }}</td>
                             <td>{{ $data['average_lead_time'] }}</td>
                         </tr>
-                    @endforeach
+                    @empty
+                        <tr>
+                            <td colspan="9">No data available</td>
+                        </tr>
+                    @endforelse
                 </tbody>
 
                 <tfoot>
                     <tr class="font-weight-bold">
                         <td>Total</td>
-                        <td>{{ $overallSummary['inadequate_orders'] }}</td>
+                        @isset($overallSummary)
+                       <td>{{ $overallSummary['inadequate_orders'] }}</td>
                         <td>{{ $overallSummary['inadequate_percentage'] }}%</td>
                         <td>{{ $overallSummary['adequate_orders'] }}</td>
                         <td>{{ $overallSummary['adequate_percentage'] }}%</td>
                         <td>{{ $overallSummary['pending_orders'] }}</td>
                         <td> @php
-                            $totalOrders = $overallSummary['inadequate_orders'] + $overallSummary['adequate_orders'] + $overallSummary['pending_orders'];
-                            $pendingPercentage = $totalOrders > 0 ? round(($overallSummary['pending_orders'] / $totalOrders) * 100, 2) : 0;
+                            $totalOrders =
+                                $overallSummary['inadequate_orders'] +
+                                $overallSummary['adequate_orders'] +
+                                $overallSummary['pending_orders'];
+                            $pendingPercentage =
+                                $totalOrders > 0
+                                    ? round(($overallSummary['pending_orders'] / $totalOrders) * 100, 2)
+                                    : 0;
                         @endphp
-                        {{ $pendingPercentage }}%</td>
+                            {{ $pendingPercentage }}%</td>
                         <td>{{ $overallSummary['total_orders'] }}</td>
                         <td>{{ $overallSummary['average_lead_time'] }}</td>
+                            
+                        @endisset
+                        
                     </tr>
                 </tfoot>
             </table>
@@ -310,29 +333,29 @@
             });
         });
     </script> --}}
- <script>
-$(document).ready(function () {
-    let originalData = []; // Store the original data for comparison
+    <script>
+        $(document).ready(function() {
+            let originalData = []; // Store the original data for comparison
 
-    $('#detailsModal').on('show.bs.modal', function (event) {
-        const button = $(event.relatedTarget);
-        const isPlanningDepartment = {{ json_encode($isPlanningDepartment) }};
-        const details = button.data('details');
-        const detailsBody = $('#detailsBody');
-        const saveButton = $('.save-button');
+            $('#detailsModal').on('show.bs.modal', function(event) {
+                const button = $(event.relatedTarget);
+                const isPlanningDepartment = {{ json_encode($isPlanningDepartment) }};
+                const details = button.data('details');
+                const detailsBody = $('#detailsBody');
+                const saveButton = $('.save-button');
 
-        originalData = details.map(detail => ({ 
-            id: detail.id, 
-            inspection_actual_date: detail.inspection_actual_date, 
-            pp_meeting_actual: detail.pp_meeting_actual 
-        })); // Save original data
+                originalData = details.map(detail => ({
+                    id: detail.id,
+                    inspection_actual_date: detail.inspection_actual_date,
+                    pp_meeting_actual: detail.pp_meeting_actual
+                })); // Save original data
 
-        detailsBody.empty();
-        if (isPlanningDepartment) saveButton.show();
-        else saveButton.hide();
+                detailsBody.empty();
+                if (isPlanningDepartment) saveButton.show();
+                else saveButton.hide();
 
-        details.forEach(function (detail) {
-            detailsBody.append(`
+                details.forEach(function(detail) {
+                    detailsBody.append(`
                 <tr>
                     <td>${detail.style}</td>
                     <td>${detail.po}</td>
@@ -353,54 +376,81 @@ $(document).ready(function () {
                     <td>${detail.shipment_etd || 'N/A'}</td>
                 </tr>
             `);
-        });
-    });
+                });
+            });
 
-    $('.save-button').click(function () {
-        const updates = [];
+            $('.save-button').click(function() {
+                const updates = [];
 
-        $('#detailsBody tr').each(function () {
-            const id = $(this).find('.inspection-date').data('id');
-            const inspectionDate = $(this).find('.inspection-date').val();
-            const ppMeetingDate = $(this).find('.pp-meeting-date').val();
+                $('#detailsBody tr').each(function() {
+                    const id = $(this).find('.inspection-date').data('id');
+                    const inspectionDate = $(this).find('.inspection-date').val();
+                    const ppMeetingDate = $(this).find('.pp-meeting-date').val();
 
-            const original = originalData.find(item => item.id == id);
+                    const original = originalData.find(item => item.id == id);
 
-            if (original) {
-                const isInspectionDateChanged = inspectionDate !== original.inspection_actual_date;
-                const isPPMeetingDateChanged = ppMeetingDate !== original.pp_meeting_actual;
+                    if (original) {
+                        const isInspectionDateChanged = inspectionDate !== original
+                            .inspection_actual_date;
+                        const isPPMeetingDateChanged = ppMeetingDate !== original.pp_meeting_actual;
 
-                if (isInspectionDateChanged || isPPMeetingDateChanged) {
-                    updates.push({
-                        id,
-                        inspection_actual_date: isInspectionDateChanged ? inspectionDate : original.inspection_actual_date,
-                        pp_meeting_actual: isPPMeetingDateChanged ? ppMeetingDate : original.pp_meeting_actual,
+                        if (isInspectionDateChanged || isPPMeetingDateChanged) {
+                            updates.push({
+                                id,
+                                inspection_actual_date: isInspectionDateChanged ?
+                                    inspectionDate : original.inspection_actual_date,
+                                pp_meeting_actual: isPPMeetingDateChanged ? ppMeetingDate :
+                                    original.pp_meeting_actual,
+                            });
+                        }
+                    }
+                });
+
+                if (updates.length > 0) {
+                    $.ajax({
+                        url: '/update-task-details',
+                        method: 'POST',
+                        data: {
+                            updates,
+                            _token: '{{ csrf_token() }}'
+                        },
+                        success: function(response) {
+                            // alert(response.message);
+                            // $('#detailsModal').modal('hide');
+                            location.reload();
+                        },
+                        error: function() {
+                            alert('Failed to save changes.');
+                        }
                     });
-                }
-            }
-        });
-
-        if (updates.length > 0) {
-            $.ajax({
-                url: '/update-task-details',
-                method: 'POST',
-                data: { updates, _token: '{{ csrf_token() }}' },
-                success: function (response) {
-                    // alert(response.message);
-                    // $('#detailsModal').modal('hide');
-                    location.reload();
-                },
-                error: function () {
-                    alert('Failed to save changes.');
+                } else {
+                    alert('No changes to save.');
                 }
             });
-        } else {
-            alert('No changes to save.');
-        }
-    });
-});
-</script>
+        });
+    </script>
 
+    <!-- Include SheetJS Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        function exportTableToExcel(tableID, filename = 'excel_data') {
+            // Get the table element
+            const table = document.getElementById(tableID);
+
+            // Convert table to a worksheet
+            const ws = XLSX.utils.table_to_sheet(table, {
+                raw: true
+            });
+
+            // Create a new workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+            // Write the workbook and trigger download
+            XLSX.writeFile(wb, `${filename}.xlsx`);
+        }
+    </script>
 
 
 </x-backend.layouts.master>

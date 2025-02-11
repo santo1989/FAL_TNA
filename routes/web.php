@@ -49,6 +49,9 @@ Route::get('/get-company-designation/{divisionId}', [CompanyController::class, '
 
 Route::get('/get-department/{company_id}', [CompanyController::class, 'getdepartments'])->name('get_departments');
 
+// real_time_data
+Route::get('/real-time-data', [TNAController::class, 'real_time_data'])->name('real_time_data');
+
 // Report for sir 
 
 // Route::get('/fal-mos', [JobController::class, 'monthlyOrderSummary'])->name('fal-mos');
@@ -249,6 +252,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/jobs/{id}', [JobController::class, 'destroy'])->name('jobs.destroy');
     Route::post('/destroy_all/{job_no}', [JobController::class, 'destroy_all'])->name('jobs.destroy_all');
 
+    //destroy_all_tna
+    Route::post('/destroy_all_tna/{job_no}', [JobController::class, 'destroy_all_tna'])->name('jobs.destroy_all_tna');
     //Reports
 
     Route::get('/monthly-order-summary', [JobController::class, 'monthlyOrderSummary'])->name('monthly_order_summary');

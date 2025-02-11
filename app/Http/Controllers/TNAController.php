@@ -36,6 +36,21 @@ class TNAController extends Controller
         return view('backend.library.tnas.index', compact('tnas'));
     }
 
+    public function real_time_data()
+    {
+
+        $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
+        if (auth()->user()->role_id == 3) {
+            $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
+        } elseif (auth()->user()->role_id == 2 && $marchent_buyer_assigns->count() > 0) {
+            $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
+        } else {
+            $tnas = TNA::where('order_close', '0')->latest()->get();
+        }
+
+        return response()->json($tnas);
+    }
+
 
 
     public function create()
@@ -53,23 +68,49 @@ class TNAController extends Controller
 
     public function store(Request $request)
     {
+        // If $request is an array, convert it to a Request object
+        if (is_array($request)) {
+            $request = new Request($request);
+        }
         // dd($request->all());
         // Validate request
+        // $request->validate([
+        //     'buyer_id' => 'required',
+        //     'style' => 'required',
+        //     'po' => 'required',
+        //     'item' => 'required',
+        //     'qty_pcs' => 'required',
+        //     'po_receive_date' => 'required|date',
+        //     'shipment_etd' => 'required|date',
+        //     'print_wash'=>'required',
+        // ]);
+
+        // Now you can use $request as a Request object
         $request->validate([
-            'buyer_id' => 'required',
-            'style' => 'required',
-            'po' => 'required',
-            'item' => 'required',
-            'qty_pcs' => 'required',
+            'buyer_id' => 'required|integer',
+            'style' => 'required|string',
+            'po' => 'required|string',
+            'item' => 'required|string',
+            'qty_pcs' => 'required|integer',
             'po_receive_date' => 'required|date',
             'shipment_etd' => 'required|date',
+            'total_lead_time' => 'required|integer',
+            'remarks' => 'nullable|string',
+            'print_wash' => 'nullable|string',
         ]);
+
+        // Calculate total lead time in days
+        $poReceiveDate = Carbon::parse($request->po_receive_date);
+        $shipmentETD = Carbon::parse($request->shipment_etd);
+        $total_lead_time = $shipmentETD->diffInDays($poReceiveDate);
+        $printAndwash = $request->print_wash;
 
         DB::transaction(function () use ($request) {
             // Calculate total lead time in days
             $poReceiveDate = Carbon::parse($request->po_receive_date);
             $shipmentETD = Carbon::parse($request->shipment_etd);
             $total_lead_time = $shipmentETD->diffInDays($poReceiveDate);
+            $printAndwash = $request->print_wash;
 
             if ($total_lead_time < 0) {
                 throw new \Exception('Shipment ETD must be greater than PO Receive Date');
@@ -92,14 +133,26 @@ class TNAController extends Controller
             $tna->total_lead_time = $total_lead_time;
             $tna->assign_date = Carbon::now();
             $tna->assign_by = auth()->user()->name;
+            $tna->print_wash = $printAndwash;
 
             // Plan dates using SOP format
-            $this->planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time);
+            $this->planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash);
+
+            if($request->has('job_id') 
+                && $request->has('job_no')){
+                $tna->job_id = $request->job_id;
+                $tna->tnas1 = $request->job_no;
+            }
 
             $tna->save();
         });
 
-        return redirect()->route('tnas.index')->withMessage('TNA created successfully');
+        //find the tna id for edit
+        $tnas = TNA::where('buyer_id', $request->buyer_id)->where('style', $request->style)->where('po', $request->po)->where('item', $request->item)->where('qty_pcs', $request->qty_pcs)->where('po_receive_date', $poReceiveDate)->where('shipment_etd', $shipmentETD)->where('print_wash', $printAndwash)->first();
+        $buyers = Buyer::all()->where('is_active', '0');
+        // dd($tna);
+
+        return view('backend.library.tnas.Conform_create', compact('tnas', 'buyers'));
     }
 
     public function update(Request $request, $id)
@@ -142,7 +195,7 @@ class TNAController extends Controller
                 $tna->total_lead_time = $total_lead_time;
 
                 // Plan dates using SOP format
-                $this->planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time);
+                $this->planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $tna->print_wash);
             }
 
             $tna->save();
@@ -155,77 +208,193 @@ class TNAController extends Controller
         return redirect()->route('tnas.index')->withMessage('TNA updated successfully');
     }
 
+   
 
-    public function planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time)
-    {
-        // Determine SOP format based on lead time
-        if ($total_lead_time <= 70) {
-            $sop_format = SOP::where('lead_time', 60)->get();
-        } elseif ($total_lead_time > 70 && $total_lead_time <= 84) {
-            $sop_format = SOP::where('lead_time', 75)->get();
-        } else {
-            $sop_format = SOP::where('lead_time', 90)->get();
-        }
+// public function planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash) 
+// {
+//     // Determine SOP format based on lead time
+//     $leadTimeMap = [
+//         'short' => ['lead_time' => 60, 'inspection_offset' => 2, 'ex_factory_offset' => 1],
+//         'medium' => ['lead_time' => 75, 'inspection_offset' => 2, 'ex_factory_offset' => 1],
+//         'long' => ['lead_time' => 90, 'inspection_offset' => 5, 'ex_factory_offset' => 1],
+//     ];
 
-        // Plan dates using SOP format days
-        foreach ($sop_format as $sop) {
-            $dayOffset = $sop->day;
-            $particular = $sop->Perticulars;
-            $planDate = $poReceiveDate->copy()->addDays($dayOffset);
+//     $leadTimeCategory = $total_lead_time <= 70
+//         ? 'short'
+//         : ($total_lead_time <= 84 ? 'medium' : 'long');
 
-            switch ($particular) {
-                case 'Order Free Time':
-                    $tna->order_free_time = $shipmentETD->copy()->subDays($dayOffset);
-                    break;
-                case 'Lab Dip Submission':
-                    $tna->lab_dip_submission_plan = $planDate;
-                    break;
-                case 'Fabric Booking':
-                    $tna->fabric_booking_plan = $planDate;
-                    break;
-                case 'Fit Sample Submission':
-                    $tna->fit_sample_submission_plan = $planDate;
-                    break;
-                case 'Print Strike Off Submission':
-                    $tna->print_strike_off_submission_plan = $planDate;
-                    break;
-                case 'Bulk Accessories Booking':
-                    $tna->bulk_accessories_booking_plan = $planDate;
-                    break;
-                case 'Fit Comments':
-                    $tna->fit_comments_plan = $planDate;
-                    break;
-                case 'Bulk Yarn Inhouse':
-                    $tna->bulk_yarn_inhouse_plan = $planDate;
-                    break;
-                    // new start
-                case 'Bulk Accessories Inhouse':
-                    $tna->bulk_accessories_inhouse_plan = $planDate;
-                    break;
-                    // new end
-                case 'PP Sample Submission':
-                    $tna->pp_sample_submission_plan = $planDate;
-                    break;
-                case 'Bulk Fabric Knitting':
-                    $tna->bulk_fabric_knitting_plan = $planDate;
-                    break;
-                case 'PP Comments Receive':
-                    $tna->pp_comments_receive_plan = $planDate;
-                    break;
-                case 'Bulk Fabric Dyeing':
-                    $tna->bulk_fabric_dyeing_plan = $planDate;
-                    break;
-                case 'Bulk Fabric Delivery':
-                    $tna->bulk_fabric_delivery_plan = $planDate;
-                    break;
-                case 'PP Meeting':
-                    $tna->pp_meeting_plan = $planDate;
-                    break;
-            }
-        }
+//     $sop_format = SOP::where('lead_time', $leadTimeMap[$leadTimeCategory]['lead_time'])->get();
+//     $final_inspection_plan = $shipmentETD->copy()->subDays($leadTimeMap[$leadTimeCategory]['inspection_offset']);
+//     $ex_factory_plan = $shipmentETD->copy()->subDays($leadTimeMap[$leadTimeCategory]['ex_factory_offset']);
 
-        $tna->etd_plan = $shipmentETD;
-    }
+//     // Define mapping of particulars to TNA fields
+//     $fieldMapping = [
+//         'Order Free Time' => 'order_free_time',
+//         'Lab Dip Submission' => 'lab_dip_submission_plan',
+//         'Fabric Booking' => 'fabric_booking_plan',
+//         'Fit Sample Submission' => 'fit_sample_submission_plan',
+//         'Print Strike Off Submission' => 'print_strike_off_submission_plan',
+//         'Bulk Accessories Booking' => 'bulk_accessories_booking_plan',
+//         'Fit Comments' => 'fit_comments_plan',
+//         'Bulk Yarn Inhouse' => 'bulk_yarn_inhouse_plan',
+//         'Bulk Accessories Inhouse' => 'bulk_accessories_inhouse_plan',
+//         'PP Sample Submission' => 'pp_sample_submission_plan',
+//         'Bulk Fabric Knitting' => 'bulk_fabric_knitting_plan',
+//         'PP Comments Receive' => 'pp_comments_receive_plan',
+//         'Bulk Fabric Dyeing' => 'bulk_fabric_dyeing_plan',
+//         'Bulk Fabric Delivery' => 'bulk_fabric_delivery_plan',
+//         'PP Meeting' => 'pp_meeting_plan',
+//         'Fabrics and Accessories Inspection' => 'fabrics_and_accessories_inspection_plan',
+//         'Size Set Making' => 'size_set_making_plan',
+//         'Pattern Correction' => 'pattern_correction_plan',
+//         'MachinesLayoutFolderPreparation' => 'machines_layout_and_folder_preparation_plan',
+//         'Bulk Cutting Start' => 'cutting_plan',
+//         'Print/Emb. Start ' => 'print_start_plan',
+//         'Bulk Sewing Input' => 'bulk_sewing_input_plan',
+//         'Bulk Wash Start ' => 'bulk_wash_start_plan',
+//         'Bulk Finishing Start' => 'bulk_finishing_start_plan',
+//         'Bulk Cutting Close' => 'bulk_cutting_close_plan',
+//         'Print/Emb. Close ' => 'print_close_plan',
+//         'Bulk Sewing Close' => 'bulk_sewing_close_plan',
+//         'Bulk Wash Close or Finihsing Recived ' => 'bulk_wash_close_plan',
+//         'Bulk Finishing Close' => 'bulk_finishing_close_plan',
+//         'Pre-final Inspection' => 'pre_final_inspection_plan',
+//     ];
+
+//     // Add print and wash-specific suffixes
+//     $suffix = match($printAndwash) {
+//         'No Print and Wash' => '',
+//         'Only Print' => ' ( Only Print )',
+//         'Only Wash' => ' ( Only Wash )',
+//         default => ' ( Both Print and Wash )',
+//     };
+
+//     // Iterate over SOP format and set plans
+//     foreach ($sop_format as $sop) {
+//         $dayOffset = $sop->day;
+//         $particular = $sop->Perticulars . $suffix;
+//         $planDate = $poReceiveDate->copy()->addDays($dayOffset);
+
+//         if (isset($fieldMapping[$particular])) {
+//             $fields = (array)$fieldMapping[$particular];
+//             foreach ($fields as $field) {
+//                 $tna->$field = $particular === 'Order Free Time'
+//                 ? $shipmentETD->copy()->subDays($dayOffset)
+//                     : $planDate;
+//             }
+//         }
+//     }
+
+//     // Set final inspection and ex-factory plans
+//     $tna->final_inspection_plan = $final_inspection_plan;
+//     $tna->ex_factory_plan = $ex_factory_plan;
+//     $tna->etd_plan = $shipmentETD;
+// }
+
+  
+
+    // public function planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash)
+    // {
+    //     // Determine SOP format based on lead time
+    //     $sop_format = $this->getSopFormat($total_lead_time);
+    //     $final_inspection_plan = $shipmentETD->copy()->subDays($this->getFinalInspectionDays($total_lead_time));
+    //     $ex_factory_plan = $shipmentETD->copy()->subDays(1);
+
+    //     // Plan dates using SOP format days
+    //     foreach ($sop_format as $sop) {
+    //         $dayOffset = $sop->day;
+    //         $particular = $sop->Perticulars;
+    //         $planDate = $poReceiveDate->copy()->addDays($dayOffset);
+
+    //         if ($this->shouldPlanDate($particular, $printAndwash)) {
+    //             $this->assignTnaPlan($tna, $particular, $planDate, $dayOffset, $shipmentETD, $printAndwash);
+    //         }
+    //     }
+
+    //     $tna->final_inspection_plan = $final_inspection_plan;
+    //     $tna->ex_factory_plan = $ex_factory_plan;
+    // }
+
+    // private function getSopFormat($total_lead_time)
+    // {
+    //     if ($total_lead_time <= 70) {
+    //         return SOP::where('lead_time', 60)->get();
+    //     } elseif ($total_lead_time > 70 && $total_lead_time <= 84) {
+    //         return SOP::where('lead_time', 75)->get();
+    //     } else {
+    //         return SOP::where('lead_time', 90)->get();
+    //     }
+    // }
+
+    // private function getFinalInspectionDays($total_lead_time)
+    // {
+    //     if ($total_lead_time > 84) {
+    //         return 5;
+    //     }
+    //     return 2;
+    // }
+
+    // private function shouldPlanDate($particular, $printAndwash)
+    // {
+    //     if ($printAndwash === 'No Print and Wash') {
+    //         return true;
+    //     }
+
+    //     $conditions = [
+    //         'Only Print' => !str_contains($particular, 'Wash'),
+    //         'Only Wash' => !str_contains($particular, 'Print'),
+    //         'Both Print and Wash' => true,
+    //     ];
+
+    //     return $conditions[$printAndwash] ?? false;
+    // }
+
+    // private function assignTnaPlan($tna, $particular, $planDate, $dayOffset, $shipmentETD, $printAndwash)
+    // {
+    //     $mapping = [
+    //         'Order Free Time' => 'order_free_time',
+    //         'Lab Dip Submission' => 'lab_dip_submission_plan',
+    //         'Fabric Booking' => 'fabric_booking_plan',
+    //         'Fit Sample Submission' => 'fit_sample_submission_plan',
+    //         'Print Strike Off Submission' => 'print_strike_off_submission_plan',
+    //         'Bulk Accessories Booking' => 'bulk_accessories_booking_plan',
+    //         'Fit Comments' => 'fit_comments_plan',
+    //         'Bulk Yarn Inhouse' => 'bulk_yarn_inhouse_plan',
+    //         'Bulk Accessories Inhouse' => 'bulk_accessories_inhouse_plan',
+    //         'PP Sample Submission' => 'pp_sample_submission_plan',
+    //         'Bulk Fabric Knitting' => 'bulk_fabric_knitting_plan',
+    //         'PP Comments Receive' => 'pp_comments_receive_plan',
+    //         'Bulk Fabric Dyeing' => 'bulk_fabric_dyeing_plan',
+    //         'Bulk Fabric Delivery' => 'bulk_fabric_delivery_plan',
+    //         'PP Meeting' => 'pp_meeting_plan',
+    //         'Fabrics and Accessories Inspection' => 'fabrics_and_accessories_inspection_plan',
+    //         'Size Set Making' => 'size_set_making_plan',
+    //         'Pattern Correction' => 'pattern_correction_plan',
+    //         'MachinesLayoutFolderPreparation' => 'machines_layout_and_folder_preparation_plan',
+    //         'Bulk Cutting Start' => 'cutting_plan',
+    //         'Print/Emb. Start' => 'print_start_plan',
+    //         'Bulk Sewing Input' => 'bulk_sewing_input_plan',
+    //         'Bulk Wash Start' => 'bulk_wash_start_plan',
+    //         'Bulk Finishing Start' => 'bulk_finishing_start_plan',
+    //         'Bulk Cutting Close' => 'bulk_cutting_close_plan',
+    //         'Print/Emb. Close' => 'print_close_plan',
+    //         'Bulk Sewing Close' => 'bulk_sewing_close_plan',
+    //         'Bulk Wash Close or Finihsing Recived' => 'bulk_wash_close_plan',
+    //         'Bulk Finishing Close' => 'bulk_finishing_close_plan',
+    //         'Pre-final Inspection' => 'pre_final_inspection_plan',
+    //     ];
+
+    //     if (isset($mapping[$particular])) {
+    //         $fields = (array) $mapping[$particular];
+    //         foreach ($fields as $field) {
+    //             $tna->$field = $planDate;
+    //         }
+    //     }
+    // }
+
+
+
+
     // public function store(Request $request)
     // {
     //     // Validate request
@@ -1322,112 +1491,6 @@ class TNAController extends Controller
     }
 
 
-    // public function BuyerWiseProductionLeadTimeSummary(Request $request)
-    // {
-    //     $okLeadTimeThreshold = 20;
-    //     $user = auth()->user();
-    //     $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
-
-    //     $query = Tna::where('order_close', '0')->orderBy('shipment_etd', 'asc');
-
-    //     if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
-    //         $query->whereIn('buyer_id', $buyerIds);
-    //     }
-
-    //     if ($request->has('from_date') && $request->has('to_date')) {
-    //         $query->whereBetween('inspection_actual_date', [$request->from_date, $request->to_date]);
-    //     }
-
-    //     $tnaData = $query->get();
-    //     $buyerSummary = [];
-    //     $overallSummary = [
-    //         'inadequate_orders' => 0,
-    //         'adequate_orders' => 0,
-    //         'total_orders' => 0,
-    //         'lead_time_total' => 0,
-    //     ];
-
-    //     foreach ($tnaData as $tna) {
-    //         $buyerName = $tna->buyer;
-    //         $leadTime = $tna->pp_meeting_actual
-    //             ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->inspection_actual_date))
-    //             : 0;
-
-    //         if (!isset($buyerSummary[$buyerName])) {
-    //             $buyerSummary[$buyerName] = [
-    //                 'inadequate_orders' => 0,
-    //                 'adequate_orders' => 0,
-    //                 'inadequate_details' => [],
-    //                 'adequate_details' => [],
-    //                 'lead_time_total' => 0,
-    //                 'total_orders' => 0,
-    //             ];
-    //         }
-
-    //         $buyerSummary[$buyerName]['total_orders']++;
-    //         $buyerSummary[$buyerName]['lead_time_total'] += $leadTime;
-
-    //         $orderDetails = [
-    //             'id' => $tna->id,
-    //             'style' => $tna->style ?? 'N/A',
-    //             'po' => $tna->po ?? 'N/A',
-    //             'shipment_etd' => $tna->shipment_etd ?? ' ',
-    //             'inspection_actual_date' => $tna->inspection_actual_date ?? ' ',
-    //             'pp_meeting_actual' => $tna->pp_meeting_actual ?? ' ',
-    //         ];
-
-    //         if ($leadTime >= $okLeadTimeThreshold) {
-    //             $buyerSummary[$buyerName]['adequate_orders']++;
-    //             $buyerSummary[$buyerName]['adequate_details'][] = $orderDetails;
-    //         } else {
-    //             $buyerSummary[$buyerName]['inadequate_orders']++;
-    //             $buyerSummary[$buyerName]['inadequate_details'][] = $orderDetails;
-    //         }
-
-    //         $overallSummary['total_orders']++;
-    //         $overallSummary['lead_time_total'] += $leadTime;
-    //         if ($leadTime >= $okLeadTimeThreshold) {
-    //             $overallSummary['adequate_orders']++;
-    //         } else {
-    //             $overallSummary['inadequate_orders']++;
-    //         }
-    //     }
-
-    //     foreach ($buyerSummary as &$summary) {
-    //         $totalOrders = $summary['total_orders'];
-    //         $summary['inadequate_percentage'] = $totalOrders > 0
-    //             ? round(($summary['inadequate_orders'] / $totalOrders) * 100, 2)
-    //             : 0;
-    //         $summary['adequate_percentage'] = $totalOrders > 0
-    //             ? round(($summary['adequate_orders'] / $totalOrders) * 100, 2)
-    //             : 0;
-    //         $summary['average_lead_time'] = $totalOrders > 0
-    //             ? round($summary['lead_time_total'] / $totalOrders, 2)
-    //             : 0;
-    //     }
-
-    //     $overallSummary['inadequate_percentage'] = $overallSummary['total_orders'] > 0
-    //         ? round(($overallSummary['inadequate_orders'] / $overallSummary['total_orders']) * 100, 2)
-    //         : 0;
-    //     $overallSummary['adequate_percentage'] = $overallSummary['total_orders'] > 0
-    //         ? round(($overallSummary['adequate_orders'] / $overallSummary['total_orders']) * 100, 2)
-    //         : 0;
-    //     $overallSummary['average_lead_time'] = $overallSummary['total_orders'] > 0
-    //         ? round($overallSummary['lead_time_total'] / $overallSummary['total_orders'], 2)
-    //         : 0;
-
-    //     $isPlanningDepartment = in_array($user->role_id, [1, 4]);
-
-    //     return view('backend.OMS.reports.buyer_wise_production_lead_time', [
-    //         'buyerSummary' => $buyerSummary,
-    //         'overallSummary' => $overallSummary,
-    //         'from_date' => $request->from_date,
-    //         'to_date' => $request->to_date,
-    //         'isPlanningDepartment' => $isPlanningDepartment,
-    //     ]);
-    // }
-
-
     public function BuyerWiseProductionLeadTimeSummary(Request $request)
     {
         $okLeadTimeThreshold = 20;
@@ -1708,692 +1771,464 @@ class TNAController extends Controller
         return response()->json(['message' => 'Updates saved successfully!'], 200);
     }
 
-
-    // public function updateShipmentActualDates(Request $request)
-    // {
-    //     $user = auth()->user();
-
-    //     if (!in_array($user->role_id, [1, 4])) {
-    //         return response()->json(['message' => 'Unauthorized'], 403);
-    //     }
-
-    //     //check date format validation
-    //     // $validator = Validator::make($request->all(), [
-    //     //     'updates.*.shipment_actual_date' => 'required|date',
-    //     // ]);
-
-
-
-
-    //     // if ($validator->fails()) {
-    //     //     return response()->json(['message' => 'Invalid date format'], 422);
-    //     // }
-
-
-
-
-    //     $updates = $request->input('updates', []);
-    //     //change date format to Y-m-d before saving to database
-    //     foreach ($updates as $update) {
-    //         //if shipment_actual_date is empty, then skib that record and continue to next record
-    //         if (empty($update['shipment_actual_date'])) {
-    //             continue;
-    //         }
-    //         $update['shipment_actual_date'] = Carbon::parse($update['shipment_actual_date'])->format('Y-m-d');
-    //     }
-    //     foreach ($updates as $update) {
-    //         DB::table('t_n_a_s')->where('id', $update['id'])->update([
-    //             'shipment_actual_date' => $update['shipment_actual_date'] ?? null,
-    //         ]);
-
-    //         // etd_actual also needs to be updated same as shipment_actual_date and order_close to 1
-    //         DB::table('t_n_a_s')->where('id', $update['id'])->update([
-    //             'etd_actual' => $update['shipment_actual_date'] ?? null,
-    //             'order_close' => $update['order_close'] ? 1 : 0,
-    //         ]);
-    //     }
-
-    //     return response()->json(['message' => 'Updates saved successfully!'], 200);
-    // }
-
-
-    // public function MailBuyerWiseTnaSummary()
-    // {
-    //     // Get current date
-    //     $currentDate = Carbon::now()->format('Y-m-d');
-
-    //     // Fetch data from t_n_a_s table
-    //     $tnaData = Tna::where('order_close', '0')
-    //         ->orderBy('shipment_etd', 'asc')
-    //         ->get();
-
-    //     // Fetch buyer assignments (buyer_id and user_id (merchandiser))
-    //     $marchendiserWiseBuyer = DB::table('buyer_assigns')->get();
-
-    //     // Fetch emails of merchandisers, admins, and supervisors
-    //     $marchendiserEmails = DB::table('users')->pluck('email', 'id'); // Merchandiser emails by user ID
-    //     $adminEmails = 'santo@ntg.com.bd'; // Assuming you have a role field
-    //     $supervisorEmails = DB::table('users')->where('role_id', 4)->pluck('email'); // Same for supervisor role
-
-    //     // Process data to get counts for pending tasks
-    //     $buyers = [];
-    //     $columns = [
-    //         'lab_dip_submission',
-    //         'fabric_booking',
-    //         'fit_sample_submission',
-    //         'print_strike_off_submission',
-    //         'bulk_accessories_booking',
-    //         'fit_comments',
-    //         'bulk_yarn_inhouse',
-    //         'bulk_accessories_inhouse',
-    //         'pp_sample_submission',
-    //         'bulk_fabric_knitting',
-    //         'pp_comments_receive',
-    //         'bulk_fabric_dyeing',
-    //         'bulk_fabric_delivery',
-    //         'pp_meeting'
-    //     ];
-
-    //     foreach ($tnaData as $row) {
-    //         $buyerName = $row->buyer;
-    //         if (!isset($buyers[$buyerName])) {
-    //             $buyers[$buyerName] = [
-    //                 'data' => array_fill_keys($columns, 0),
-    //                 'details' => []
-    //             ];
-    //         }
-    //         foreach ($columns as $column) {
-    //             $planColumn = $column . '_plan';
-    //             $actualColumn = $column . '_actual';
-    //             if ($row->$planColumn && !$row->$actualColumn && $row->$planColumn <= $currentDate) {
-    //                 $buyers[$buyerName]['data'][$column]++;
-    //                 $buyers[$buyerName]['details'][$column][] = [
-    //                     'style' => $row->style,
-    //                     'po' => $row->po,
-    //                     'task' => $column,
-    //                     'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y')
-    //                 ];
-    //             }
-    //         }
-    //     }
-
-    //     // Send email to each buyer's assigned merchant, and cc to admin and supervisor
-    //     foreach ($marchendiserWiseBuyer as $assignment) {
-    //         $buyerId = $assignment->buyer_id;
-    //         $userId = $assignment->user_id; // Merchandiser ID
-
-    //         // Get the merchandiser email by ID
-    //         $merchantEmail = isset($marchendiserEmails[$userId]) ? $marchendiserEmails[$userId] : null;
-
-    //         // Prepare the email only for buyers with pending tasks
-    //         if (isset($buyers[$buyerId]) && array_sum($buyers[$buyerId]['data']) > 0) {
-    //             try {
-    //                 if (!$merchantEmail) {
-    //                     Log::warning('No email found for user ID ' . $userId);
-    //                     continue;
-    //                 }
-
-    //                 // Send the email to the merchant and cc admins and supervisors
-    //                 Mail::to($merchantEmail)
-    //                     ->cc($adminEmails) // CC admins
-    //                     ->bcc($supervisorEmails) // BCC supervisors
-    //                     ->send(new BuyerWiseTnaSummary($buyers[$buyerId], $columns));
-
-    //                 Log::info('Email sent to ' . $merchantEmail);
-    //             } catch (\Exception $e) {
-    //                 Log::error('Error sending email to ' . $merchantEmail . ': ' . $e->getMessage());
-    //             }
-    //         }
-    //     }
-
-    //     return view('backend.OMS.reports.buyer_wise_tna_summary', [
-    //         'buyers' => $buyers,
-    //         'columns' => $columns
-    //     ]);
-    //     // return response()->json(['status' => 'Emails sent successfully']);
-    // }
-
-    // public function MailBuyerWiseTnaSummary()
-    // {
-    //     // Get current date
-    //     $currentDate = Carbon::now()->format('Y-m-d');
-
-    //     // Retrieve the user's role and assigned buyers
-    //     $user = auth()->user();
-    //     $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
-
-    //     // Query TNAs based on the user's role and assigned buyers
-    //     $query =
-    //         Tna::where('order_close', '0')
-    //         ->orderBy('shipment_etd', 'asc');
-
-    //     if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
-    //         $query->whereIn('buyer_id', $buyerIds);
-    //     }
-
-    //     // Fetch data from t_n_a_s table
-    //     $tnaData = $query->get();
-
-    //     // Process data to get counts
-    //     $buyers = [];
-    //     $columns = [
-    //         'lab_dip_submission',
-    //         'fabric_booking',
-    //         'fit_sample_submission',
-    //         'print_strike_off_submission',
-    //         'bulk_accessories_booking',
-    //         'fit_comments',
-    //         'bulk_yarn_inhouse',
-    //         'bulk_accessories_inhouse',
-    //         'pp_sample_submission',
-    //         'bulk_fabric_knitting',
-    //         'pp_comments_receive',
-    //         'bulk_fabric_dyeing',
-    //         'bulk_fabric_delivery',
-    //         'pp_meeting'
-    //     ];
-
-    //     foreach ($tnaData as $row) {
-    //         $buyerName = $row->buyer;
-    //         if (!isset($buyers[$buyerName])) {
-    //             $buyers[$buyerName] = [
-    //                 'data' => array_fill_keys($columns, 0),
-    //                 'details' => []
-    //             ];
-    //         }
-    //         foreach ($columns as $column) {
-    //             $planColumn = $column . '_plan';
-    //             $actualColumn = $column . '_actual';
-    //             if ($row->$planColumn && !$row->$actualColumn && $row->$planColumn <= $currentDate) {
-    //                 $buyers[$buyerName]['data'][$column]++;
-    //                 $buyers[$buyerName]['details'][$column][] = [
-    //                     'style' => $row->style,
-    //                     'po' => $row->po,
-    //                     'task' => $column,
-    //                     'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y'),
-    //                     'shipment_etd' => Carbon::parse($row->shipment_etd)->format('d-M-y')
-    //                 ];
-    //             }
-    //         }
-    //     }
-
-    //     // Filter buyers with no data
-    //     $filteredBuyers = array_filter($buyers, function ($buyer) {
-    //         return array_sum($buyer['data']) > 0;
-    //     });
-
-    //     if (empty($filteredBuyers)) {
-    //         return response()->json(['status' => 'error', 'message' => 'No data available for the selected buyers.']);
-    //     }
-
-    //     // Generate email content
-    //     $emailContent = view('emails.buyer_wise_tna_summary', [
-    //         'buyers' => $filteredBuyers,
-    //         'columns' => $columns
-    //     ])->render();
-
-    //     // Send email
-    //     try {
-    //         Mail::send([], [], function ($message) use ($emailContent) {
-    //             $message->to('santo@ntg.com.bd')
-    //             ->subject('Buyer Wise TNA Summary')
-    //             ->setBody($emailContent, 'text/html');
-    //         });
-
-    //         return response()->json(['status' => 'success', 'message' => 'Email sent successfully.']);
-    //     } catch (\Exception $e) {
-    //         return response()->json(['status' => 'error', 'message' => 'Failed to send email.']);
-    //     }
-    // }
-
-
-
-
-
-    // public function MailBuyerWiseTnaSummary()
-    // {
-    //     // Get current date
-    //     $currentDate = Carbon::now()->format('Y-m-d');
-
-    //     // Retrieve merchants from users table
-    //     $merchants = User::where('role_id', 3)->get();
-
-    //     foreach ($merchants as $merchant) {
-    //         // Retrieve assigned buyers for the merchant
-    //         $buyerIds = BuyerAssign::where('user_id', $merchant->id)->pluck('buyer_id');
-
-    //         if ($buyerIds->isEmpty()) {
-    //             continue; // Skip merchant with no assigned buyers
-    //         }
-
-    //         // Query TNAs for the merchant's assigned buyers
-    //         $tnaData = Tna::whereIn('buyer_id', $buyerIds)
-    //             ->where('order_close', '0')
-    //             ->orderBy('shipment_etd', 'asc')
-    //             ->get();
-
-    //         // Process data to get counts
-    //         $buyers = [];
-    //         $columns = [
-    //             'lab_dip_submission',
-    //             'fabric_booking',
-    //             'fit_sample_submission',
-    //             'print_strike_off_submission',
-    //             'bulk_accessories_booking',
-    //             'fit_comments',
-    //             'bulk_yarn_inhouse',
-    //             'bulk_accessories_inhouse',
-    //             'pp_sample_submission',
-    //             'bulk_fabric_knitting',
-    //             'pp_comments_receive',
-    //             'bulk_fabric_dyeing',
-    //             'bulk_fabric_delivery',
-    //             'pp_meeting'
-    //         ];
-
-    //         foreach ($tnaData as $row) {
-    //             $buyerName = $row->buyer;
-    //             if (!isset($buyers[$buyerName])) {
-    //                 $buyers[$buyerName] = [
-    //                     'data' => array_fill_keys($columns, 0),
-    //                     'details' => []
-    //                 ];
-    //             }
-    //             foreach ($columns as $column) {
-    //                 $planColumn = $column . '_plan';
-    //                 $actualColumn = $column . '_actual';
-    //                 if ($row->$planColumn && !$row->$actualColumn && $row->$planColumn <= $currentDate) {
-    //                     $buyers[$buyerName]['data'][$column]++;
-    //                     $buyers[$buyerName]['details'][$column][] = [
-    //                         'style' => $row->style,
-    //                         'po' => $row->po,
-    //                         'task' => $column,
-    //                         'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y'),
-    //                         'shipment_etd' => Carbon::parse($row->shipment_etd)->format('d-M-y')
-    //                     ];
-    //                 }
-    //             }
-    //         }
-
-    //         // Filter buyers with no data
-    //         $filteredBuyers = array_filter($buyers, function ($buyer) {
-    //             return array_sum($buyer['data']) > 0;
-    //         });
-
-    //         if (empty($filteredBuyers)) {
-    //             continue; // Skip merchants with no data for their buyers
-    //         }
-
-    //         // Generate email content
-    //         $emailContent = view('emails.buyer_wise_tna_summary', [
-    //             'buyers' => $filteredBuyers,
-    //             'columns' => $columns
-    //         ])->render();
-
-    //         // Retrieve email recipients
-    //         $merchantEmail = $merchant->email; // Merchant's email
-    //         $adminEmails = User::where('role_id', 1)->pluck('email')->toArray(); // Admin emails
-    //         $supervisorEmails = User::where('role_id', 4)->pluck('email')->toArray(); // Supervisors
-
-    //         // Send email
-    //         try {
-    //             Mail::send([], [], function ($message) use ($emailContent, $merchantEmail, $adminEmails, $supervisorEmails) {
-    //                 $message->to($merchantEmail) // To merchant
-    //                     ->bcc($supervisorEmails) // BCC admin emails
-    //                     // ->cc('santo@ntg.com.bd') // CC supervisor emails
-    //                     ->subject('Buyer Wise TNA Summary')
-    //                     ->setBody($emailContent, 'text/html');
-    //             });
-    //         } catch (\Exception $e) {
-    //             // Log the exception and continue with the next merchant
-    //             Log::error('Failed to send email to ' . $merchantEmail . ': ' . $e->getMessage());
-    //         }
-    //     }
-
-    //     // return response()->json(['status' => 'success', 'message' => 'Emails sent successfully to merchants with available data.']);
-
-    //     return back()->withMessages('Emails sent successfully to merchants with available data.');
-    // }
-
-
-    // public function BuyerWiseProductionLeadTimeSummary()
-    // {
-    //     // Define the threshold for OK lead time
-    //     $okLeadTimeThreshold = 20;
-
-    //     // Retrieve the current user's role and assigned buyers
-    //     $user = auth()->user();
-    //     $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
-
-    //     // Query TNAs based on role and assigned buyers
-    //     $query = Tna::where('order_close', '0')->orderBy('shipment_etd', 'asc');
-    //     if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
-    //         $query->whereIn('buyer_id', $buyerIds);
-    //     }
-
-    //     // Fetch data
-    //     $tnaData = $query->get();
-
-    //     // Process data to generate the table
-    //     $buyerSummary = [];
-    //     foreach ($tnaData as $tna) {
-    //         $buyerName = $tna->buyer;
-    //         $leadTime = $tna->pp_meeting_actual ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->shipment_etd)) : 0;
-
-    //         if (!isset($buyerSummary[$buyerName])) {
-    //             $buyerSummary[$buyerName] = [
-    //                 'total_style' => 0,
-    //                 'ok_lead_time' => 0,
-    //             ];
-    //         }
-
-    //         // Increment Total style
-    //         $buyerSummary[$buyerName]['total_style']++;
-
-    //         // Increment OK lead time if the condition is met
-    //         if ($leadTime >= $okLeadTimeThreshold) {
-    //             $buyerSummary[$buyerName]['ok_lead_time']++;
-    //         }
-    //     }
-
-    //     // Calculate OK lead time percentage
-    //     foreach ($buyerSummary as $buyerName => $summary) {
-    //         $totalStyle = $summary['total_style'];
-    //         $okLeadTime = $summary['ok_lead_time'];
-
-    //         $buyerSummary[$buyerName]['ok_lead_time_percentage'] = $totalStyle > 0 ? round(($okLeadTime / $totalStyle) * 100, 2) : 0;
-    //     }
-
-    //     // Calculate overall averages
-    //     $totalStyles = array_sum(array_column($buyerSummary, 'total_style'));
-    //     $totalOkLeadTimes = array_sum(array_column($buyerSummary, 'ok_lead_time'));
-    //     $overallPercentage = $totalStyles > 0 ? round(($totalOkLeadTimes / $totalStyles) * 100, 2) : 0;
-
-    //     // Return summarized data to view
-    //     return view('backend.OMS.reports.buyer_wise_production_lead_time', [
-    //         'buyerSummary' => $buyerSummary,
-    //         'totalStyles' => $totalStyles,
-    //         'totalOkLeadTimes' => $totalOkLeadTimes,
-    //         'overallPercentage' => $overallPercentage,
-    //     ]);
-    // }
-
-    // public function BuyerWiseProductionLeadTimeSummary(Request $request)
-    // {
-    //     // Define the threshold for OK lead time
-    //     $okLeadTimeThreshold = 20;
-
-    //     // Retrieve the current user's role and assigned buyers
-    //     $user = auth()->user();
-    //     $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
-
-    //     // Query TNAs based on role, assigned buyers, and date range
-    //     $query = Tna::where('order_close', '0')->orderBy('shipment_etd', 'asc');
-
-    //     // Apply buyer filtering based on role
-    //     if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
-    //         $query->whereIn('buyer_id', $buyerIds);
-    //     }
-
-    //     // Apply date filters if provided
-    //     if ($request->has('from_date') && $request->has('to_date')) {
-    //         $query->whereBetween('shipment_etd', [$request->from_date, $request->to_date]);
-    //     }
-
-    //     // Fetch data
-    //     $tnaData = $query->get();
-
-    //     // Process data to generate the table (same logic as before)
-    //     $buyerSummary = [];
-    //     foreach ($tnaData as $tna) {
-    //         $buyerName = $tna->buyer;
-    //         $leadTime = $tna->pp_meeting_actual ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->shipment_etd)) : 0;
-
-    //         if (!isset($buyerSummary[$buyerName])) {
-    //             $buyerSummary[$buyerName] = [
-    //                 'inadequate_orders' => 0,
-    //                 'adequate_orders' => 0,
-    //                 'lead_time_total' => 0,
-    //                 'total_orders' => 0,
-    //             ];
-    //         }
-
-    //         // Increment Total Orders
-    //         $buyerSummary[$buyerName]['total_orders']++;
-    //         $buyerSummary[$buyerName]['lead_time_total'] += $leadTime;
-
-    //         // Check if lead time is adequate or inadequate
-    //         if ($leadTime >= $okLeadTimeThreshold) {
-    //             $buyerSummary[$buyerName]['adequate_orders']++;
-    //         } else {
-    //             $buyerSummary[$buyerName]['inadequate_orders']++;
-    //         }
-    //     }
-
-    //     // Calculate percentages and averages
-    //     foreach ($buyerSummary as $buyerName => &$summary) {
-    //         $totalOrders = $summary['total_orders'];
-    //         $summary['inadequate_percentage'] = $totalOrders > 0 ? round(($summary['inadequate_orders'] / $totalOrders) * 100, 2) : 0;
-    //         $summary['adequate_percentage'] = $totalOrders > 0 ? round(($summary['adequate_orders'] / $totalOrders) * 100, 2) : 0;
-    //         $summary['average_lead_time'] = $totalOrders > 0 ? round($summary['lead_time_total'] / $totalOrders, 2) : 0;
-    //     }
-
-    //     // Calculate overall totals
-    //     $overallSummary = [
-    //         'inadequate_orders' => array_sum(array_column($buyerSummary, 'inadequate_orders')),
-    //         'adequate_orders' => array_sum(array_column($buyerSummary, 'adequate_orders')),
-    //         'total_orders' => array_sum(array_column($buyerSummary, 'total_orders')),
-    //         'lead_time_total' => array_sum(array_column($buyerSummary, 'lead_time_total')),
-    //     ];
-    //     $overallSummary['inadequate_percentage'] = $overallSummary['total_orders'] > 0 ? round(($overallSummary['inadequate_orders'] / $overallSummary['total_orders']) * 100, 2) : 0;
-    //     $overallSummary['adequate_percentage'] = $overallSummary['total_orders'] > 0 ? round(($overallSummary['adequate_orders'] / $overallSummary['total_orders']) * 100, 2) : 0;
-    //     $overallSummary['average_lead_time'] = $overallSummary['total_orders'] > 0 ? round($overallSummary['lead_time_total'] / $overallSummary['total_orders'], 2) : 0;
-
-    //     foreach ($tnaData as $tna) {
-    //         $buyerName = $tna->buyer;
-    //         $leadTime = $tna->pp_meeting_actual
-    //         ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->shipment_etd))
-    //         : 0;
-
-    //         if (!isset($buyerSummary[$buyerName])) {
-    //             $buyerSummary[$buyerName] = [
-    //                 'inadequate_orders' => 0,
-    //                 'adequate_orders' => 0,
-    //                 'inadequate_details' => [],
-    //                 'adequate_details' => [],
-    //                 'lead_time_total' => 0,
-    //                 'total_orders' => 0,
-    //             ];
-    //         }
-
-    //         // Increment Total Orders
-    //         $buyerSummary[$buyerName]['total_orders']++;
-    //         $buyerSummary[$buyerName]['lead_time_total'] += $leadTime;
-
-    //         // Check if lead time is adequate or inadequate
-    //         $orderDetails = [
-    //             'style' => $tna->style ?? 'N/A',
-    //             'po' => $tna->po ?? 'N/A',
-    //             'shipment_etd' => $tna->shipment_etd ?? 'N/A',
-    //             // 7 days before shipment_etd
-    //             // 'inspection_plan' => $tna->shipment_etd ? Carbon::parse($tna->shipment_etd)->subDays(7)->format('Y-m-d') : 'N/A', 
-    //             'inspection_actual_date' => $tna->inspection_actual_date,
-    //             // 'pp_meeting_plan' => $tna->pp_meeting_plan ?? 'N/A',
-    //             'pp_meeting_actual' => $tna->pp_meeting_actual,
-    //         ];
-
-    //         if ($leadTime >= $okLeadTimeThreshold) {
-    //             $buyerSummary[$buyerName]['adequate_orders']++;
-    //             $buyerSummary[$buyerName]['adequate_details'][] = $orderDetails;
-    //         } else {
-    //             $buyerSummary[$buyerName]['inadequate_orders']++;
-    //             $buyerSummary[$buyerName]['inadequate_details'][] = $orderDetails;
-    //         }
-    //     }
-
-    //     // FAL Planning department users from users table
-
-    //     // dd($isPlanningDepartment);
-    //     if(auth()->user()->role_id == 1 || auth()->user()->role_id == 4){
-    //         $user = User::where('role_id', auth()->user()->role_id)->get();
-    //         $isPlanningDepartment = 'planning';
-    //     } 
-
-
-
-    //     // Return summarized data to view
-    //     return view('backend.OMS.reports.buyer_wise_production_lead_time', [
-    //         'buyerSummary' => $buyerSummary,
-    //         'overallSummary' => $overallSummary,
-    //         'from_date' => $request->from_date,
-    //         'to_date' => $request->to_date,
-    //         'isPlanningDepartment' => $isPlanningDepartment,
-    //     ]);
-    // }
-
-
-
-    // public function BuyerWiseProductionLeadTimeSummary(Request $request)
-    // {
-    //     // Define the threshold for OK lead time
-    //     $okLeadTimeThreshold = 20;
-
-    //     // Retrieve the current user's role and assigned buyers
-    //     $user = auth()->user();
-    //     $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
-
-    //     // Query TNAs based on role, assigned buyers, and date range
-    //     $query = Tna::where('order_close', '0')->orderBy('shipment_etd', 'asc');
-
-    //     // Apply buyer filtering based on role
-    //     if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
-    //         $query->whereIn('buyer_id', $buyerIds);
-    //     }
-
-    //     // Apply date filters if provided
-    //     if ($request->has('from_date') && $request->has('to_date')) {
-    //         $query->whereBetween('shipment_etd', [$request->from_date, $request->to_date]);
-    //     }
-
-    //     // Fetch data
-    //     $tnaData = $query->get();
-
-    //     // Initialize buyer summary
-    //     $buyerSummary = [];
-    //     $overallSummary = [
-    //         'inadequate_orders' => 0,
-    //         'adequate_orders' => 0,
-    //         'total_orders' => 0,
-    //         'lead_time_total' => 0,
-    //     ];
-
-    //     // Process data to generate summaries
-    //     foreach ($tnaData as $tna) {
-    //         $buyerName = $tna->buyer;
-    //         $leadTime = $tna->pp_meeting_actual
-    //             ? Carbon::parse($tna->pp_meeting_actual)->diffInDays(Carbon::parse($tna->shipment_etd))
-    //             : 0;
-
-    //         // Initialize buyer summary if not set
-    //         if (!isset($buyerSummary[$buyerName])) {
-    //             $buyerSummary[$buyerName] = [
-    //                 'inadequate_orders' => 0,
-    //                 'adequate_orders' => 0,
-    //                 'inadequate_details' => [],
-    //                 'adequate_details' => [],
-    //                 'lead_time_total' => 0,
-    //                 'total_orders' => 0,
-    //             ];
-    //         }
-
-    //         // Increment Total Orders and Lead Time
-    //         $buyerSummary[$buyerName]['total_orders']++;
-    //         $buyerSummary[$buyerName]['lead_time_total'] += $leadTime;
-
-    //         // Prepare order details
-    //         $orderDetails = [
-    //             'style' => $tna->style ?? 'N/A',
-    //             'po' => $tna->po ?? 'N/A',
-    //             'shipment_etd' => $tna->shipment_etd ?? 'N/A',
-    //             'inspection_actual_date' => $tna->inspection_actual_date ?? 'N/A',
-    //             'pp_meeting_actual' => $tna->pp_meeting_actual ?? 'N/A',
-    //         ];
-
-    //         // Classify orders based on lead time
-    //         if ($leadTime >= $okLeadTimeThreshold) {
-    //             $buyerSummary[$buyerName]['adequate_orders']++;
-    //             $buyerSummary[$buyerName]['adequate_details'][] = $orderDetails;
-    //         } else {
-    //             $buyerSummary[$buyerName]['inadequate_orders']++;
-    //             $buyerSummary[$buyerName]['inadequate_details'][] = $orderDetails;
-    //         }
-
-    //         // Update overall summary
-    //         $overallSummary['total_orders']++;
-    //         $overallSummary['lead_time_total'] += $leadTime;
-    //         if ($leadTime >= $okLeadTimeThreshold) {
-    //             $overallSummary['adequate_orders']++;
-    //         } else {
-    //             $overallSummary['inadequate_orders']++;
-    //         }
-    //     }
-
-    //     // Calculate percentages and averages
-    //     foreach ($buyerSummary as $buyerName => &$summary) {
-    //         $totalOrders = $summary['total_orders'];
-    //         $summary['inadequate_percentage'] = $totalOrders > 0
-    //             ? round(($summary['inadequate_orders'] / $totalOrders) * 100, 2)
-    //             : 0;
-    //         $summary['adequate_percentage'] = $totalOrders > 0
-    //             ? round(($summary['adequate_orders'] / $totalOrders) * 100, 2)
-    //             : 0;
-    //         $summary['average_lead_time'] = $totalOrders > 0
-    //             ? round($summary['lead_time_total'] / $totalOrders, 2)
-    //             : 0;
-    //     }
-
-    //     $overallSummary['inadequate_percentage'] = $overallSummary['total_orders'] > 0
-    //     ? round(($overallSummary['inadequate_orders'] / $overallSummary['total_orders']) * 100, 2)
-    //         : 0;
-    //     $overallSummary['adequate_percentage'] = $overallSummary['total_orders'] > 0
-    //     ? round(($overallSummary['adequate_orders'] / $overallSummary['total_orders']) * 100, 2)
-    //         : 0;
-    //     $overallSummary['average_lead_time'] = $overallSummary['total_orders'] > 0
-    //     ? round($overallSummary['lead_time_total'] / $overallSummary['total_orders'], 2)
-    //     : 0;
-
-    //     // Check user department for special handling
-    //     $isPlanningDepartment = null;
-    //     if (in_array(auth()->user()->role_id, [1, 4])) {
-    //         $isPlanningDepartment = 'planning';
-    //     }
-
-    //     // Return summarized data to view
-    //     return view('backend.OMS.reports.buyer_wise_production_lead_time', [
-    //         'buyerSummary' => $buyerSummary,
-    //         'overallSummary' => $overallSummary,
-    //         'from_date' => $request->from_date,
-    //         'to_date' => $request->to_date,
-    //         'isPlanningDepartment' => $isPlanningDepartment,
-    //     ]);
-    // }
-
-
-    //    public function updateTaskDetails(Request $request)
-    // {
-    //     $updates = $request->input('updates', []);
-
-    //     foreach ($updates as $update) {
-    //         DB::table('tnas')
-    //         ->where('id', $update['id'])
-    //             ->update([
-    //                 'inspection_actual_date' => $update['inspection_actual_date'],
-    //                 'pp_meeting_actual' => $update['pp_meeting_actual'],
-    //             ]);
-    //     }
-
-    //     return response()->json(['message' => 'Updates saved successfully!'], 200);
-    // }
-
-
-}
+    // TNA factory version 2 
+
+
+      public function planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash)
+    {
+        // dd($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash);
+        // Determine SOP format based on lead time
+        if ($total_lead_time <= 70) {
+            $sop_format = SOP::where('lead_time', 60)->get();
+            $final_inspection_plan = $shipmentETD->copy()->subDays(2);
+            $ex_factory_plan = $shipmentETD->copy()->subDays(1);
+        } elseif ($total_lead_time > 70 && $total_lead_time <= 84) {
+            $sop_format = SOP::where('lead_time', 75)->get();
+            $final_inspection_plan = $shipmentETD->copy()->subDays(2);
+            $ex_factory_plan = $shipmentETD->copy()->subDays(1);
+        } else {
+            $sop_format = SOP::where('lead_time', 90)->get();
+            $final_inspection_plan = $shipmentETD->copy()->subDays(5);
+            $ex_factory_plan = $shipmentETD->copy()->subDays(1);
+        }
+
+        // Plan dates using SOP format days
+        foreach ($sop_format as $sop) {
+            $dayOffset = $sop->day;
+            $particular = $sop->Perticulars;
+            $planDate = $poReceiveDate->copy()->addDays($dayOffset);
+
+            if ($printAndwash == null || $printAndwash == 'No Print and Wash') {
+
+                switch ($particular) {
+                    case 'Order Free Time':
+                        $tna->order_free_time = $shipmentETD->copy()->subDays($dayOffset);
+                        break;
+                    case 'Lab Dip Submission':
+                        $tna->lab_dip_submission_plan = $planDate;
+                        break;
+                    case 'Fabric Booking':
+                        $tna->fabric_booking_plan = $planDate;
+                        break;
+                    case 'Fit Sample Submission':
+                        $tna->fit_sample_submission_plan = $planDate;
+                        break;
+                    case 'Print Strike Off Submission':
+                        $tna->print_strike_off_submission_plan = $planDate;
+                        break;
+                    case 'Bulk Accessories Booking':
+                        $tna->bulk_accessories_booking_plan = $planDate;
+                        break;
+                    case 'Fit Comments':
+                        $tna->fit_comments_plan = $planDate;
+                        break;
+                    case 'Bulk Yarn Inhouse':
+                        $tna->bulk_yarn_inhouse_plan = $planDate;
+                        break;
+                        // new start
+                    case 'Bulk Accessories Inhouse':
+                        $tna->bulk_accessories_inhouse_plan = $planDate;
+                        break;
+                        // new end
+                    case 'PP Sample Submission':
+                        $tna->pp_sample_submission_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Knitting':
+                        $tna->bulk_fabric_knitting_plan = $planDate;
+                        break;
+                    case 'PP Comments Receive':
+                        $tna->pp_comments_receive_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Dyeing':
+                        $tna->bulk_fabric_dyeing_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Delivery':
+                        $tna->bulk_fabric_delivery_plan = $planDate;
+                        break;
+                    case 'PP Meeting':
+                        $tna->pp_meeting_plan = $planDate;
+                        break;
+                        //factory data
+                    case 'Fabrics and Accessories Inspection':
+                        $tna->fabrics_and_accessories_inspection_plan = $planDate;
+                        break;
+                    case 'Size Set Making':
+                        $tna->size_set_making_plan = $planDate;
+                        break;
+                    case 'Pattern Correction':
+                        $tna->pattern_correction_plan = $planDate;
+                        break; 
+                    case 'Bulk Cutting Start':
+                        $tna->cutting_plan = $planDate;
+                        break;
+                    case 'MC Layout and Folder Pre ':
+                        $tna->machines_layout_plan = $planDate;
+                        break;
+                   
+                    case 'Print/Emb. Start':
+                        $tna->print_start_plan = $planDate;
+                        break;
+                    case 'Bulk Sewing Input':
+                        $tna->bulk_sewing_input_plan = $planDate;
+                        break;
+                    case 'Bulk Wash Start':
+                        $tna->bulk_wash_start_plan = $planDate;
+                        break;
+                    case 'Bulk Finishing Start':
+                        $tna->bulk_finishing_start_plan = $planDate;
+                        break;
+                    case 'Bulk Cutting Close':
+                        $tna->bulk_cutting_close_plan = $planDate;
+                        break;
+                    case 'Print/Emb. Close':
+                       $tna->print_close_plan = $planDate;
+                        break;
+                    case 'Bulk Sewing Close':
+                        $tna->bulk_sewing_close_plan = $planDate;
+                        break;
+                    case 'Bulk Wash Close or Finihsing Recived':
+                       $tna->bulk_wash_close_plan = $planDate;
+                        break;
+                    case 'Bulk Finishing Close':
+                        $tna->bulk_finishing_close_plan = $planDate;
+                        break;
+                    case 'Pre-final Inspection':
+                        $tna->pre_final_inspection_plan = $planDate;
+                        break;
+
+                    default:
+                        break;
+
+                }
+
+
+                $tna->final_inspection_plan = $final_inspection_plan;
+
+                $tna->ex_factory_plan = $ex_factory_plan;
+
+            }elseif($printAndwash == 'Only Print')
+            {
+                switch ($particular) {
+                    case 'Order Free Time':
+                        $tna->order_free_time = $shipmentETD->copy()->subDays($dayOffset);
+                        break;
+                    case 'Lab Dip Submission':
+                        $tna->lab_dip_submission_plan = $planDate;
+                        break;
+                    case 'Fabric Booking':
+                        $tna->fabric_booking_plan = $planDate;
+                        break;
+                    case 'Fit Sample Submission':
+                        $tna->fit_sample_submission_plan = $planDate;
+                        break;
+                    case 'Print Strike Off Submission':
+                        $tna->print_strike_off_submission_plan = $planDate;
+                        break;
+                    case 'Bulk Accessories Booking':
+                        $tna->bulk_accessories_booking_plan = $planDate;
+                        break;
+                    case 'Fit Comments':
+                        $tna->fit_comments_plan = $planDate;
+                        break;
+                    case 'Bulk Yarn Inhouse':
+                        $tna->bulk_yarn_inhouse_plan = $planDate;
+                        break;
+                        // new start
+                    case 'Bulk Accessories Inhouse':
+                        $tna->bulk_accessories_inhouse_plan = $planDate;
+                        break;
+                        // new end
+                    case 'PP Sample Submission':
+                        $tna->pp_sample_submission_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Knitting':
+                        $tna->bulk_fabric_knitting_plan = $planDate;
+                        break;
+                    case 'PP Comments Receive':
+                        $tna->pp_comments_receive_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Dyeing':
+                        $tna->bulk_fabric_dyeing_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Delivery':
+                        $tna->bulk_fabric_delivery_plan = $planDate;
+                        break;
+                    case 'PP Meeting':
+                        $tna->pp_meeting_plan = $planDate;
+                        break;
+                        //factory data
+                    case 'Fabrics and Accessories Inspection ( Only Print )':
+                        $tna->fabrics_and_accessories_inspection_plan = $planDate;
+                        break;
+                    case 'Size Set Making ( Only Print )':
+                        $tna->size_set_making_plan = $planDate;
+                        break;
+                    case 'Pattern Correction ( Only Print )':
+                        $tna->pattern_correction_plan = $planDate;
+                        break;
+                    case 'Bulk Cutting Start ( Only Print )':
+                        $tna->cutting_plan = $planDate;
+                        break;
+                    case 'MC Layout and Folder Pre  ( Only Print )':
+                        $tna->machines_layout_plan = $planDate;
+                        break;
+                   
+                    case 'Print/Emb. Start ( Only Print )':
+                        $tna->print_start_plan = $planDate;
+                        break;
+                    case 'Bulk Sewing Input ( Only Print )':
+                        $tna->bulk_sewing_input_plan = $planDate;
+                        break;
+                    // case 'Bulk Wash Start':
+                    //     $tna->bulk_wash_start_plan = $planDate;
+                    //     break;
+                    case 'Bulk Finishing Start ( Only Print )':
+                        $tna->bulk_finishing_start_plan = $planDate;
+                        break;
+                    case 'Bulk Cutting Close ( Only Print )':
+                        $tna->bulk_cutting_close_plan = $planDate;
+                        break;
+                    case 'Print/Emb. Close ( Only Print )':
+                       $tna->print_close_plan = $planDate;
+                        break;
+                    case 'Bulk Sewing Close ( Only Print )':
+                        $tna->bulk_sewing_close_plan = $planDate;
+                        break;
+                    // case 'Bulk Wash Close or Finihsing Recived':
+                    //     $tna->bulk_wash_close_plan = $planDate;
+                    //     $tna->finishing_received_plan = $planDate;
+                    //     break;
+                    case 'Bulk Finishing Close ( Only Print )':
+                        $tna->bulk_finishing_close_plan = $planDate;
+                        break;
+                    case 'Pre-final Inspection ( Only Print )':
+                        $tna->pre_final_inspection_plan = $planDate;
+                        break;
+
+                    default:
+                        break;
+                }
+
+
+                $tna->final_inspection_plan = $final_inspection_plan;
+
+                $tna->ex_factory_plan = $ex_factory_plan;
+            }elseif($printAndwash == 'Only Wash')
+            {
+                switch ($particular) {
+                    case 'Order Free Time':
+                        $tna->order_free_time = $shipmentETD->copy()->subDays($dayOffset);
+                        break;
+                    case 'Lab Dip Submission':
+                        $tna->lab_dip_submission_plan = $planDate;
+                        break;
+                    case 'Fabric Booking':
+                        $tna->fabric_booking_plan = $planDate;
+                        break;
+                    case 'Fit Sample Submission':
+                        $tna->fit_sample_submission_plan = $planDate;
+                        break;
+                    case 'Print Strike Off Submission':
+                        $tna->print_strike_off_submission_plan = $planDate;
+                        break;
+                    case 'Bulk Accessories Booking':
+                        $tna->bulk_accessories_booking_plan = $planDate;
+                        break;
+                    case 'Fit Comments':
+                        $tna->fit_comments_plan = $planDate;
+                        break;
+                    case 'Bulk Yarn Inhouse':
+                        $tna->bulk_yarn_inhouse_plan = $planDate;
+                        break;
+                        // new start
+                    case 'Bulk Accessories Inhouse':
+                        $tna->bulk_accessories_inhouse_plan = $planDate;
+                        break;
+                        // new end
+                    case 'PP Sample Submission':
+                        $tna->pp_sample_submission_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Knitting':
+                        $tna->bulk_fabric_knitting_plan = $planDate;
+                        break;
+                    case 'PP Comments Receive':
+                        $tna->pp_comments_receive_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Dyeing':
+                        $tna->bulk_fabric_dyeing_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Delivery':
+                        $tna->bulk_fabric_delivery_plan = $planDate;
+                        break;
+                    case 'PP Meeting':
+                        $tna->pp_meeting_plan = $planDate;
+                        break;
+                        //factory data
+                    case 'Fabrics and Accessories Inspection ( Only Wash )':
+                        $tna->fabrics_and_accessories_inspection_plan = $planDate;
+                        break;
+                    case 'Size Set Making ( Only Wash )':
+                        $tna->size_set_making_plan = $planDate;
+                        break;
+                    case 'Pattern Correction ( Only Wash )':
+                        $tna->pattern_correction_plan = $planDate;
+                        break;
+                    case 'Bulk Cutting Start ( Only Wash )':
+                        $tna->cutting_plan = $planDate;
+                        break;
+                    case 'MC Layout and Folder Pre  ( Only Wash )':
+                        $tna->machines_layout_plan = $planDate;
+                        break;
+                   
+                    // case 'Print/Emb. Start':
+                    //     $tna->print_start_plan = $planDate;
+                    //     break;
+                    case 'Bulk Sewing Input ( Only Wash )':
+                        $tna->bulk_sewing_input_plan = $planDate;
+                        break;
+                    case 'Bulk Wash Start ( Only Wash )':
+                        $tna->bulk_wash_start_plan = $planDate;
+                        break;
+                    case 'Bulk Finishing Start ( Only Wash )':
+                        $tna->bulk_finishing_start_plan = $planDate;
+                        break;
+                    case 'Bulk Cutting Close ( Only Wash )':
+                        $tna->bulk_cutting_close_plan = $planDate;
+                        break;
+                    // case 'Print/Emb. Close':
+                    //    $tna->print_close_plan = $planDate;
+                    //     break;
+                    case 'Bulk Sewing Close ( Only Wash )':                       $tna->bulk_sewing_close_plan = $planDate;
+                        break;
+                    case 'Bulk Wash Close or Finihsing Recived ( Only Wash )':
+                       $tna->bulk_wash_close_plan = $planDate;
+                        break;
+                    case 'Bulk Finishing Close ( Only Wash )':
+                        $tna->bulk_finishing_close_plan = $planDate;
+                        break;
+                    case 'Pre-final Inspection ( Only Wash )':
+                        $tna->pre_final_inspection_plan = $planDate;
+                        break;
+
+                    default:
+                        break;
+                }
+
+
+                $tna->final_inspection_plan = $final_inspection_plan;
+
+                $tna->ex_factory_plan = $ex_factory_plan;
+            }else{
+                switch ($particular) {
+                    case 'Order Free Time':
+                        $tna->order_free_time = $shipmentETD->copy()->subDays($dayOffset);
+                        break;
+                    case 'Lab Dip Submission':
+                        $tna->lab_dip_submission_plan = $planDate;
+                        break;
+                    case 'Fabric Booking':
+                        $tna->fabric_booking_plan = $planDate;
+                        break;
+                    case 'Fit Sample Submission':
+                        $tna->fit_sample_submission_plan = $planDate;
+                        break;
+                    case 'Print Strike Off Submission':
+                        $tna->print_strike_off_submission_plan = $planDate;
+                        break;
+                    case 'Bulk Accessories Booking':
+                        $tna->bulk_accessories_booking_plan = $planDate;
+                        break;
+                    case 'Fit Comments':
+                        $tna->fit_comments_plan = $planDate;
+                        break;
+                    case 'Bulk Yarn Inhouse':
+                        $tna->bulk_yarn_inhouse_plan = $planDate;
+                        break;
+                        // new start
+                    case 'Bulk Accessories Inhouse':
+                        $tna->bulk_accessories_inhouse_plan = $planDate;
+                        break;
+                        // new end
+                    case 'PP Sample Submission':
+                        $tna->pp_sample_submission_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Knitting':
+                        $tna->bulk_fabric_knitting_plan = $planDate;
+                        break;
+                    case 'PP Comments Receive':
+                        $tna->pp_comments_receive_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Dyeing':
+                        $tna->bulk_fabric_dyeing_plan = $planDate;
+                        break;
+                    case 'Bulk Fabric Delivery':
+                        $tna->bulk_fabric_delivery_plan = $planDate;
+                        break;
+                    case 'PP Meeting':
+                        $tna->pp_meeting_plan = $planDate;
+                        break;
+                        //factory data
+                    case 'Fabrics and Accessories Inspection ( Both Print and Wash )':
+                        $tna->fabrics_and_accessories_inspection_plan = $planDate;
+                        break;
+                    case 'Size Set Making ( Both Print and Wash )':                       $tna->size_set_making_plan = $planDate;
+                        break;
+                    case 'Pattern Correction ( Both Print and Wash )':
+                        $tna->pattern_correction_plan = $planDate;
+                        break;
+                    case 'Bulk Cutting Start ( Both Print and Wash )':
+                        $tna->cutting_plan = $planDate;
+                        break;
+                    case 'MC Layout and Folder Pre  ( Both Print and Wash )':
+                        $tna->machines_layout_plan = $planDate;
+                        break;
+                    
+                    case 'Print/Emb. Start ( Both Print and Wash )':                        $tna->print_start_plan = $planDate;
+                        break;
+                    case 'Bulk Sewing Input ( Both Print and Wash )':
+                        $tna->bulk_sewing_input_plan = $planDate;
+                        break;
+                    case 'Bulk Wash Start ( Both Print and Wash )':                       $tna->bulk_wash_start_plan = $planDate;
+                        break;
+                    case 'Bulk Finishing Start ( Both Print and Wash )':
+                        $tna->bulk_finishing_start_plan = $planDate;
+                        break;
+                    case 'Bulk Cutting Close ( Both Print and Wash )':
+                        $tna->bulk_cutting_close_plan = $planDate;
+                        break;
+                    case 'Print/Emb. Close ( Both Print and Wash )':                       $tna->print_close_plan = $planDate;
+                        break;
+                    case 'Bulk Sewing Close ( Both Print and Wash )':
+                        $tna->bulk_sewing_close_plan = $planDate;
+                        break;
+                    case 'Bulk Wash Close or Finihsing Recived ( Both Print and Wash )':
+                       $tna->bulk_wash_close_plan = $planDate;
+                        break;
+                    case 'Bulk Finishing Close ( Both Print and Wash )':
+                        $tna->bulk_finishing_close_plan = $planDate;
+                        break;
+                    case 'Pre-final Inspection ( Both Print and Wash )':
+                        $tna->pre_final_inspection_plan = $planDate;
+                        break;
+
+                    default:
+                        break;
+                }
+
+
+                $tna->final_inspection_plan = $final_inspection_plan;
+
+                $tna->ex_factory_plan = $ex_factory_plan;
+            }
+
+
+        }
+
+        $tna->etd_plan = $shipmentETD;
+
+        // dd($tna);
+
+        return $tna;
+    }
+
+  }

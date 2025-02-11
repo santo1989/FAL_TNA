@@ -29,8 +29,8 @@ class CreateJobsTable extends Migration
             $table->string('destination')->nullable();
             $table->string('color')->nullable();
             $table->string('size')->nullable();
-            $table->decimal('color_quantity', 8, 2)->nullable();
-            $table->decimal('order_quantity', 8, 2)->nullable();
+            $table->bigInteger('color_quantity')->nullable();
+            $table->bigInteger('order_quantity')->nullable();
             // $table->decimal('sewing_balance', 8, 2)->nullable();
             $table->string('production_plan')->nullable();
             $table->date('ins_date')->nullable();
@@ -49,6 +49,8 @@ class CreateJobsTable extends Migration
             $table->string('aop')->nullable();
             $table->string('print')->nullable();
             $table->string('embroidery')->nullable();
+            $table->string('wash')->nullable();
+            $table->string('print_wash')->nullable();
             $table->text('remarks')->nullable()->nullable();
             $table->string('buyer_hold_shipment')->nullable();
             $table->string('buyer_hold_shipment_reason')->nullable();
@@ -60,6 +62,17 @@ class CreateJobsTable extends Migration
             'order_close')->nullable();
             $table->string('order_close_reason')->nullable();
             $table->string('order_close_date')->nullable();
+            $table->string('order_close_by')->nullable();
+            $table->string('job_column1')->nullable();
+            $table->string('job_column2')->nullable();
+            $table->string('job_column3')->nullable();
+            $table->string('job_column4')->nullable();
+            $table->string('job_column5')->nullable();
+            $table->string('job_column6')->nullable();
+            $table->string('job_column7')->nullable();
+            $table->string('job_column8')->nullable();
+            $table->string('job_column9')->nullable();
+            $table->string('job_column10')->nullable();
             $table->timestamps();
         });
     }

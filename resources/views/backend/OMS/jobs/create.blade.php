@@ -30,13 +30,25 @@
         }
     </style>
     <div class="card mx-5 my-5" style="background-color: white;">
-        <h3 class="text-center p-1">Create Job</h3>
-        @if (session('message'))
-            <div class="alert alert-success">
-                <span class="close" data-dismiss="alert">&times;</span>
-                <strong>{{ session('message') }}.</strong>
+        <div class="card-header">
+            <div class="row">
+                <div class="col">
+                    <a href="{{ route('home') }}" class="btn btn-md btn-outline-success"><i class="fas fa-arrow-left"></i>
+                        Home</a>
+                </div>
+                <div class="col">
+                    <h3 class="text-center p-1">Create Job</h3>
+                    @if (session('message'))
+                        <div class="alert alert-success">
+                            <span class="close" data-dismiss="alert">&times;</span>
+                            <strong>{{ session('message') }}.</strong>
+                        </div>
+                    @endif
+                </div>
+                <div class="col">
+                </div>
             </div>
-        @endif
+        </div>
 
         <x-backend.layouts.elements.errors />
         <div class="row p-1">
@@ -58,7 +70,7 @@
                                             @php
                                                 $job_no = App\Models\Job::max('id') + 1;
                                                 $job_no =
-                                                    'FAL-' . date('Y') . '-' . str_pad($job_no, 6, '0', STR_PAD_LEFT);
+                                                    'FAL-' . date('y') . '-' . str_pad($job_no, 6, '0', STR_PAD_LEFT);
                                             @endphp
                                             <input type="text" name="job_no" class="form-control"
                                                 placeholder="Job No" value="{{ old('job_no', $job_no) }}" readonly>
@@ -81,7 +93,7 @@
                                     <tr>
                                         <td class="create_label_column">Style</td>
                                         <td class="create_input_column">
-                                            @php
+                                            {{-- @php
                                                 $styles = DB::table('jobs')->select('style')->distinct()->get();
                                             @endphp
 
@@ -101,7 +113,9 @@
                                                     class="form-control mt-2"
                                                     style="display:{{ old('style') == 'other' ? 'block' : 'none' }};"
                                                     value="{{ old('style_input') }}" placeholder="Enter new style">
-                                            </div>
+                                            </div> --}}
+                                            <input type="text" name="style" class="form-control"
+                                                placeholder="Style" value="{{ old('style') }}" required>
                                         </td>
                                         <td class="create_label_column">PO</td>
                                         <td class="create_input_column">
@@ -113,8 +127,8 @@
                                                 <select id="po-select" name="po" class="form-control"
                                                     onchange="toggleInputField(this, 'po-input')">
                                                     <option value="">Select PO</option>
-                                                    <option value="other"
-                                                        {{ old('po') == 'other' ? 'selected' : '' }}>Other</option>
+                                                    <option value="other" {{ old('po') == 'other' ? 'selected' : '' }}>
+                                                        Other</option>
                                                     @foreach ($pos as $po)
                                                         <option value="{{ $po->po }}"
                                                             {{ old('po') == $po->po ? 'selected' : '' }}>
@@ -408,17 +422,19 @@
                                         <td class="create_label_column">Order Quantity</td>
                                         <td class="create_input_column">
                                             <input type="number" name="order_quantity" class="form-control"
-                                                placeholder="Order Quantity" value="{{ old('order_quantity') }}"
-                                                required readonly>
+                                                placeholder="Order Quantity" value="{{ old('order_quantity') ?? 0 }}"
+                                                required>
                                         </td>
                                     </tr>
                                 </tbody>
                             </table>
+
+
                             <table class="table table-bordered mt-2" id="colorWayTable">
                                 <thead>
                                     <tr>
                                         <th>Color</th>
-                                        <th>Size</th>
+                                        {{-- <th>Size</th> --}}
                                         <th>Quantity</th>
                                         <th>Action</th>
                                     </tr>
@@ -431,6 +447,39 @@
                                                     <input type="text" name="color[]" class="form-control"
                                                         placeholder="Color" value="{{ $color }}" required>
                                                 </td>
+                                                <input type="hidden" name="size[]" class="form-control"
+                                                    placeholder="Size" value="{{ old('size')[$index] ?? 'ALL' }}"
+                                                    required readonly>
+                                                {{-- <td>
+                                                   
+                                                    <select name="size[]" class="form-control" required>
+                                                        <option value="">Select Size</option>
+                                                        <option value="XS"
+                                                            {{ old('size')[$index] == 'XS' ? 'selected' : '' }}>XS
+                                                        </option>
+                                                        <option value="S"
+                                                            {{ old('size')[$index] == 'S' ? 'selected' : '' }}>S
+                                                        </option>
+                                                        <option value="M"
+                                                            {{ old('size')[$index] == 'M' ? 'selected' : '' }}>M
+                                                        </option>
+                                                        <option value="L"
+                                                            {{ old('size')[$index] == 'L' ? 'selected' : '' }}>L
+                                                        </option>
+                                                        <option value="XL"
+                                                            {{ old('size')[$index] == 'XL' ? 'selected' : '' }}>XL
+                                                        </option>
+                                                        <option value="XXL"
+                                                            {{ old('size')[$index] == 'XXL' ? 'selected' : '' }}>XXL
+                                                        </option>
+                                                        <option value="XXXL"
+                                                            {{ old('size')[$index] == 'XXXL' ? 'selected' : '' }}>XXXL
+                                                        </option>
+                                                        <option value="XXXXL"
+                                                            {{ old('size')[$index] == 'XXXXL' ? 'selected' : '' }}>
+                                                            XXXXL</option>
+                                                    </select> 
+                                                </td> --}}
                                                 <td>
                                                     <input type="number" name="color_quantity[]"
                                                         class="form-control" placeholder="Quantity"
@@ -448,10 +497,33 @@
                                                 <input type="text" name="color[]" class="form-control"
                                                     placeholder="Color" required>
                                             </td>
-                                            <td>
-                                                <input type="text" name="size[]" class="form-control"
-                                                    placeholder="Size" required>
-                                            </td>
+                                            <input type="hidden" name="size[]" class="form-control"
+                                                placeholder="Size" required value="ALL" readonly>
+                                            {{-- <td>
+                                                
+                                                 <select name="size[]" class="form-control" required>
+                                                    <option value="">Select Size</option>
+                                                    <option value="XS">XS</option>
+                                                    <option value="S">S</option>
+                                                    <option value="M">M</option>
+                                                    <option value="L">L</option>
+                                                    <option value="XL">XL</option>
+                                                    <option value="XXL">XXL</option>
+                                                    <option value="XXXL">XXXL</option>
+                                                    <option value="XXXXL">XXXXL</option>
+                                                    <option value="other_size">ADD NEW SIZE</option>
+                                                </select>
+                                                <script>
+                                                    $(document).ready(function() {
+                                                        $('select[name="size[]"]').change(function() {
+                                                            if ($(this).val() == 'other_size') {
+                                                                $(this).after('<input type="text" name="size[]" class="form-control mt-2" placeholder="Enter new size">');
+                                                                $(this).remove();
+                                                            }
+                                                        });
+                                                    });
+                                                </script> 
+                                            </td> --}}
                                             <td>
                                                 <input type="number" name="color_quantity[]" class="form-control"
                                                     placeholder="Quantity" required>
@@ -474,16 +546,22 @@
                             </table>
                             <table class="table">
                                 <tr>
-                                    <td class="create_label_column">Inspection Date</td>
+                                    {{-- <td class="create_label_column">Inspection Date</td>
                                     <td class="create_input_column">
                                         <input type="date" name="ins_date" class="form-control"
                                             value="{{ old('ins_date') }}">
+                                    </td> --}}
+
+                                    <td class="create_label_column">Order / PO Received Date</td>
+                                    <td class="create_input_column">
+                                        <input type="date" name="order_received_date" class="form-control"
+                                            value="{{ old('order_received_date') }}" id="order_received_date">
                                     </td>
 
-                                    <td class="create_label_column">Delivery Date</td>
+                                    <td class="create_label_column">Shipment / Delivery Date</td>
                                     <td class="create_input_column">
                                         <input type="date" name="delivery_date" class="form-control"
-                                            value="{{ old('delivery_date') }}">
+                                            value="{{ old('delivery_date') }}" id="delivery_date">
                                     </td>
                                 </tr>
                                 <tr>
@@ -544,58 +622,103 @@
                                         <input type="text" name="fabrication" class="form-control"
                                             placeholder="Fabrication" value="{{ old('fabrication') }}">
                                     </td>
-                                    <td class="create_label_column">Order Received Date</td>
+                                    <!-- Wash Dropdown -->
+                                    <td class="create_label_column">Wash</td>
                                     <td class="create_input_column">
-                                        <input type="date" name="order_received_date" class="form-control"
-                                            value="{{ old('order_received_date') }}">
+                                        <select id="wash" name="wash" class="form-control">
+                                            <option value="No Wash" {{ old('wash') == 'No Wash' ? 'selected' : '' }}>
+                                                No Wash</option>
+                                            <option value="Normal Wash"
+                                                {{ old('wash') == 'Normal Wash' ? 'selected' : '' }}>Normal Wash
+                                            </option>
+                                            <option value="Semi-Critical Wash"
+                                                {{ old('wash') == 'Semi-Critical Wash' ? 'selected' : '' }}>
+                                                Semi-Critical Wash</option>
+                                            <option value="Critical Wash"
+                                                {{ old('wash') == 'Critical Wash' ? 'selected' : '' }}>Critical Wash
+                                            </option>
+                                        </select>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="create_label_column">AOP</td>
                                     <td class="create_input_column">
                                         <select name="aop" class="form-control">
-                                            <option value="">Select AOP</option>
+                                            {{-- <option value="">Select AOP</option> --}}
+                                            <option value="No" {{ old('aop') == 'No' ? 'selected' : '' }}>No
+                                            </option>
                                             <option value="Yes" {{ old('aop') == 'Yes' ? 'selected' : '' }}>Yes
                                             </option>
-                                            <option value="No" {{ old('aop') == 'No' ? 'selected' : '' }}>No
+                                            {{-- <option value="No" {{ old('aop') == 'No' ? 'selected' : '' }}>No
+                                            </option> --}}
+                                        </select>
+                                    </td>
+                                    <!-- Print Dropdown -->
+                                    <td class="create_label_column">Print</td>
+                                    <td class="create_input_column">
+                                        <select id="print" name="print" class="form-control">
+                                            <option value="No Print"
+                                                {{ old('print') == 'No Print' ? 'selected' : '' }}>No Print</option>
+                                            <option value="Chest Print"
+                                                {{ old('print') == 'Chest Print' ? 'selected' : '' }}>Chest Print
+                                            </option>
+                                            <option value="Neck Print"
+                                                {{ old('print') == 'Neck Print' ? 'selected' : '' }}>Neck Print
+                                            </option>
+                                            <option value="Both Print"
+                                                {{ old('print') == 'Both Print' ? 'selected' : '' }}>Both Print
                                             </option>
                                         </select>
                                     </td>
-                                    <td class="create_label_column">Print</td>
-                                    <td class="create_input_column">
-                                        {{-- <input type="text" name="print" class="form-control"
-                                            placeholder="Print" value="{{ old('print') }}"> --}}
-                                        <select name="print" class="form-control">
-                                            <option value="">Select Print Type</option>
-                                            <option value="Chest Print"
-                                                {{ old('print') == 'Chest Print' ? 'selected' : '' }}>
-                                                Chest Print</option>
-                                            <option value="Neck Print"
-                                                {{ old('print') == 'Neck Print' ? 'selected' : '' }}>
-                                                Neck Print</option>
-                                            <option value="Both Print"
-                                                {{ old('print') == 'Both Print' ? 'selected' : '' }}>
-                                                Both Print</option>
-                                            <option value="No Print"
-                                                {{ old('print') == 'No Print' ? 'selected' : '' }}>
-                                                No Print</option>
-                                        </select>
                                     </td>
                                 </tr>
                                 <tr>
                                     <td class="create_label_column">Embroidery</td>
                                     <td class="create_input_column">
                                         <select name="embroidery" class="form-control">
-                                            <option value="">Select Embroidery</option>
-                                            <option value="Yes" {{ old('embroidery') == 'Yes' ? 'selected' : '' }}>
-                                                Yes</option>
+                                            {{-- <option value="">Select Embroidery</option> --}}
                                             <option value="No" {{ old('embroidery') == 'No' ? 'selected' : '' }}>
                                                 No</option>
+                                            <option value="Yes" {{ old('embroidery') == 'Yes' ? 'selected' : '' }}>
+                                                Yes</option>
+                                            {{-- <option value="No" {{ old('embroidery') == 'No' ? 'selected' : '' }}>
+                                                No</option> --}}
                                         </select>
                                     </td>
+                                    <td class="create_label_column">Lead Time</td>
+                                    <td class="create_input_column">
+                                        <input type="number" name="total_lead_time" class="form-control"
+                                            placeholder="Lead Time" value="{{ old('total_lead_time') }}" readonly
+                                            id="total_lead_time">
+                                    </td>
+                                </tr>
+                                <tr>
                                     <td class="create_label_column">Remarks</td>
                                     <td class="create_input_column">
                                         <textarea name="remarks" class="form-control" placeholder="Remarks">{{ old('remarks') }}</textarea>
+                                    </td>
+                                    <!-- Print/Wash Dropdown -->
+                                    <td class="create_label_column">Print/Wash</td>
+                                    <td class="create_input_column">
+                                        {{-- <select id="print_wash" name="print_wash" class="form-control" required
+                                            readonly>
+                                            <option value="">Select Print/Wash</option>
+                                            <option value="No Print and Wash"
+                                                {{ old('print_wash') == 'No Print and Wash' ? 'selected' : '' }}>No
+                                                Print and Wash</option>
+                                            <option value="Only Print"
+                                                {{ old('print_wash') == 'Only Print' ? 'selected' : '' }}>Only Print
+                                            </option>
+                                            <option value="Only Wash"
+                                                {{ old('print_wash') == 'Only Wash' ? 'selected' : '' }}>Only Wash
+                                            </option>
+                                            <option value="Both Print and Wash"
+                                                {{ old('print_wash') == 'Both Print and Wash' ? 'selected' : '' }}>Both
+                                                Print and Wash</option>
+                                        </select> --}}
+                                        <input type="text" name="print_wash" class="form-control"
+                                            placeholder="Print/Wash" value="{{ old('print_wash') }}" required
+                                            readonly id="print_wash">
                                     </td>
                                 </tr>
                                 </tbody>
@@ -606,7 +729,10 @@
                                 <button type="submit" id="saveButton" class="btn btn-outline-success">
                                     <i class="fas fa-save"></i> Save
                                 </button>
-                                <a href="{{ route('jobs.index') }}" class="btn btn-outline-secondary">
+                                <button type="reset" class="btn btn-outline-danger" id="resetButton">
+                                    <i class="fas fa-undo"></i> Reset </button>
+                                <a href="{{ route('jobs.index') }}" class="btn btn-outline-secondary"
+                                    id="cancelButton">
                                     <i class="fas fa-arrow-left"></i> Cancel
                                 </a>
                             </div>
@@ -620,8 +746,169 @@
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
-
     <script>
+        // Cookie handling functions
+        function getCookie(name) {
+            const value = `; ${document.cookie}`;
+            const parts = value.split(`; ${name}=`);
+            if (parts.length === 2) return parts.pop().split(';').shift();
+        }
+
+        function saveFormDataToCookie() {
+            const formElements = document.querySelectorAll('form input, form select, form textarea');
+            const formData = {};
+
+            // Group elements by name and handle array fields
+            const elementsByName = {};
+            formElements.forEach(element => {
+                if (!element.name) return;
+                if (!elementsByName[element.name]) {
+                    elementsByName[element.name] = [];
+                }
+                elementsByName[element.name].push(element);
+            });
+
+            Object.entries(elementsByName).forEach(([name, elements]) => {
+                if (name.endsWith('[]')) {
+                    formData[name] = elements.map(el => el.value);
+                } else {
+                    formData[name] = elements[0].value;
+                }
+            });
+
+            document.cookie =
+                `formData=${JSON.stringify(formData)}; expires=${new Date(Date.now() + 86400e3).toUTCString()}; path=/`;
+        }
+
+        function loadFormDataFromCookie() {
+            const formDataJson = getCookie('formData');
+            if (!formDataJson) return;
+
+            const formData = JSON.parse(formDataJson);
+
+            // Handle colorWayTable dynamic rows
+            if (formData['color[]'] && Array.isArray(formData['color[]'])) {
+                const tbody = document.querySelector('#colorWayTable tbody');
+                tbody.innerHTML = ''; // Clear existing rows
+
+                formData['color[]'].forEach((color, index) => {
+                    const newRowHtml = `
+                    <tr>
+                        <td><input type="text" name="color[]" class="form-control" placeholder="Color" required></td>
+                        <input type="hidden" name="size[]" value="${formData['size[]']?.[index] || 'ALL'}">
+                        <td><input type="number" name="color_quantity[]" class="form-control" placeholder="Quantity" required></td>
+                        <td><a href="javascript:void(0)" class="btn btn-outline-danger" id="removeColorWay">Remove</a></td>
+                    </tr>
+                `;
+                    tbody.insertAdjacentHTML('beforeend', newRowHtml);
+                    const newRow = tbody.lastElementChild;
+                    newRow.querySelector('input[name="color[]"]').value = color;
+                    newRow.querySelector('input[name="color_quantity[]"]').value = formData['color_quantity[]']?.[
+                        index
+                    ] || '';
+                });
+
+                // Show save button if there are entries
+                if (formData['color[]'].length > 0) {
+                    document.getElementById('saveButton').style.display = 'block';
+                }
+            }
+
+            // Handle other form fields
+            Object.entries(formData).forEach(([name, value]) => {
+                if (name.endsWith('[]')) return;
+
+                const elements = document.querySelectorAll(`[name="${name}"]`);
+                if (elements.length > 0) {
+                    elements.forEach(element => {
+                        if (element.type !== 'file') { // Skip file inputs
+                            element.value = value;
+                            if ($(element).hasClass('select2-hidden-accessible')) {
+                                $(element).trigger('change');
+                            }
+                        }
+                    });
+                }
+            });
+        }
+
+        // Save form data on any input
+        const form = document.querySelector('form');
+        form.addEventListener('input', () => saveFormDataToCookie());
+        form.addEventListener('change', () => saveFormDataToCookie());
+
+        // Load saved data when page loads
+        window.addEventListener('load', () => {
+            loadFormDataFromCookie();
+            // Initialize calculations with loaded data
+            calculateProduction();
+            calculateTotalValue();
+            calculateTotalCM();
+            calculateFabricQuantity();
+        });
+
+        // Clear cookie on form submit
+        form.addEventListener('submit', () => {
+            document.cookie = 'formData=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        });
+
+        // Clear cookie on reset or cancel
+        document.getElementById('cancelButton').addEventListener('click', () => {
+            document.cookie = 'formData=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        });
+
+        document.getElementById('resetButton').addEventListener('click', () => {
+            document.cookie = 'formData=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;';
+        });
+
+        $(document).ready(function() {
+            function updatePrintWashDropdown() {
+                var print = $('#print').val();
+                var wash = $('#wash').val();
+
+                if ((print === 'Chest Print' || print === 'Neck Print' || print === 'Both Print') && wash ===
+                    'No Wash') {
+                    $('#print_wash').val('Only Print');
+                } else if (print === 'No Print' && (wash === 'Normal Wash' || wash === 'Semi-Critical Wash' ||
+                        wash === 'Critical Wash')) {
+                    $('#print_wash').val('Only Wash');
+                } else if (print === 'No Print' && wash === 'No Wash') {
+                    $('#print_wash').val('No Print and Wash');
+                } else if ((print === 'Chest Print' || print === 'Neck Print' || print === 'Both Print') && (
+                        wash === 'Normal Wash' || wash === 'Semi-Critical Wash' || wash === 'Critical Wash')) {
+                    $('#print_wash').val('Both Print and Wash');
+                } else {
+                    $('#print_wash').val('');
+                }
+            }
+
+            // Initial update
+            updatePrintWashDropdown();
+
+            // Update on change of print or wash dropdown
+            $('#print, #wash').change(function() {
+                updatePrintWashDropdown();
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('#order_received_date').change(function() {
+                var order_received_date = new Date($('#order_received_date').val());
+                var delivery_date = new Date($('#delivery_date').val());
+                var diffTime = Math.abs(delivery_date - order_received_date);
+                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                $('#total_lead_time').val(diffDays);
+            });
+            $('#delivery_date').change(function() {
+                var order_received_date = new Date($('#order_received_date').val());
+                var delivery_date = new Date($('#delivery_date').val());
+                var diffTime = Math.abs(delivery_date - order_received_date);
+                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                $('#total_lead_time').val(diffDays);
+            });
+        });
+
         $(document).ready(function() {
 
             $('#style-select').select2();
@@ -661,7 +948,8 @@
             $('#colorWayTable').on('click', '#addColorWay', function() {
                 var newRow = `<tr>
                 <td><input type="text" name="color[]" class="form-control" placeholder="Color" required></td>
-                <td><input type="text" name="size[]" class="form-control" placeholder="Size" required></td>
+                <input type="hidden" name="size[]" class="form-control"
+                                                    placeholder="Size" required value="ALL" readonly>
                 <td><input type="number" name="color_quantity[]" class="form-control" placeholder="Quantity" required></td>
                 <td><a href="javascript:void(0)" class="btn btn-outline-danger" id="removeColorWay">Remove</a></td>
             </tr>`;
@@ -745,5 +1033,42 @@
         document.querySelector('input[name="consumption_dzn"]').addEventListener('input', function() {
             calculateFabricQuantity();
         });
+
+        // // save all form data to the browser until savebutton click to submit the form and if any form input chage before save the update that to browser and after submit the form clear the browser data
+        // var form = document.querySelector('form');
+        // form.addEventListener('input', function() {
+        //     var formData = new FormData(form);
+        //     for (var pair of formData.entries()) {
+        //         localStorage.setItem(pair[0], pair[1]);
+        //     }
+        // });
+        // form.addEventListener('submit', function() {
+        //     localStorage.clear();
+        // });
+
+        // // Load saved data from browser
+        // window.addEventListener('load', function() {
+        //     var form = document.querySelector('form');
+        //     var formData = new FormData(form);
+        //     for (var pair of formData.entries()) {
+        //         var input = document.querySelector(`[name="${pair[0]}"]`);
+        //         if (input) {
+        //             input.value = pair[1];
+        //         }
+        //     }
+        // });
+
+        // //if click cancel button or reset button then also clear browser data
+        // document.getElementById('cancelButton').addEventListener('click', function() {
+        //     localStorage.clear();
+        // });
+        // document.getElementById('resetButton').addEventListener('click', function() {
+        //     localStorage.clear();
+        // });
+
+       
     </script>
+
+
+
 </x-backend.layouts.master>

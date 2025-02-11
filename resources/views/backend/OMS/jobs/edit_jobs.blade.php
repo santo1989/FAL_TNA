@@ -404,7 +404,7 @@
                                              </td>
                                              <td>
                                                  <input type="text" name="size[]" class="form-control"
-                                                     placeholder="Size" value="{{ $color->size }}">
+                                                     placeholder="Size" value="{{ $color->size }}" readonly>
                                              </td>
                                              <td>
                                                  <input type="number" name="color_quantity[]" class="form-control"
@@ -424,17 +424,17 @@
                              </table>
                              <table class="table">
                                  <tr>
-                                     <td class="create_label_column">Inspection Date</td>
-                                     <td class="create_input_column">
-                                         <input type="date" name="ins_date" class="form-control"
-                                             value="{{ $job->ins_date }}">
-                                     </td>
+                                      <td class="create_label_column">Order / PO Received Date</td>
+                                    <td class="create_input_column">
+                                        <input type="date" name="order_received_date" class="form-control"
+                                            value="{{ old('order_received_date') ?? $job->order_received_date }}" id="order_received_date">
+                                    </td>
 
-                                     <td class="create_label_column">Delivery Date</td>
-                                     <td class="create_input_column">
-                                         <input type="date" name="delivery_date" class="form-control"
-                                             value="{{ $job->delivery_date }}">
-                                     </td>
+                                    <td class="create_label_column">Shipment / Delivery Date</td>
+                                    <td class="create_input_column">
+                                        <input type="date" name="delivery_date" class="form-control"
+                                            value="{{ old('delivery_date') ?? $job->delivery_date }}" id="delivery_date">
+                                    </td>
                                  </tr>
                                  <tr>
                                      <td class="create_label_column">Target SMV</td>
@@ -494,11 +494,23 @@
                                          <input type="text" name="fabrication" class="form-control"
                                              placeholder="Fabrication" value="{{ $job->fabrication }}">
                                      </td>
-                                     <td class="create_label_column">Order Received Date</td>
-                                     <td class="create_input_column">
-                                         <input type="date" name="order_received_date" class="form-control"
-                                             value="{{ $job->order_received_date }}">
-                                     </td>
+                                     <!-- Wash Dropdown -->
+                                    <td class="create_label_column">Wash</td>
+                                    <td class="create_input_column">
+                                        <select id="wash" name="wash" class="form-control">
+                                            <option value="No Wash" {{ $job->wash == 'No Wash' ? 'selected' : '' }}>
+                                                No Wash</option>
+                                            <option value="Normal Wash"
+                                                {{ $job->wash == 'Normal Wash' ? 'selected' : '' }}>Normal Wash
+                                            </option>
+                                            <option value="Semi-Critical Wash"
+                                                {{ $job->wash == 'Semi-Critical Wash' ? 'selected' : '' }}>
+                                                Semi-Critical Wash</option>
+                                            <option value="Critical Wash"
+                                                {{ $job->wash == 'Critical Wash' ? 'selected' : '' }}>Critical Wash
+                                            </option>
+                                        </select>
+                                    </td>
                                  </tr>
                                  <tr>
                                      <td class="create_label_column">AOP</td>
@@ -511,11 +523,22 @@
                                              </option>
                                          </select>
                                      </td>
-                                     <td class="create_label_column">Print</td>
-                                     <td class="create_input_column">
-                                         <input type="text" name="print" class="form-control"
-                                             placeholder="Print" value="{{ $job->print }}">
-                                     </td>
+                                     <!-- Print Dropdown -->
+                                    <td class="create_label_column">Print</td>
+                                    <td class="create_input_column">
+                                        <select id="print" name="print" class="form-control">
+                                            <option value="No Print"
+                                                {{ $job->print == 'No Print' ? 'selected' : '' }}>No Print</option>
+                                            <option value="Chest Print"
+                                                {{ $job->print == 'Chest Print' ? 'selected' : '' }}>Chest Print
+                                            </option>
+                                            <option value="Neck Print"
+                                                {{ $job->print == 'Neck Print' ? 'selected' : '' }}>Neck Print
+                                            </option>
+                                            <option value="Both Print"
+                                                {{ $job->print == 'Both Print' ? 'selected' : '' }}>Both Print
+                                            </option>
+                                        </select>
                                  </tr>
                                  <tr>
                                      <td class="create_label_column">Embroidery</td>
@@ -528,11 +551,41 @@
                                                  No</option>
                                          </select>
                                      </td>
-                                     <td class="create_label_column">Remarks</td>
-                                     <td class="create_input_column">
-                                         <textarea name="remarks" class="form-control" placeholder="Remarks">{{ $job->remarks }}</textarea>
-                                     </td>
+                                      <td class="create_label_column">Lead Time</td>
+                                    <td class="create_input_column">
+                                        <input type="number" name="total_lead_time" class="form-control"
+                                            placeholder="Lead Time" value="{{ $job->total_lead_time }}" readonly
+                                            id="total_lead_time">
+                                    </td>
                                  </tr>
+                                 <tr>
+                                    <td class="create_label_column">Remarks</td>
+                                    <td class="create_input_column">
+                                        <textarea name="remarks" class="form-control" placeholder="Remarks">{{ old('remarks') }}</textarea>
+                                    </td>
+                                    <!-- Print/Wash Dropdown -->
+                                    <td class="create_label_column">Print/Wash</td>
+                                    <td class="create_input_column">
+                                        {{-- <select id="print_wash" name="print_wash" class="form-control" required
+                                            readonly>
+                                            <option value="">Select Print/Wash</option>
+                                            <option value="No Print and Wash"
+                                                {{ old('print_wash') == 'No Print and Wash' ? 'selected' : '' }}>No
+                                                Print and Wash</option>
+                                            <option value="Only Print"
+                                                {{ old('print_wash') == 'Only Print' ? 'selected' : '' }}>Only Print
+                                            </option>
+                                            <option value="Only Wash"
+                                                {{ old('print_wash') == 'Only Wash' ? 'selected' : '' }}>Only Wash
+                                            </option>
+                                            <option value="Both Print and Wash"
+                                                {{ old('print_wash') == 'Both Print and Wash' ? 'selected' : '' }}>Both
+                                                Print and Wash</option>
+                                        </select> --}}
+                                        <input type="text" name="print_wash" class="form-control"
+                                            placeholder="Print/Wash" value="{{ old('print_wash') }}" required readonly id="print_wash">
+                                    </td>
+                                </tr>
                                  </tbody>
                              </table>
 
@@ -556,6 +609,54 @@
      <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
      <script>
+          $(document).ready(function() {
+            function updatePrintWashDropdown() {
+                var print = $('#print').val();
+                var wash = $('#wash').val();
+
+                if ((print === 'Chest Print' || print === 'Neck Print' || print === 'Both Print') && wash ===
+                    'No Wash') {
+                    $('#print_wash').val('Only Print');
+                } else if (print === 'No Print' && (wash === 'Normal Wash' || wash === 'Semi-Critical Wash' ||
+                        wash === 'Critical Wash')) {
+                    $('#print_wash').val('Only Wash');
+                } else if (print === 'No Print' && wash === 'No Wash') {
+                    $('#print_wash').val('No Print and Wash');
+                } else if ((print === 'Chest Print' || print === 'Neck Print' || print === 'Both Print') && (
+                        wash === 'Normal Wash' || wash === 'Semi-Critical Wash' || wash === 'Critical Wash')) {
+                    $('#print_wash').val('Both Print and Wash');
+                } else {
+                    $('#print_wash').val('');
+                }
+            }
+
+            // Initial update
+            updatePrintWashDropdown();
+
+            // Update on change of print or wash dropdown
+            $('#print, #wash').change(function() {
+                updatePrintWashDropdown();
+            });
+        });
+    </script>
+    <script>
+        $(document).ready(function() {
+            $('#order_received_date').change(function() {
+                var order_received_date = new Date($('#order_received_date').val());
+                var delivery_date = new Date($('#delivery_date').val());
+                var diffTime = Math.abs(delivery_date - order_received_date);
+                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                $('#total_lead_time').val(diffDays);
+            });
+            $('#delivery_date').change(function() {
+                var order_received_date = new Date($('#order_received_date').val());
+                var delivery_date = new Date($('#delivery_date').val());
+                var diffTime = Math.abs(delivery_date - order_received_date);
+                var diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                $('#total_lead_time').val(diffDays);
+            });
+        });
+   
          $(document).ready(function() {
 
              $('#style-select').select2();

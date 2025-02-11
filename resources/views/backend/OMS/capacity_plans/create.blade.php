@@ -76,6 +76,7 @@
 
         <x-backend.layouts.elements.errors />
         <h1 class="text-center">Update Capacity Plan</h1>
+
         <form action="{{ route('capacity_plans.store') }}" method="POST">
             @csrf
             <div class="row p-1">
@@ -92,12 +93,15 @@
                             <!-- Production Plan Input -->
                             <table class="table">
                                 <tbody>
+                                    
                                     <tr>
                                         <td class="create_label_column">Production Plan</td>
                                         <td class="create_input_column">
                                             <input type="month" name="production_plan" id="productionPlan"
                                                 class="form-control" placeholder="Production Plan" required>
                                         </td>
+                                        
+
                                         <td class="create_label_column">Number of running machines</td>
                                         <td class="create_input_column">
                                             <input type="number" name="running_machines" id="running_machines"
@@ -490,7 +494,7 @@
                 document.getElementById('dailyCapacityMinutes').value = dailyCapacityMinutes.toFixed(2);
                 document.getElementById('weeklyCapacityMinutes').value = weeklyCapacityMinutes.toFixed(2);
                 document.getElementById('monthlyCapacityMinutes').value = monthlyCapacityMinutes.toFixed(2);
-                document.getElementById('monthlyCapacityQuantity').value = capacityQuantity.toFixed(2);
+                document.getElementById('monthlyCapacityQuantity').value = capacityQuantity;
                 document.getElementById('monthlyCapacityValue').value = capacityValue.toFixed(2);
             }
         });

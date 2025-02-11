@@ -17,6 +17,9 @@
                     <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary">
                         <i class="fas fa-arrow-left"></i> Close
                     </a>
+                    <button class="btn btn-outline-primary" onclick="exportTableToExcel('printTable', 'BuyerWiseOnTimeShipmentSummary')">
+                        <i class="fas fa-file-excel"></i> Export
+                    </button>
 
                 </div>
                 <div class="col-md-6">
@@ -47,7 +50,7 @@
                 </div>
 
                 <!-- Data Table -->
-                <table class="table table-bordered table-hover text-center text-wrap" style="font-size: 12px;">
+                <table class="table table-bordered table-hover text-center text-wrap" style="font-size: 12px;" id="printTable">
                     <thead class="thead-dark">
                         <tr>
                             <th>Buyer</th>
@@ -75,7 +78,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach ($buyerSummary as $buyer => $data)
+                        @forelse ($buyerSummary as $buyer => $data)
                             <tr>
                                 <td>{{ $buyer }}</td>
                                 <!-- On Time Orders -->
@@ -127,21 +130,30 @@
                                 <td>{{ $data['late_percentage'] }}%</td>
                                 <td>{{ $data['pending_percentage'] }}%</td>
                             </tr>
-                        @endforeach
+                        @empty
+                            <tr>
+                                <td colspan="11">No data found.</td>
+                            </tr>
+                        @endforelse
                     </tbody>
                     <tfoot>
                         <tr class="font-weight-bold">
-                            <td>Total</td>
-                            <td>{{ $overallSummary['on_time_orders'] }}</td>
-                            <td>{{ $overallSummary['on_time_percentage'] }}%</td>
-                            <td>{{ $overallSummary['late_orders'] }}</td>
-                            <td>{{ $overallSummary['late_percentage'] }}%</td>
-                            <td>{{ $overallSummary['pending_orders'] }}</td>
-                            <td>{{ $overallSummary['pending_percentage'] }}%</td>
-                            <td>{{ $overallSummary['total_orders'] }}</td>
-                            <td>{{ $overallSummary['on_time_percentage'] }}%</td>
-                            <td>{{ $overallSummary['late_percentage'] }}%</td>
-                            <td>{{ $overallSummary['pending_percentage'] }}%</td>
+                            <td>Overall</td>
+                            @isset($overallSummary)
+                                
+                                <td>{{ $overallSummary['on_time_orders'] }}</td>
+                                <td>{{ $overallSummary['on_time_percentage'] }}%</td>
+                                <td>{{ $overallSummary['late_orders'] }}</td>
+                                <td>{{ $overallSummary['late_percentage'] }}%</td>
+                                <td>{{ $overallSummary['pending_orders'] }}</td>
+                                <td>{{ $overallSummary['pending_percentage'] }}%</td>
+                                <td>{{ $overallSummary['total_orders'] }}</td>
+                                <td>{{ $overallSummary['on_time_percentage'] }}%</td>
+                                <td>{{ $overallSummary['late_percentage'] }}%</td>
+                                <td>{{ $overallSummary['pending_percentage'] }}%</td>
+                                
+                            @endisset
+                            
                         </tr>
                     </tfoot>
                 </table>
@@ -266,7 +278,27 @@
                     });
                 </script>
 
+<!-- Include SheetJS Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 
+    <script>
+        function exportTableToExcel(tableID, filename = 'excel_data') {
+            // Get the table element
+            const table = document.getElementById(tableID);
+
+            // Convert table to a worksheet
+            const ws = XLSX.utils.table_to_sheet(table, {
+                raw: true
+            });
+
+            // Create a new workbook
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+
+            // Write the workbook and trigger download
+            XLSX.writeFile(wb, `${filename}.xlsx`);
+        }
+    </script>
 
 
 </x-backend.layouts.master>

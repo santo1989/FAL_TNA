@@ -89,6 +89,7 @@
                                              </select>
                                          </td>
 
+                                        
                                          {{-- <td class="create_label_column">Color</td>
                                          <td class="create_input_column">
                                              <input type="text" name="color" id="color" class="form-control"
@@ -120,6 +121,23 @@
                                                  class="form-control" required readonly>
                                          </td>
                                      </tr>
+                                     <tr>
+                                         <td class="create_label_column">Remarks</td>
+                                         <td class="create_input_column">
+                                             <textarea name="remarks" id="remarks" class="form-control" rows="3"></textarea>
+                                         </td>
+                                         <!-- create a dropdown for the print_wash where option are only_print, only_wash, both_print_and_wash, no_print_or_wash -->
+                                            <td class="create_label_column">Print/Wash</td>
+                                            <td class="create_input_column">
+                                                <select id="print_wash" name="print_wash" class="form-control" required>
+                                                    <option value="">Select Print/Wash</option>
+                                                    <option value="Only Print">Only Print</option>
+                                                    <option value="Only Wash">Only Wash</option>
+                                                    <option value="Both Print and Wash">Both Print and Wash</option>
+                                                    <option value="No Print and Wash">No Print or Wash</option>
+                                                </select>
+                                            </td>
+                                    </tr>
                                      <script>
                                          $(document).ready(function() {
                                              $('#po_receive_date').change(function() {

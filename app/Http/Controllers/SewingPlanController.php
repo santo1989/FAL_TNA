@@ -6,6 +6,7 @@ use App\Models\CapacityPlan;
 use App\Models\Job;
 use App\Models\SewingBalance;
 use App\Models\SewingPlan;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
@@ -25,12 +26,63 @@ class SewingPlanController extends Controller
         DB::beginTransaction();
 
         try {
-            // Fetch color, size, and quantity details from the jobs table
+            $buyers = Job::select('buyer','buyer_id')->distinct()->get();
+
+            //if production plan is set, then fetch the sewing plans for that production plan
+            if (request()->has('production_plan')) {
+                $productionPlan = request()->production_plan;
+
+                //convert the string to date
+                $productionPlan = Carbon::parse($productionPlan)->format('Y-m');
+
+                //production_plan column convert the string to date format in the database and check if it exists
+
+                $db_production_plan = CapacityPlan::where('production_plan', $productionPlan)->first();
+
+            } else {
+               //set no production_plan if production plan is not set
+                $db_production_plan = null;
+            }
+            
+            //buyer_id, style, po, shipment_start_date, shipment_end_date wise check and fetch the data to add $color_sizes_qties if not exist in sewing plan
+            $buyer_id_filter = request()->buyer_id ?? null;
+            $style_filter = request()->style ?? null;
+            $po_filter = request()->po ?? null;
+            $shipment_start_date = request()->shipment_start_date ?? null;
+            $shipment_end_date = request()->shipment_end_date ?? null;
+
+            //fitler the data from jobs table
             $color_sizes_qties = Job::select('id', 'job_no', 'color', 'size', 'color_quantity')
-            ->whereNull('buyer_hold_shipment')
-            ->whereNull('buyer_cancel_shipment')
-            ->whereNull('order_close')
-            ->get();
+                ->whereNull('buyer_hold_shipment')
+                ->whereNull('buyer_cancel_shipment')
+                ->whereNull('order_close')
+                ->when($buyer_id_filter, function ($query) use ($buyer_id_filter) {
+                    return $query->where('buyer_id', $buyer_id_filter);
+                })
+                ->when($style_filter, function ($query) use ($style_filter) {
+                    return $query->where('style', $style_filter);
+                })
+                ->when($po_filter, function ($query) use ($po_filter) {
+                    return $query->where('po', $po_filter);
+                })
+                ->when($shipment_start_date, function ($query) use ($shipment_start_date) {
+                    return $query->where('shipment_start_date', $shipment_start_date);
+                })
+                ->when($shipment_end_date, function ($query) use ($shipment_end_date) {
+                    return $query->where('shipment_end_date', $shipment_end_date);
+                })
+                ->get();
+
+
+
+
+
+            // // Fetch color, size, and quantity details from the jobs table
+            // $color_sizes_qties = Job::select('id', 'job_no', 'color', 'size', 'color_quantity')
+            // ->whereNull('buyer_hold_shipment')
+            // ->whereNull('buyer_cancel_shipment')
+            // ->whereNull('order_close')
+            // ->get();
 
             // Fetch sewing balance entries
             $old_sewing_balances = SewingBalance::select('job_no', 'color', 'size', 'sewing_balance')->get();
@@ -73,7 +125,7 @@ class SewingPlanController extends Controller
             DB::commit();
 
             // Return the view with the calculated data
-            return view('backend.OMS.sewing_plans.create', compact('color_sizes_qties'));
+            return view('backend.OMS.sewing_plans.create', compact('color_sizes_qties', 'buyers', 'db_production_plan'));
         } catch (\Exception $e) {
             // Rollback the transaction in case of an error
             DB::rollBack();

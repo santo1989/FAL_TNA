@@ -6,8 +6,12 @@ use App\Models\Buyer;
 use App\Models\Job;
 use App\Models\SewingBalance;
 use App\Models\Shipment;
+use App\Models\TNA;
+use App\Models\TnaExplanation;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Validator;
 
 class JobController extends Controller
 {
@@ -89,7 +93,7 @@ class JobController extends Controller
 
     public function store(Request $request)
     {
-        //dd($request->all()); // Uncomment this line for debugging purposes only.
+        // dd($request->all()); // Uncomment this line for debugging purposes only.
 
         try {
             // Validate the request data if needed.
@@ -104,7 +108,8 @@ class JobController extends Controller
                 'item' => 'required|string',
                 'country' => 'required|string',
                 'order_quantity' => 'required|integer',
-                'ins_date' => 'required|date',
+                // 'ins_date' => 'required|date',
+                'print_wash' => 'required|string',
                 'delivery_date' => 'required|date',
                 'target_smv' => 'required|numeric',
                 'production_minutes' => 'required|numeric',
@@ -123,10 +128,41 @@ class JobController extends Controller
                 'color_quantity' => 'required|array',
             ]);
 
+            // dd($request->all());
+
+            // Calculate total lead time in days
+            $poReceiveDate = Carbon::parse($request->order_received_date);
+            $shipmentETD = Carbon::parse($request->delivery_date);
+            $total_lead_time = $shipmentETD->diffInDays($poReceiveDate);
+            $printAndwash = $request->print_wash;
+
+            if ($total_lead_time < 0) {
+                return redirect()->back()->withInput()->withErrors(['error' => 'Invalid total lead time.']);
+            }
+
             // Extract the color and color_quantity arrays from the request.
             $colors = $request->input('color');
             $sizes = $request->input('size');
             $colorQuantities = $request->input('color_quantity');
+
+            //dynamically update job_no field from the combination of job_no-buyer(first 3 letter)-style_no-po_no 
+            $buyer = Buyer::find($request->input('buyer_id'));
+            $style = $request->input('style');
+            $po = $request->input('po');
+
+            // Ensure at least 3 characters are taken, or the full string if less than 3
+            $buyer_suffix = substr($buyer->name, 0, 4);
+
+            // Ensure at least 3 characters are taken, or the full string if less than 3
+            $style_suffix = substr($style, -4); // Takes last 3 characters (or full string if less than 3)
+            $po_suffix = substr($po, -4); // Takes last 3 characters (or full string if less than 3)
+
+            $job_no = strtoupper($request->input('job_no')) . '-' .
+                strtoupper($buyer_suffix) . '-' .
+                strtoupper($style_suffix) . '-' .
+                strtoupper($po_suffix);
+
+            // dd($job_no);
 
             foreach ($colors as $key => $color) {
                 Job::create([
@@ -137,7 +173,7 @@ class JobController extends Controller
                     'division_name' => $request->input('division_name'),
                     'buyer_id' => $request->input('buyer_id'),
                     'buyer' => Buyer::find($request->input('buyer_id'))->name,
-                    'job_no' => strtoupper($request->input('job_no')),
+                    'job_no' => strtoupper($job_no),
                     'style' => strtoupper($request->input('style')),
                     'po' => strtoupper($request->input('po')),
                     'department' => strtoupper($request->input('department')),
@@ -146,8 +182,11 @@ class JobController extends Controller
                     'size' => strtoupper($sizes[$key]),
                     'color_quantity' => $colorQuantities[$key],
                     'destination' => $request->input('country'),
-                    'order_quantity' => $request->input('order_quantity'),
-                    'ins_date' => $request->input('ins_date'),
+                    // save $request->input('order_quantity') as integer
+                    'order_quantity' => number_format($request->input('order_quantity'), 0, '.', ''),
+                    // 'ins_date' => $request->input('ins_date'),
+                    'wash' => $request->input('wash'),
+                    'print_wash' => $request->input('print_wash'),
                     'delivery_date' => $request->input('delivery_date'),
                     'target_smv' => $request->input('target_smv'),
                     'production_minutes' => $request->input('production_minutes'),
@@ -165,6 +204,63 @@ class JobController extends Controller
                     'remarks' => strtoupper($request->input('remarks')),
                 ]);
             }
+
+            //retrieve the incerted job information
+            $job = Job::where('job_no', $job_no)->first();
+            // dd($job);
+
+            //send  "buyer_id", "style", "po", "item", "qty_pcs", "po_receive_date", "shipment_etd", "total_lead_time", "remarks", "print_wash" information to the  TNAController store method to generate TNA 
+
+            //$job->order_quantity value convert to integer 
+            $order_quantity = abs($job->order_quantity);
+
+            // In your JobController's store method:
+
+            $tna_data = [
+                'job_id' => $job->id,
+                'job_no' => $job->job_no,
+                'buyer_id' => $job->buyer_id,
+                'style' => $job->style,
+                'po' => $job->po,
+                'item' => $job->item,
+                'qty_pcs' => $order_quantity,
+                'po_receive_date' => $request->input('order_received_date'),
+                'shipment_etd' => $request->input('delivery_date'),
+                'total_lead_time' => $request->input('total_lead_time'),
+                'remarks' => $job->remarks,
+                'print_wash' => $job->print_wash,
+            ];
+
+            // Validate the data
+            $validator = Validator::make(
+                $tna_data,
+                [
+                    'job_id' => 'required|integer',
+                    'job_no' => 'required|string',
+                    'buyer_id' => 'required|integer',
+                    'style' => 'required|string',
+                    'po' => 'required|string',
+                    'item' => 'required|string',
+                    'qty_pcs' => 'required|integer',
+                    'po_receive_date' => 'required|date',
+                    'shipment_etd' => 'required|date',
+                    'total_lead_time' => 'required|integer',
+                    'remarks' => 'nullable|string',
+                    'print_wash' => 'nullable|string',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            // Pass data to TNAController
+            $tnaRequest = new Request($tna_data);
+            $tnaController = app(TNAController::class);
+            $tnaController->store($tnaRequest);
+
+
+
 
             return redirect()->route('jobs.index')->with('message', 'Job created successfully.');
         } catch (\Exception $e) {
@@ -202,6 +298,94 @@ class JobController extends Controller
         // dd($jobs);
         return view('backend.OMS.jobs.edit_jobs', compact('job', 'jobs_no', 'colors'));
     }
+
+    // public function update_edit_jobs(Request $request, $edit_jobs)
+    // {
+    //     // Retrieve the job(s) using where clause
+    //     $jobs = Job::where('job_no', $edit_jobs)->get();
+
+    //     // Validate the request data if needed.
+    //     $request->validate([
+    //         'created_by' => 'required|integer',
+    //         'division_id' => 'required|integer',
+    //         'company_id' => 'required|integer',
+    //         'job_no' => 'required|string',
+    //         'style' => 'required|string',
+    //         'po' => 'required|string',
+    //         'department' => 'required|string',
+    //         'item' => 'required|string',
+    //         'country' => 'required|string',
+    //         'order_quantity' => 'required|integer',
+    //         'ins_date' => 'required|date',
+    //         'delivery_date' => 'required|date',
+    //         'target_smv' => 'required|numeric',
+    //         'production_minutes' => 'required|numeric',
+    //         'unit_price' => 'required|numeric',
+    //         'total_value' => 'required|numeric',
+    //         'cm_pc' => 'required|numeric',
+    //         'total_cm' => 'required|numeric',
+    //         'consumption_dzn' => 'required|numeric',
+    //         'fabric_qnty' => 'required|numeric',
+    //         'fabrication' => 'required|string',
+    //         'aop' => 'required|string',
+    //         'print' => 'required|string',
+    //         'embroidery' => 'required|string',
+    //         'color' => 'required|array',
+    //         'size' => 'required|array',
+    //         'color_quantity' => 'required|array',
+    //     ]);
+
+    //     // Extract the color, size, and color_quantity arrays from the request.
+    //     $colors = $request->input('color');
+    //     $sizes = $request->input('size');
+    //     $colorQuantities = $request->input('color_quantity');
+
+    //     try {
+    //         foreach ($jobs as $job) {
+    //             foreach ($colors as $key => $color) {
+    //                 // Update job attributes
+    //                 $job->update([
+    //                     'company_id' => $request->input('company_id'),
+    //                     'division_id' => $request->input('division_id'),
+    //                     'company_name' => $request->input('company_name'),
+    //                     'division_name' => $request->input('division_name'),
+    //                     'buyer_id' => $request->input('buyer_id'),
+    //                     'buyer' => Buyer::find($request->input('buyer_id'))->name,
+    //                     'job_no' => strtoupper($request->input('job_no')),
+    //                     'style' => strtoupper($request->input('style')),
+    //                     'po' => strtoupper($request->input('po')),
+    //                     'department' => strtoupper($request->input('department')),
+    //                     'item' => $request->input('item'),
+    //                     'color' => strtoupper($color),
+    //                     'size' => strtoupper($sizes[$key]),
+    //                     'color_quantity' => $colorQuantities[$key],
+    //                     'destination' => $request->input('country'),
+    //                     'order_quantity' => $request->input('order_quantity'),
+    //                     'ins_date' => $request->input('ins_date'),
+    //                     'delivery_date' => $request->input('delivery_date'),
+    //                     'target_smv' => $request->input('target_smv'),
+    //                     'production_minutes' => $request->input('production_minutes'),
+    //                     'unit_price' => $request->input('unit_price'),
+    //                     'total_value' => $request->input('total_value'),
+    //                     'cm_pc' => $request->input('cm_pc'),
+    //                     'total_cm' => $request->input('total_cm'),
+    //                     'consumption_dzn' => $request->input('consumption_dzn'),
+    //                     'fabric_qnty' => $request->input('fabric_qnty'),
+    //                     'fabrication' => strtoupper($request->input('fabrication')),
+    //                     'order_received_date' => $request->input('order_received_date'),
+    //                     'aop' => $request->input('aop'),
+    //                     'print' => $request->input('print'),
+    //                     'embroidery' => $request->input('embroidery'),
+    //                     'remarks' => strtoupper($request->input('remarks')),
+    //                 ]);
+    //             }
+    //         }
+
+    //         return redirect()->route('jobs.index')->with('message', 'Job updated successfully.');
+    //     } catch (\Exception $e) {
+    //         return redirect()->back()->withInput()->withErrors(['error' => $e->getMessage()]);
+    //     }
+    // }
 
     public function update_edit_jobs(Request $request, $edit_jobs)
     {
@@ -245,6 +429,16 @@ class JobController extends Controller
         $colorQuantities = $request->input('color_quantity');
 
         try {
+            // Calculate total lead time in days
+            $poReceiveDate = Carbon::parse($request->order_received_date);
+            $shipmentETD = Carbon::parse($request->delivery_date);
+            $total_lead_time = $shipmentETD->diffInDays($poReceiveDate);
+            $printAndwash = $request->print_wash;
+
+            if ($total_lead_time < 0) {
+                return redirect()->back()->withInput()->withErrors(['error' => 'Invalid total lead time.']);
+            }
+
             foreach ($jobs as $job) {
                 foreach ($colors as $key => $color) {
                     // Update job attributes
@@ -264,8 +458,10 @@ class JobController extends Controller
                         'size' => strtoupper($sizes[$key]),
                         'color_quantity' => $colorQuantities[$key],
                         'destination' => $request->input('country'),
-                        'order_quantity' => $request->input('order_quantity'),
+                        'order_quantity' => number_format($request->input('order_quantity'), 0, '.', ''),
                         'ins_date' => $request->input('ins_date'),
+                        'wash' => $request->input('wash'),
+                        'print_wash' => $request->input('print_wash'),
                         'delivery_date' => $request->input('delivery_date'),
                         'target_smv' => $request->input('target_smv'),
                         'production_minutes' => $request->input('production_minutes'),
@@ -285,12 +481,56 @@ class JobController extends Controller
                 }
             }
 
+            // Retrieve the updated job information
+            $job = Job::where('job_no', $request->input('job_no'))->first();
+
+            // Prepare TNA data
+            $order_quantity = abs($job->order_quantity);
+
+            $tna_data = [
+                'buyer_id' => $job->buyer_id,
+                'style' => $job->style,
+                'po' => $job->po,
+                'item' => $job->item,
+                'qty_pcs' => $order_quantity,
+                'po_receive_date' => $request->input('order_received_date'),
+                'shipment_etd' => $request->input('delivery_date'),
+                'total_lead_time' => $total_lead_time,
+                'remarks' => $job->remarks,
+                'print_wash' => $job->print_wash,
+            ];
+
+            // Validate the TNA data
+            $validator = Validator::make(
+                $tna_data,
+                [
+                    'buyer_id' => 'required|integer',
+                    'style' => 'required|string',
+                    'po' => 'required|string',
+                    'item' => 'required|string',
+                    'qty_pcs' => 'required|integer',
+                    'po_receive_date' => 'required|date',
+                    'shipment_etd' => 'required|date',
+                    'total_lead_time' => 'required|integer',
+                    'remarks' => 'nullable|string',
+                    'print_wash' => 'nullable|string',
+                ]
+            );
+
+            if ($validator->fails()) {
+                return redirect()->back()->withErrors($validator)->withInput();
+            }
+
+            // Pass data to TNAController
+            $tnaRequest = new Request($tna_data);
+            $tnaController = app(TNAController::class);
+            $tnaController->store($tnaRequest);
+
             return redirect()->route('jobs.index')->with('message', 'Job updated successfully.');
         } catch (\Exception $e) {
             return redirect()->back()->withInput()->withErrors(['error' => $e->getMessage()]);
         }
     }
-
     public function destroy($id)
     {
         // Find the job by its ID
@@ -355,6 +595,65 @@ class JobController extends Controller
         return redirect()->route('jobs.index')->with('message', 'Job and related records deleted successfully.');
     }
 
+    // destroy_all_tna
+    public function destroy_all_tna($job_no)
+    {
+        // Find the job by its ID
+        $jobs = Job::where('job_no', $job_no)->first();
+
+        // If the job doesn't exist, return a 404 response or redirect with an error message
+        if (!$jobs) {
+            return redirect()->route('jobs.index')->with('error', 'Job not found.');
+        }
+
+        // dd($jobs);
+
+        //convert qty_pcs to integer
+        $order_quantity = abs($jobs->order_quantity);
+
+        $tna = TNA::where('buyer_id', $jobs->buyer_id)->where('style', $jobs->style)->where('po', $jobs->po)->where('item', $jobs->item)->where('qty_pcs', $order_quantity)->first();
+
+        if ($tna != null) {
+            $tna_explain = TnaExplanation::where('tna_id', $tna->id)->get();
+            // dd($tna_explain, $tna, $jobs);
+
+            // Delete all related tna_explain
+            foreach ($tna_explain as $tna_explains) {
+                $tna_explains->delete();
+            }
+
+            // Delete the all tna itself and related records
+            $tna->delete();
+        }
+
+
+
+
+        $job_no = $jobs->job_no;
+        $jobs = Job::where('job_no', $job_no)->get();
+
+        // Find related sewings and shipments using the job ID
+        $sewings = SewingBalance::where('job_no', $job_no)->get();
+        $shipments = Shipment::where('job_no', $job_no)->get();
+
+        // Delete all related sewings
+        foreach ($sewings as $sewing) {
+            $sewing->delete();
+        }
+
+        // Delete all related shipments
+        foreach ($shipments as $shipment) {
+            $shipment->delete();
+        }
+
+        // Delete the all job itself and related records
+        foreach ($jobs as $job) {
+            $job->delete();
+        }
+
+        // Redirect to the jobs index with a success message
+        return redirect()->route('jobs.index')->with('message', 'Job and related records deleted successfully.');
+    }
     public function monthlyOrderSummary()
     {
         // Get the total order quantity

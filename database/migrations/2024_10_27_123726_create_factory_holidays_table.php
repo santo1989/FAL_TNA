@@ -21,6 +21,13 @@ class CreateFactoryHolidaysTable extends Migration
             $table->boolean('is_additional')->default(false); // For Additional holidays
             $table->boolean('is_active')->default(true);
             $table->string('description')->nullable(); // Optional description
+            $table->unsignedBigInteger('created_by')->nullable();
+            $table->unsignedBigInteger('updated_by')->nullable();
+            $table->string('factory_holidays1')->nullable();
+            $table->string('factory_holidays2')->nullable();
+            $table->string('factory_holidays3')->nullable();
+            $table->string('factory_holidays4')->nullable();
+            $table->string('factory_holidays5')->nullable();
             $table->timestamps();
         });
     }

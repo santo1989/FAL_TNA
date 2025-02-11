@@ -91,14 +91,21 @@ class SewingBalanceController extends Controller
 // dd($request->all());
         // Iterate over the color and size arrays and save each combination
         foreach ($request->color_id as $key => $value) {
+            dd($value);
             // Find the job
-            $job = Job::findOrFail($value);
+            $sewing_plan = SewingPlan::findOrFail($value);
+            $job = Job::findOrFail($sewing_plan->job_id);
 
-            dd($job);
+            if (!$job) {
+                return redirect()->back()->withError('Job not found.');
+            }
+
+            // dd($job);
 
             // Create a new sewing balance
             $sewing_balance = SewingBalance::create([
                 'job_id' => $job->id,
+                'sewing_plan_id' => $sewing_plan->id,
                 'job_no' => $request->job_no,
                 'color' => $request->color[$key],
                 'size' => $request->size[$key],

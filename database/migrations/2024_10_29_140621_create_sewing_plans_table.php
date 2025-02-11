@@ -16,7 +16,12 @@ class CreateSewingPlansTable extends Migration
             $table->string('production_plan')->nullable(); 
             $table->string('color')->nullable();
             $table->string('size')->nullable();
-            $table->decimal('color_quantity', 8, 2)->nullable(); 
+            $table->bigInteger('color_quantity')->nullable(); 
+            $table->string('sewing_plans1')->nullable();
+            $table->string('sewing_plans2')->nullable();
+            $table->string('sewing_plans3')->nullable();
+            $table->string('sewing_plans4')->nullable();
+            $table->string('sewing_plans5')->nullable();
             $table->timestamps();
         });
     }

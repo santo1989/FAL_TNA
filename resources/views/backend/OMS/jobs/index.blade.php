@@ -98,7 +98,7 @@
                                              <td>{{ $job->item }}</td>
                                              <td>{{ $job->order_quantity }}</td>
                                              <td>
-                                                 @php
+                                                 {{-- @php
                                                      $sewing_qty = DB::table('sewing_balances')
                                                          ->where('job_no', $job->job_no)
                                                          ->get()
@@ -110,13 +110,13 @@
                                                      data-job-id="{{ $job->job_no }}"
                                                      data-job-no="{{ $job->job_no }}">
                                                      {{ $total_sewing_qty }}
-                                                 </button>
+                                                 </button> --}}
 
 
 
                                              </td>
                                              <td>
-                                                 @php
+                                                 {{-- @php
                                                      $total_shipped_qty = DB::table('shipments')
                                                          ->where('job_no', $job->job_no)
                                                          ->get()
@@ -128,7 +128,7 @@
                                                      data-job-id="{{ $job->job_no }}"
                                                      data-job-no="{{ $job->job_no }}">
                                                      {{ $total_shipped_qty }}
-                                                 </button>
+                                                 </button> --}}
 
 
                                              </td>
@@ -146,6 +146,13 @@
                                                          @method('POST')
                                                          <button type="submit" class="btn btn-outline-danger"><i
                                                                  class="fas fa-trash"></i></button>
+                                                     </form>
+                                                     <form action="{{ route('jobs.destroy_all_tna', $job->job_no) }}"
+                                                         method="POST" style="display:inline-block;">
+                                                         @csrf
+                                                         @method('POST')
+                                                         <button type="submit" class="btn btn-outline-danger"><i
+                                                                 class="fas fa-trash"></i>Delete with TNA</button>
                                                      </form>
                                                  @endif
 
@@ -287,7 +294,7 @@
 
 
 
-     <!-- SewingModal Start-->
+     {{-- <!-- SewingModal Start-->
      <div class="modal fade" id="sewingModal" tabindex="-1" role="dialog" aria-labelledby="sewingModalLabel"
          aria-hidden="true">
          <div class="modal-dialog modal-xl" role="document">
@@ -508,7 +515,7 @@
          </div>
      </div>
      </div>
-     <!-- ShipmentModal End-->
+     <!-- ShipmentModal End--> --}}
 
      <script>
          setInterval(function() {

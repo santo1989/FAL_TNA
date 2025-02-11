@@ -39,6 +39,7 @@
                                 <thead>
                                     <tr>
                                         <th>Sl#</th>
+                                        <th>Id</th>
                                         <th>Name</th>
                                         <th>Actions</th>
 
@@ -49,6 +50,7 @@
                                     @foreach ($roles as $role)
                                         <tr>
                                             <td>{{ ++$sl }}</td>
+                                            <td>{{ $role->id }}</td>
                                             <td>{{ $role->name }}</td>
                                             <td>
                                                 {{-- <a class="btn btn-primary"

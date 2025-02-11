@@ -40,11 +40,20 @@
                                  auth()->user()->id,
                              )
                                  ->where('buyer_id', 7)
-                                 ->orwhere('buyer_id', 10021)
+                                 ->count();
+                             $marchent_buyer_assigns_COTTON_ROSE_Hasan = App\Models\BuyerAssign::where(
+                                 'user_id',
+                                 auth()->user()->id,
+                             )
+                                 ->where('buyer_id', 10021)
                                  ->count();
                              // dd($marchent_buyer_assigns_COTTON_ROSE )
                          @endphp
-                         @if ($marchent_buyer_assigns_COTTON_ROSE > 0 || auth()->user()->id == 1 || auth()->user()->role_id == 4)
+                         @if (
+                             $marchent_buyer_assigns_COTTON_ROSE > 0 ||
+                                 auth()->user()->id == 1 ||
+                                 auth()->user()->role_id == 4 ||
+                                 $marchent_buyer_assigns_COTTON_ROSE_Hasan > 0)
                              <!-- Button trigger modal of update_actual_COTTON_ROSE-->
                              <button type="button" class="btn btn-outline-primary" data-bs-toggle="modal"
                                  data-bs-target="#staticBackdropCOTTON_ROSE">
@@ -101,7 +110,7 @@
                                          <th>Action</th>
                                      </tr>
                                  </thead>
-                                 <tbody class="text-nowrap">
+                                 <tbody class="text-nowrap" id="datarowbody">
                                      @forelse ($tnas as $tna)
                                          {{-- @dd($tna) --}}
                                          <tr>
@@ -116,10 +125,10 @@
                                              <td>{{ $tna->po_receive_date }}</td>
                                              <td>{{ $tna->shipment_etd }}</td>
                                              @if (auth()->user()->role_id == 4 || auth()->user()->role_id == 1)
-                                             <td>{{ $tna->updated_at->diffForHumans() }}</td>
-                                                @endif
+                                                 <td>{{ $tna->updated_at->diffForHumans() }}</td>
+                                             @endif
                                              {{-- <td>{{ $tna->total_lead_time }} 
-                                             </td>--}}
+                                             </td> --}}
 
                                              <td>
                                                  <a href="{{ route('tnas.show', $tna->id) }}"
@@ -259,13 +268,13 @@
                                                                  class="fas fa-trash"></i></button>
                                                      </form>
                                                  @else --}}
-                                                     <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST"
-                                                         style="display:inline-block;">
-                                                         @csrf
-                                                         @method('DELETE')
-                                                         <button type="submit" class="btn btn-outline-danger"><i
-                                                                 class="fas fa-trash"></i></button>
-                                                     </form>
+                                                 <form action="{{ route('tnas.destroy', $tna->id) }}" method="POST"
+                                                     style="display:inline-block;">
+                                                     @csrf
+                                                     @method('DELETE')
+                                                     <button type="submit" class="btn btn-outline-danger"><i
+                                                             class="fas fa-trash"></i></button>
+                                                 </form>
                                                  {{-- @endif --}}
 
                                              @endif
@@ -419,5 +428,75 @@
                  }
              });
          </script>
+
+         <!--auto update  <tbody class="text-nowrap">$tnas as $tna for realtime update table data from backend -->
+         @php
+             $old_data = json_encode($tnas);
+         @endphp
+         <script>
+             $(document).ready(function() {
+                 setInterval(function() {
+                     $.ajax({
+                         url: "{{ route('real_time_data') }}",
+                         type: "GET",
+                         success: function(data) {
+
+                             console.log(data);
+                             // if any data change then last call data then update the table else not update
+                             if (JSON.stringify(data) != '<?php echo $old_data; ?>') {
+                                 $('#datarowbody').html(data);
+                                 console.log('Data Updated');
+                             } else {
+                                 console.log('Data Not Updated');
+                             }
+
+
+                         }
+                     });
+                 }, 1000);
+             });
+         </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
      </x-backend.layouts.master>
