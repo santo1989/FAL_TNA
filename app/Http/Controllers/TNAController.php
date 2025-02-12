@@ -138,8 +138,10 @@ class TNAController extends Controller
             // Plan dates using SOP format
             $this->planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash);
 
-            if($request->has('job_id') 
-                && $request->has('job_no')){
+            if (
+                $request->has('job_id')
+                && $request->has('job_no')
+            ) {
                 $tna->job_id = $request->job_id;
                 $tna->tnas1 = $request->job_no;
             }
@@ -157,6 +159,11 @@ class TNAController extends Controller
 
     public function update(Request $request, $id)
     {
+        // If $request is an array, convert it to a Request object
+        if (is_array($request)) {
+            $request = new Request($request);
+        }
+
         $request->validate([
             'buyer_id' => 'required',
             'style' => 'required',
@@ -165,38 +172,63 @@ class TNAController extends Controller
             'qty_pcs' => 'required',
             'po_receive_date' => 'required|date',
             'shipment_etd' => 'required|date',
+            'remarks' => 'nullable|string',
+            'print_wash' => 'nullable|string',
         ]);
+        // dd($request->all());
 
-        DB::transaction(function () use ($request, $id) {
-            $tna = TNA::find($id);
-            $tna->buyer_id = $request->buyer_id;
-            $tna->buyer = Buyer::find($request->buyer_id)->name;
-            $tna->style = $request->style;
-            $tna->po = $request->po;
+       
+
+        DB::transaction(function () use ($request) {
+
+            // Calculate total lead time in days
+            $poReceiveDate = Carbon::parse($request->po_receive_date);
+            $shipmentETD = Carbon::parse($request->shipment_etd);
+            $total_lead_time = $shipmentETD->diffInDays($poReceiveDate);
+            $printAndwash = $request->print_wash;
+            $buyer_id = $request->buyer_id;
+            $style = $request->style;
+            $po = $request->po;
+            $item = $request->item;
+            $qty_pcs = $request->qty_pcs;
+            $remarks = $request->remarks;
+
+            if ($total_lead_time < 0) {
+                throw new \Exception('Shipment ETD must be greater than PO Receive Date');
+            }
+
+            // Create a new TNA entry
+            $tna = TNA::find($request->tnas_id);
+            // dd($tna);
+            $tna->buyer_id = $buyer_id;
+            $tna->buyer = Buyer::find($buyer_id)->name;
+            $tna->style = $style;
+            $tna->po = $po;
             if ($request->hasFile('picture')) {
                 $tna->picture = $this->uploaddocument($request->file('picture'));
             }
-            $tna->item = $request->item;
+            $tna->item = $item;
             $tna->color = $request->color;
-            $tna->qty_pcs = $request->qty_pcs;
+            $tna->qty_pcs = $qty_pcs;
+            $tna->po_receive_date = $poReceiveDate;
+            $tna->shipment_etd = $shipmentETD;
+            $tna->total_lead_time = $total_lead_time;
+            $tna->assign_date = Carbon::now();
+            $tna->assign_by = auth()->user()->name;
+            $tna->print_wash = $printAndwash;
 
-            // Calculate total lead time if po_receive_date or shipment_etd is changed
-            if ($request->po_receive_date != $tna->po_receive_date || $request->shipment_etd != $tna->shipment_etd) {
-                $poReceiveDate = Carbon::parse($request->po_receive_date);
-                $shipmentETD = Carbon::parse($request->shipment_etd);
-                $total_lead_time = $shipmentETD->diffInDays($poReceiveDate);
+            // Plan dates using SOP format
+            $this->planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash);
 
-                if ($total_lead_time < 0) {
-                    throw new \Exception('Shipment ETD must be greater than PO Receive Date');
-                }
-
-                $tna->po_receive_date = $poReceiveDate;
-                $tna->shipment_etd = $shipmentETD;
-                $tna->total_lead_time = $total_lead_time;
-
-                // Plan dates using SOP format
-                $this->planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $tna->print_wash);
+            if (
+                $request->has('job_id')
+                && $request->has('job_no')
+            ) {
+                $tna->job_id = $request->job_id;
+                $tna->tnas1 = $request->job_no;
             }
+
+            // dd($tna);
 
             $tna->save();
 
@@ -205,93 +237,94 @@ class TNAController extends Controller
             }
         });
 
+
         return redirect()->route('tnas.index')->withMessage('TNA updated successfully');
     }
 
-   
 
-// public function planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash) 
-// {
-//     // Determine SOP format based on lead time
-//     $leadTimeMap = [
-//         'short' => ['lead_time' => 60, 'inspection_offset' => 2, 'ex_factory_offset' => 1],
-//         'medium' => ['lead_time' => 75, 'inspection_offset' => 2, 'ex_factory_offset' => 1],
-//         'long' => ['lead_time' => 90, 'inspection_offset' => 5, 'ex_factory_offset' => 1],
-//     ];
 
-//     $leadTimeCategory = $total_lead_time <= 70
-//         ? 'short'
-//         : ($total_lead_time <= 84 ? 'medium' : 'long');
+    // public function planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash) 
+    // {
+    //     // Determine SOP format based on lead time
+    //     $leadTimeMap = [
+    //         'short' => ['lead_time' => 60, 'inspection_offset' => 2, 'ex_factory_offset' => 1],
+    //         'medium' => ['lead_time' => 75, 'inspection_offset' => 2, 'ex_factory_offset' => 1],
+    //         'long' => ['lead_time' => 90, 'inspection_offset' => 5, 'ex_factory_offset' => 1],
+    //     ];
 
-//     $sop_format = SOP::where('lead_time', $leadTimeMap[$leadTimeCategory]['lead_time'])->get();
-//     $final_inspection_plan = $shipmentETD->copy()->subDays($leadTimeMap[$leadTimeCategory]['inspection_offset']);
-//     $ex_factory_plan = $shipmentETD->copy()->subDays($leadTimeMap[$leadTimeCategory]['ex_factory_offset']);
+    //     $leadTimeCategory = $total_lead_time <= 70
+    //         ? 'short'
+    //         : ($total_lead_time <= 84 ? 'medium' : 'long');
 
-//     // Define mapping of particulars to TNA fields
-//     $fieldMapping = [
-//         'Order Free Time' => 'order_free_time',
-//         'Lab Dip Submission' => 'lab_dip_submission_plan',
-//         'Fabric Booking' => 'fabric_booking_plan',
-//         'Fit Sample Submission' => 'fit_sample_submission_plan',
-//         'Print Strike Off Submission' => 'print_strike_off_submission_plan',
-//         'Bulk Accessories Booking' => 'bulk_accessories_booking_plan',
-//         'Fit Comments' => 'fit_comments_plan',
-//         'Bulk Yarn Inhouse' => 'bulk_yarn_inhouse_plan',
-//         'Bulk Accessories Inhouse' => 'bulk_accessories_inhouse_plan',
-//         'PP Sample Submission' => 'pp_sample_submission_plan',
-//         'Bulk Fabric Knitting' => 'bulk_fabric_knitting_plan',
-//         'PP Comments Receive' => 'pp_comments_receive_plan',
-//         'Bulk Fabric Dyeing' => 'bulk_fabric_dyeing_plan',
-//         'Bulk Fabric Delivery' => 'bulk_fabric_delivery_plan',
-//         'PP Meeting' => 'pp_meeting_plan',
-//         'Fabrics and Accessories Inspection' => 'fabrics_and_accessories_inspection_plan',
-//         'Size Set Making' => 'size_set_making_plan',
-//         'Pattern Correction' => 'pattern_correction_plan',
-//         'MachinesLayoutFolderPreparation' => 'machines_layout_and_folder_preparation_plan',
-//         'Bulk Cutting Start' => 'cutting_plan',
-//         'Print/Emb. Start ' => 'print_start_plan',
-//         'Bulk Sewing Input' => 'bulk_sewing_input_plan',
-//         'Bulk Wash Start ' => 'bulk_wash_start_plan',
-//         'Bulk Finishing Start' => 'bulk_finishing_start_plan',
-//         'Bulk Cutting Close' => 'bulk_cutting_close_plan',
-//         'Print/Emb. Close ' => 'print_close_plan',
-//         'Bulk Sewing Close' => 'bulk_sewing_close_plan',
-//         'Bulk Wash Close or Finihsing Recived ' => 'bulk_wash_close_plan',
-//         'Bulk Finishing Close' => 'bulk_finishing_close_plan',
-//         'Pre-final Inspection' => 'pre_final_inspection_plan',
-//     ];
+    //     $sop_format = SOP::where('lead_time', $leadTimeMap[$leadTimeCategory]['lead_time'])->get();
+    //     $final_inspection_plan = $shipmentETD->copy()->subDays($leadTimeMap[$leadTimeCategory]['inspection_offset']);
+    //     $ex_factory_plan = $shipmentETD->copy()->subDays($leadTimeMap[$leadTimeCategory]['ex_factory_offset']);
 
-//     // Add print and wash-specific suffixes
-//     $suffix = match($printAndwash) {
-//         'No Print and Wash' => '',
-//         'Only Print' => ' ( Only Print )',
-//         'Only Wash' => ' ( Only Wash )',
-//         default => ' ( Both Print and Wash )',
-//     };
+    //     // Define mapping of particulars to TNA fields
+    //     $fieldMapping = [
+    //         'Order Free Time' => 'order_free_time',
+    //         'Lab Dip Submission' => 'lab_dip_submission_plan',
+    //         'Fabric Booking' => 'fabric_booking_plan',
+    //         'Fit Sample Submission' => 'fit_sample_submission_plan',
+    //         'Print Strike Off Submission' => 'print_strike_off_submission_plan',
+    //         'Bulk Accessories Booking' => 'bulk_accessories_booking_plan',
+    //         'Fit Comments' => 'fit_comments_plan',
+    //         'Bulk Yarn Inhouse' => 'bulk_yarn_inhouse_plan',
+    //         'Bulk Accessories Inhouse' => 'bulk_accessories_inhouse_plan',
+    //         'PP Sample Submission' => 'pp_sample_submission_plan',
+    //         'Bulk Fabric Knitting' => 'bulk_fabric_knitting_plan',
+    //         'PP Comments Receive' => 'pp_comments_receive_plan',
+    //         'Bulk Fabric Dyeing' => 'bulk_fabric_dyeing_plan',
+    //         'Bulk Fabric Delivery' => 'bulk_fabric_delivery_plan',
+    //         'PP Meeting' => 'pp_meeting_plan',
+    //         'Fabrics and Accessories Inspection' => 'fabrics_and_accessories_inspection_plan',
+    //         'Size Set Making' => 'size_set_making_plan',
+    //         'Pattern Correction' => 'pattern_correction_plan',
+    //         'MachinesLayoutFolderPreparation' => 'machines_layout_and_folder_preparation_plan',
+    //         'Bulk Cutting Start' => 'cutting_plan',
+    //         'Print/Emb. Start ' => 'print_start_plan',
+    //         'Bulk Sewing Input' => 'bulk_sewing_input_plan',
+    //         'Bulk Wash Start ' => 'bulk_wash_start_plan',
+    //         'Bulk Finishing Start' => 'bulk_finishing_start_plan',
+    //         'Bulk Cutting Close' => 'bulk_cutting_close_plan',
+    //         'Print/Emb. Close ' => 'print_close_plan',
+    //         'Bulk Sewing Close' => 'bulk_sewing_close_plan',
+    //         'Bulk Wash Close or Finihsing Recived ' => 'bulk_wash_close_plan',
+    //         'Bulk Finishing Close' => 'bulk_finishing_close_plan',
+    //         'Pre-final Inspection' => 'pre_final_inspection_plan',
+    //     ];
 
-//     // Iterate over SOP format and set plans
-//     foreach ($sop_format as $sop) {
-//         $dayOffset = $sop->day;
-//         $particular = $sop->Perticulars . $suffix;
-//         $planDate = $poReceiveDate->copy()->addDays($dayOffset);
+    //     // Add print and wash-specific suffixes
+    //     $suffix = match($printAndwash) {
+    //         'No Print and Wash' => '',
+    //         'Only Print' => ' ( Only Print )',
+    //         'Only Wash' => ' ( Only Wash )',
+    //         default => ' ( Both Print and Wash )',
+    //     };
 
-//         if (isset($fieldMapping[$particular])) {
-//             $fields = (array)$fieldMapping[$particular];
-//             foreach ($fields as $field) {
-//                 $tna->$field = $particular === 'Order Free Time'
-//                 ? $shipmentETD->copy()->subDays($dayOffset)
-//                     : $planDate;
-//             }
-//         }
-//     }
+    //     // Iterate over SOP format and set plans
+    //     foreach ($sop_format as $sop) {
+    //         $dayOffset = $sop->day;
+    //         $particular = $sop->Perticulars . $suffix;
+    //         $planDate = $poReceiveDate->copy()->addDays($dayOffset);
 
-//     // Set final inspection and ex-factory plans
-//     $tna->final_inspection_plan = $final_inspection_plan;
-//     $tna->ex_factory_plan = $ex_factory_plan;
-//     $tna->etd_plan = $shipmentETD;
-// }
+    //         if (isset($fieldMapping[$particular])) {
+    //             $fields = (array)$fieldMapping[$particular];
+    //             foreach ($fields as $field) {
+    //                 $tna->$field = $particular === 'Order Free Time'
+    //                 ? $shipmentETD->copy()->subDays($dayOffset)
+    //                     : $planDate;
+    //             }
+    //         }
+    //     }
 
-  
+    //     // Set final inspection and ex-factory plans
+    //     $tna->final_inspection_plan = $final_inspection_plan;
+    //     $tna->ex_factory_plan = $ex_factory_plan;
+    //     $tna->etd_plan = $shipmentETD;
+    // }
+
+
 
     // public function planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash)
     // {
@@ -1548,7 +1581,7 @@ class TNAController extends Controller
                 'pp_meeting_actual' => $tna->pp_meeting_actual ?? ' ',
             ];
 
-            if ($tna->pp_meeting_actual == null || $tna->inspection_actual_date == null ||$tna->pp_meeting_actual == null && $tna->inspection_actual_date == null) {
+            if ($tna->pp_meeting_actual == null || $tna->inspection_actual_date == null || $tna->pp_meeting_actual == null && $tna->inspection_actual_date == null) {
                 $buyerSummary[$buyerName]['pending_orders']++;
                 $buyerSummary[$buyerName]['pending_details'][] = $orderDetails;
 
@@ -1583,17 +1616,20 @@ class TNAController extends Controller
         }
 
         $overallSummary['inadequate_percentage'] = $overallSummary['total_orders'] > 0
-        ? round(($overallSummary['inadequate_orders'] / $overallSummary['total_orders']) * 100, 2)
+            ? round(($overallSummary['inadequate_orders'] / $overallSummary['total_orders']) * 100, 2)
             : 0;
         $overallSummary['adequate_percentage'] = $overallSummary['total_orders'] > 0
-        ? round(($overallSummary['adequate_orders'] / $overallSummary['total_orders']) * 100, 2)
+            ? round(($overallSummary['adequate_orders'] / $overallSummary['total_orders']) * 100, 2)
             : 0;
         $overallSummary['average_lead_time'] = $overallSummary['total_orders'] > 0
-        ? round($overallSummary['lead_time_total'] / $overallSummary['total_orders'], 2)
-        : 0;
+            ? round($overallSummary['lead_time_total'] / $overallSummary['total_orders'], 2)
+            : 0;
 
-        $isPlanningDepartment = in_array($user->role_id, [1, 4,
-            10005]); 
+        $isPlanningDepartment = in_array($user->role_id, [
+            1,
+            4,
+            10005
+        ]);
 
 
         // dd($buyerSummary, $overallSummary, $request->from_date, $request->to_date, $isPlanningDepartment);
@@ -1675,11 +1711,10 @@ class TNAController extends Controller
             if ($shipmentDifference !== null && $shipmentDifference <= 0) {
                 $buyerSummary[$buyerName]['on_time_orders']++;
                 $buyerSummary[$buyerName]['on_time_details'][] = $orderDetails;
-            } elseif($shipmentDifference == null){
+            } elseif ($shipmentDifference == null) {
                 $buyerSummary[$buyerName]['pending_orders']++;
                 $buyerSummary[$buyerName]['pending_details'][] = $orderDetails;
-            } else
-            {
+            } else {
                 $buyerSummary[$buyerName]['late_orders']++;
                 $buyerSummary[$buyerName]['late_details'][] = $orderDetails;
             }
@@ -1687,10 +1722,9 @@ class TNAController extends Controller
             $overallSummary['total_orders']++;
             if ($shipmentDifference !== null && $shipmentDifference <= 0) {
                 $overallSummary['on_time_orders']++;
-            }elseif($shipmentDifference == null){
+            } elseif ($shipmentDifference == null) {
                 $overallSummary['pending_orders']++;
-            }
-             else {
+            } else {
                 $overallSummary['late_orders']++;
             }
         }
@@ -1714,7 +1748,7 @@ class TNAController extends Controller
         $overallSummary['late_percentage'] = $overallSummary['total_orders'] > 0
             ? round(($overallSummary['late_orders'] / $overallSummary['total_orders']) * 100, 2)
             : 0;
-        $overallSummary['pending_percentage'] = $overallSummary['total_orders'] > 0 
+        $overallSummary['pending_percentage'] = $overallSummary['total_orders'] > 0
             ? round(($overallSummary['pending_orders'] / $overallSummary['total_orders']) * 100, 2)
             : 0;
 
@@ -1774,7 +1808,7 @@ class TNAController extends Controller
     // TNA factory version 2 
 
 
-      public function planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash)
+    public function planDates($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash)
     {
         // dd($tna, $poReceiveDate, $shipmentETD, $total_lead_time, $printAndwash);
         // Determine SOP format based on lead time
@@ -1857,14 +1891,14 @@ class TNAController extends Controller
                         break;
                     case 'Pattern Correction':
                         $tna->pattern_correction_plan = $planDate;
-                        break; 
+                        break;
                     case 'Bulk Cutting Start':
                         $tna->cutting_plan = $planDate;
                         break;
                     case 'MC Layout and Folder Pre ':
                         $tna->machines_layout_plan = $planDate;
                         break;
-                   
+
                     case 'Print/Emb. Start':
                         $tna->print_start_plan = $planDate;
                         break;
@@ -1881,13 +1915,13 @@ class TNAController extends Controller
                         $tna->bulk_cutting_close_plan = $planDate;
                         break;
                     case 'Print/Emb. Close':
-                       $tna->print_close_plan = $planDate;
+                        $tna->print_close_plan = $planDate;
                         break;
                     case 'Bulk Sewing Close':
                         $tna->bulk_sewing_close_plan = $planDate;
                         break;
                     case 'Bulk Wash Close or Finihsing Recived':
-                       $tna->bulk_wash_close_plan = $planDate;
+                        $tna->bulk_wash_close_plan = $planDate;
                         break;
                     case 'Bulk Finishing Close':
                         $tna->bulk_finishing_close_plan = $planDate;
@@ -1898,16 +1932,13 @@ class TNAController extends Controller
 
                     default:
                         break;
-
                 }
 
 
                 $tna->final_inspection_plan = $final_inspection_plan;
 
                 $tna->ex_factory_plan = $ex_factory_plan;
-
-            }elseif($printAndwash == 'Only Print')
-            {
+            } elseif ($printAndwash == 'Only Print') {
                 switch ($particular) {
                     case 'Order Free Time':
                         $tna->order_free_time = $shipmentETD->copy()->subDays($dayOffset);
@@ -1972,16 +2003,16 @@ class TNAController extends Controller
                     case 'MC Layout and Folder Pre  ( Only Print )':
                         $tna->machines_layout_plan = $planDate;
                         break;
-                   
+
                     case 'Print/Emb. Start ( Only Print )':
                         $tna->print_start_plan = $planDate;
                         break;
                     case 'Bulk Sewing Input ( Only Print )':
                         $tna->bulk_sewing_input_plan = $planDate;
                         break;
-                    // case 'Bulk Wash Start':
-                    //     $tna->bulk_wash_start_plan = $planDate;
-                    //     break;
+                        // case 'Bulk Wash Start':
+                        //     $tna->bulk_wash_start_plan = $planDate;
+                        //     break;
                     case 'Bulk Finishing Start ( Only Print )':
                         $tna->bulk_finishing_start_plan = $planDate;
                         break;
@@ -1989,15 +2020,15 @@ class TNAController extends Controller
                         $tna->bulk_cutting_close_plan = $planDate;
                         break;
                     case 'Print/Emb. Close ( Only Print )':
-                       $tna->print_close_plan = $planDate;
+                        $tna->print_close_plan = $planDate;
                         break;
                     case 'Bulk Sewing Close ( Only Print )':
                         $tna->bulk_sewing_close_plan = $planDate;
                         break;
-                    // case 'Bulk Wash Close or Finihsing Recived':
-                    //     $tna->bulk_wash_close_plan = $planDate;
-                    //     $tna->finishing_received_plan = $planDate;
-                    //     break;
+                        // case 'Bulk Wash Close or Finihsing Recived':
+                        //     $tna->bulk_wash_close_plan = $planDate;
+                        //     $tna->finishing_received_plan = $planDate;
+                        //     break;
                     case 'Bulk Finishing Close ( Only Print )':
                         $tna->bulk_finishing_close_plan = $planDate;
                         break;
@@ -2013,8 +2044,7 @@ class TNAController extends Controller
                 $tna->final_inspection_plan = $final_inspection_plan;
 
                 $tna->ex_factory_plan = $ex_factory_plan;
-            }elseif($printAndwash == 'Only Wash')
-            {
+            } elseif ($printAndwash == 'Only Wash') {
                 switch ($particular) {
                     case 'Order Free Time':
                         $tna->order_free_time = $shipmentETD->copy()->subDays($dayOffset);
@@ -2079,10 +2109,10 @@ class TNAController extends Controller
                     case 'MC Layout and Folder Pre  ( Only Wash )':
                         $tna->machines_layout_plan = $planDate;
                         break;
-                   
-                    // case 'Print/Emb. Start':
-                    //     $tna->print_start_plan = $planDate;
-                    //     break;
+
+                        // case 'Print/Emb. Start':
+                        //     $tna->print_start_plan = $planDate;
+                        //     break;
                     case 'Bulk Sewing Input ( Only Wash )':
                         $tna->bulk_sewing_input_plan = $planDate;
                         break;
@@ -2095,13 +2125,14 @@ class TNAController extends Controller
                     case 'Bulk Cutting Close ( Only Wash )':
                         $tna->bulk_cutting_close_plan = $planDate;
                         break;
-                    // case 'Print/Emb. Close':
-                    //    $tna->print_close_plan = $planDate;
-                    //     break;
-                    case 'Bulk Sewing Close ( Only Wash )':                       $tna->bulk_sewing_close_plan = $planDate;
+                        // case 'Print/Emb. Close':
+                        //    $tna->print_close_plan = $planDate;
+                        //     break;
+                    case 'Bulk Sewing Close ( Only Wash )':
+                        $tna->bulk_sewing_close_plan = $planDate;
                         break;
                     case 'Bulk Wash Close or Finihsing Recived ( Only Wash )':
-                       $tna->bulk_wash_close_plan = $planDate;
+                        $tna->bulk_wash_close_plan = $planDate;
                         break;
                     case 'Bulk Finishing Close ( Only Wash )':
                         $tna->bulk_finishing_close_plan = $planDate;
@@ -2118,7 +2149,7 @@ class TNAController extends Controller
                 $tna->final_inspection_plan = $final_inspection_plan;
 
                 $tna->ex_factory_plan = $ex_factory_plan;
-            }else{
+            } else {
                 switch ($particular) {
                     case 'Order Free Time':
                         $tna->order_free_time = $shipmentETD->copy()->subDays($dayOffset);
@@ -2171,7 +2202,8 @@ class TNAController extends Controller
                     case 'Fabrics and Accessories Inspection ( Both Print and Wash )':
                         $tna->fabrics_and_accessories_inspection_plan = $planDate;
                         break;
-                    case 'Size Set Making ( Both Print and Wash )':                       $tna->size_set_making_plan = $planDate;
+                    case 'Size Set Making ( Both Print and Wash )':
+                        $tna->size_set_making_plan = $planDate;
                         break;
                     case 'Pattern Correction ( Both Print and Wash )':
                         $tna->pattern_correction_plan = $planDate;
@@ -2182,13 +2214,15 @@ class TNAController extends Controller
                     case 'MC Layout and Folder Pre  ( Both Print and Wash )':
                         $tna->machines_layout_plan = $planDate;
                         break;
-                    
-                    case 'Print/Emb. Start ( Both Print and Wash )':                        $tna->print_start_plan = $planDate;
+
+                    case 'Print/Emb. Start ( Both Print and Wash )':
+                        $tna->print_start_plan = $planDate;
                         break;
                     case 'Bulk Sewing Input ( Both Print and Wash )':
                         $tna->bulk_sewing_input_plan = $planDate;
                         break;
-                    case 'Bulk Wash Start ( Both Print and Wash )':                       $tna->bulk_wash_start_plan = $planDate;
+                    case 'Bulk Wash Start ( Both Print and Wash )':
+                        $tna->bulk_wash_start_plan = $planDate;
                         break;
                     case 'Bulk Finishing Start ( Both Print and Wash )':
                         $tna->bulk_finishing_start_plan = $planDate;
@@ -2196,13 +2230,14 @@ class TNAController extends Controller
                     case 'Bulk Cutting Close ( Both Print and Wash )':
                         $tna->bulk_cutting_close_plan = $planDate;
                         break;
-                    case 'Print/Emb. Close ( Both Print and Wash )':                       $tna->print_close_plan = $planDate;
+                    case 'Print/Emb. Close ( Both Print and Wash )':
+                        $tna->print_close_plan = $planDate;
                         break;
                     case 'Bulk Sewing Close ( Both Print and Wash )':
                         $tna->bulk_sewing_close_plan = $planDate;
                         break;
                     case 'Bulk Wash Close or Finihsing Recived ( Both Print and Wash )':
-                       $tna->bulk_wash_close_plan = $planDate;
+                        $tna->bulk_wash_close_plan = $planDate;
                         break;
                     case 'Bulk Finishing Close ( Both Print and Wash )':
                         $tna->bulk_finishing_close_plan = $planDate;
@@ -2220,8 +2255,6 @@ class TNAController extends Controller
 
                 $tna->ex_factory_plan = $ex_factory_plan;
             }
-
-
         }
 
         $tna->etd_plan = $shipmentETD;
@@ -2230,5 +2263,4 @@ class TNAController extends Controller
 
         return $tna;
     }
-
-  }
+}

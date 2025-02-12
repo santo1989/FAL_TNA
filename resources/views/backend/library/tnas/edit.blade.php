@@ -42,6 +42,7 @@
                              @csrf
                              @method('PUT')
                              <table class="table">
+                                <input type="hidden" name="tnas_id" value="{{ $tnas->id }}">
                                  <tbody>
                                      <tr>
                                          <td class="create_label_column">Buyer</td>
@@ -154,6 +155,23 @@
                                                  readonly>
                                          </td>
                                      </tr>
+                                     <tr>
+                                         <td class="create_label_column">Remarks</td>
+                                         <td class="create_input_column">
+                                             <textarea name="remarks" id="remarks" class="form-control" rows="3">{{ $tnas->remarks }}</textarea>
+                                         </td>
+                                         <!-- create a dropdown for the print_wash where option are only_print, only_wash, both_print_and_wash, no_print_or_wash -->
+                                            <td class="create_label_column">Print/Wash</td>
+                                            <td class="create_input_column">
+                                                <select id="print_wash" name="print_wash" class="form-control" required>
+                                                    <option value="">Select Print/Wash</option>
+                                                    <option value="Only Print"{{ $tnas->print_wash == 'Only Print' ? 'selected' : '' }}>Only Print</option>
+                                                    <option value="Only Wash"{{ $tnas->print_wash == 'Only Wash' ? 'selected' : '' }}>Only Wash</option>
+                                                    <option value="Both Print and Wash"{{ $tnas->print_wash == 'Both Print and Wash' ? 'selected' : '' }}>Both Print and Wash</option>
+                                                    <option value="No Print and Wash"{{ $tnas->print_wash == 'No Print and Wash' ? 'selected' : '' }}>No Print and Wash</option>
+                                                </select>
+                                            </td>
+                                    </tr>
                                  </tbody>
                              </table>
 
