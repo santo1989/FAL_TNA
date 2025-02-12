@@ -177,7 +177,7 @@ class TNAController extends Controller
         ]);
         // dd($request->all());
 
-       
+
 
         DB::transaction(function () use ($request) {
 
@@ -594,7 +594,7 @@ class TNAController extends Controller
                 $this->saveTnaExplanation($request, $tna);
                 return response()->json(['success' => true]);
             }
-        } elseif (auth()->user()->role_id == 1) {
+        } elseif (auth()->user()->role_id == 1 || auth()->user()->role_id == 4) {
             $this->saveTnaExplanation($request, $tna);
             return response()->json(['success' => true]);
         } else {
