@@ -189,8 +189,25 @@ $buyerIds = DB::table('buyer_assigns')
                     <th colspan="2">Bulk Fabric Dyeing</th>
                     <th colspan="2">Bulk Fabric Delivery</th>
                     <th colspan="2">PP Meeting</th>
-                    <th colspan="2">Cutting</th>
+                    {{-- <th colspan="2">Cutting</th> --}}
                     <th colspan="2">ETD</th>
+                    <th colspan="2">Fabrics and Accessories Inspection</th>
+                    <th colspan="2">Size Set Making</th>
+                    <th colspan="2">Pattern Correction</th>
+                    <th colspan="2">Machines, Layout, and Folder Preparation</th>
+                    <th colspan="2">Bulk Cutting Start</th>
+                    <th colspan="2">Print/Emb. Start</th>
+                    <th colspan="2">Bulk Sewing Input</th>
+                    <th colspan="2">Bulk Wash Start</th>
+                    <th colspan="2">Bulk Finishing Start</th>
+                    <th colspan="2">Bulk Cutting Close</th>
+                    <th colspan="2">Print/Emb. Close</th>
+                    <th colspan="2">Bulk Sewing Close</th>
+                    <th colspan="2">Bulk Wash Close/ Finishing Received</th>
+                    <th colspan="2">Bulk Finishing Close</th>
+                    <th colspan="2">Pre-final Inspection</th>
+                    <th colspan="2">Final Inspection</th>
+                    <th colspan="2">ex-factory</th>
 
                 </tr>
                 <tr>
@@ -230,6 +247,40 @@ $buyerIds = DB::table('buyer_assigns')
                     <th>Actual</th>
                     <th>Plan</th>
                     <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    <th>Plan</th>
+                    <th>Actual</th>
+                    {{-- <th>Plan</th>
+                    <th>Actual</th> --}}
                 </tr>
             </thead>
             <tbody class="text-nowrap bg-light" id="tnaTableBody">
@@ -307,7 +358,7 @@ $buyerIds = DB::table('buyer_assigns')
                             @endif
 
                         </td>
-                        @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'bulk_accessories_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'cutting', 'etd'] as $task)
+                        {{-- @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'bulk_accessories_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'cutting', 'etd'] as $task)
                             @foreach (['plan', 'actual'] as $type)
                                 @php
                                     $date = $tna->{$task . '_' . $type};
@@ -374,6 +425,151 @@ $buyerIds = DB::table('buyer_assigns')
                                     @endphp
                                     <td class="{{ $cellClass }}" data-toggle="tooltip" data-placement="top"
                                         title="{{ $explanation }}">
+                                        {{ $date == 'N/A' ? 'N/A' : ($date ? \Carbon\Carbon::parse($date)->format('d-M-y') : '') }}
+                                    </td>
+                                @endif
+                            @endforeach
+                        @endforeach --}}
+
+                           @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'bulk_accessories_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'etd', 'fabrics_and_accessories_inspection', 'size_set_making', 'pattern_correction', 'machines_layout', 'cutting', 'print_start', 'bulk_sewing_input', 'bulk_wash_start', 'bulk_finishing_start', 'bulk_cutting_close', 'print_close', 'bulk_sewing_close', 'bulk_wash_close', 'bulk_finishing_close', 'pre_final_inspection', 'final_inspection', 'ex_factory'] as $task)
+                            @foreach (['plan', 'actual'] as $type)
+                                @php
+                                    $date = $tna->{$task . '_' . $type};
+                                    $cellClass = '';
+
+                                    if ($date && $date != 'N/A') {
+                                        $today = \Carbon\Carbon::now();
+                                        $cellDate = \Carbon\Carbon::parse($date);
+                                        $diffDays = $today->diffInDays($cellDate, false);
+
+                                        if ($type === 'plan' && empty($tna->{$task . '_actual'})) {
+                                            if ($cellDate->isToday() || $cellDate->lt($today)) {
+                                                $cellClass = 'bg-red';
+                                            } elseif ($diffDays <= 2) {
+                                                $cellClass = 'bg-yellow';
+                                            } else {
+                                                $cellClass = 'bg-light';
+                                            }
+                                        }
+
+                                        if ($type === 'actual' && $tna->{$task . '_plan'}) {
+                                            $planDate = \Carbon\Carbon::parse($tna->{$task . '_plan'});
+                                            $actualDate = \Carbon\Carbon::parse($date);
+                                            if ($cellDate->gt($planDate)) {
+                                                $cellClass = 'text-danger font-weight-bold';
+                                            }
+                                            if ($cellDate->gt($actualDate)) {
+                                                $cellClass = 'bg-light';
+                                            }
+                                        }
+                                    } elseif ($date == 'N/A') {
+                                        $date = 'N/A';
+                                    }
+                                @endphp
+                                @if ($type === 'actual' && empty($date))
+                                    @if (
+                                        $task == 'lab_dip_submission' ||
+                                            $task == 'fabric_booking' ||
+                                            $task == 'fit_sample_submission' ||
+                                            $task == 'print_strike_off_submission' ||
+                                            $task == 'bulk_accessories_booking' ||
+                                            $task == 'fit_comments' ||
+                                            $task == 'bulk_yarn_inhouse' ||
+                                            $task == 'bulk_accessories_inhouse' ||
+                                            $task == 'pp_sample_submission' ||
+                                            $task == 'bulk_fabric_knitting' ||
+                                            $task == 'pp_comments_receive' ||
+                                            $task == 'bulk_fabric_dyeing' ||
+                                            $task == 'bulk_fabric_delivery')
+                                        @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 3 || auth()->user()->role_id == 4)
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"></td>
+                                        @else
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}"></td>
+                                        @endif
+                                    @elseif ($task == 'fabrics_and_accessories_inspection')
+                                        @if (auth()->user()->role_id == 1 ||
+                                                auth()->user()->role_id == 10008 ||
+                                                auth()->user()->role_id == 10009 ||
+                                                auth()->user()->role_id == 4)
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"></td>
+                                        @else
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}"></td>
+                                        @endif
+                                    @elseif ($task == 'size_set_making')
+                                        @if (auth()->user()->role_id == 1 ||
+                                                auth()->user()->role_id == 10005 ||
+                                                auth()->user()->role_id == 4)
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"></td>
+                                        @else
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}"></td>
+                                        @endif
+                                    @elseif ($task == 'pattern_correction')
+                                        @if (auth()->user()->role_id == 1 ||
+                                                auth()->user()->role_id == 10007 ||
+                                                auth()->user()->role_id == 10008 ||
+                                                auth()->user()->role_id == 4)
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"></td>
+                                        @else
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}"></td>
+                                        @endif
+                                    @elseif ($task == 'machines_layout')
+                                        @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 10006 || auth()->user()->role_id == 4)
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"></td>
+                                        @else
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}"></td>
+                                        @endif
+                                    @elseif (
+                                        $task == 'cutting' ||
+                                            $task == 'print_start' ||
+                                            $task == 'bulk_sewing_input' ||
+                                            $task == 'bulk_wash_start' ||
+                                            $task == 'bulk_finishing_start' ||
+                                            $task == 'bulk_cutting_close' ||
+                                            $task == 'print_close' ||
+                                            $task == 'bulk_sewing_close' ||
+                                            $task == 'bulk_wash_close' ||
+                                            $task == 'bulk_finishing_close')
+                                        @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 4 || auth()->user()->role_id == 5)
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"></td>
+                                        @else
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}"></td>
+                                        @endif
+                                    @elseif ($task == 'pre_final_inspection' || $task == 'final_inspection' || $task == 'ex_factory')
+                                        @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 10008 || auth()->user()->role_id == 4)
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"></td>
+                                        @else
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}"></td>
+                                        @endif
+                                    @elseif ($task == 'final_inspection' || $task == 'ex_factory')
+                                        @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 10005 || auth()->user()->role_id == 4)
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}" onclick="openModal(this)"></td>
+                                        @else
+                                            <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                                data-task="{{ $task . '_' . $type }}"></td>
+                                        @endif
+                                    @else
+                                        <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                            data-task="{{ $task . '_' . $type }}">
+                                        </td>
+                                    @endif
+                                @else
+                                    <td class="{{ $cellClass }}" data-id="{{ $tna->id }}"
+                                        data-task="{{ $task . '_' . $type }}">
                                         {{ $date == 'N/A' ? 'N/A' : ($date ? \Carbon\Carbon::parse($date)->format('d-M-y') : '') }}
                                     </td>
                                 @endif

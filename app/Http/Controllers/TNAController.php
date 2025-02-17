@@ -884,7 +884,24 @@ class TNAController extends Controller
             foreach ($columns as $column) {
                 $planColumn = $column . '_plan';
                 $actualColumn = $column . '_actual';
-                if ($row->$planColumn && !$row->$actualColumn && $row->$planColumn <= $currentDate) {
+                // Check if PlanDate is set and ActualDate is not set and PlanDate is less than or equal to current date else if requested has from and to date then check if PlanDate is set and ActualDate is not set and PlanDate is between from and to date
+                // Fetch data from t_n_a_s table if any request to_date and from_date
+                if (request()->has('from_date') && request()->has('to_date')) {
+                    $fromDate = Carbon::parse(request()->from_date)->format('Y-m-d');
+                    $toDate = Carbon::parse(request()->to_date)->format('Y-m-d');
+                    if ($row->$planColumn && !$row->$actualColumn && $row->$planColumn >= $fromDate && $row->$planColumn <= $toDate) {
+                        $buyers[$buyerName]['data'][$column]++;
+                        // Store details with formatted PlanDate
+                        $buyers[$buyerName]['details'][$column][] = [
+                            'style' => $row->style,
+                            'po' => $row->po,
+                            'task' => $column,
+                            'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y'),
+                            'shipment_etd' => Carbon::parse($row->shipment_etd)->format('d-M-y')
+                        ];
+                    }
+                   
+                }elseif ($row->$planColumn && !$row->$actualColumn && $row->$planColumn <= $currentDate) {
                     $buyers[$buyerName]['data'][$column]++;
                     // Store details with formatted PlanDate
                     $buyers[$buyerName]['details'][$column][] = [
@@ -2263,4 +2280,15 @@ class TNAController extends Controller
 
         return $tna;
     }
+
+    public function testtnas_dashboard()
+    {
+        $tnas = TNA::where('order_close', '0')
+        ->orderBy('shipment_etd', 'asc')
+        ->get();
+
+        return response()->json($tnas);
+    }
+
+  
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TNAController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -23,3 +24,6 @@ Route::group(['middleware' => ['auth:sanctum']], function () {
         return "Hello check";
     });
 });
+
+
+Route::get('/testtnas_dashboard', [TNAController::class, 'testtnas_dashboard'])->name('testtnas_dashboard');

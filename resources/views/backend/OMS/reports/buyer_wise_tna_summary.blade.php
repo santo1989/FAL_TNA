@@ -10,13 +10,50 @@
 
         <div class="container-fluid pt-2">
             <h4 class="text-center">Buyer-Wise Pending Tasks Summary</h4>
-            <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-arrow-left"></i> Close
-            </a>
-            @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 4)
-                <a href="{{ route('MailBuyerWiseTnaSummary') }}" class="btn btn-outline-secondary float-right">
-                    <i class="fas fa-envelope"></i> Mail Report to Marchandiser </a>
-            @else
+            <div class="row">
+                <div class="col-md-1">
+                    <a href="{{ route('tnas.index') }}" class="btn btn-outline-secondary  pt-2">
+                        <i class="fas fa-arrow-left"></i> Close
+                    </a>
+
+                </div>
+
+                <div class="col-md-8">
+                    <!-- Date Range Filter -->
+                    <form action="{{ route('BuyerWiseTnaSummary') }}" method="GET">
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="from_date">From Date</label>
+                                    <input type="date" name="from_date" id="from_date" class="form-control"
+                                        value="{{ request()->from_date }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="form-group">
+                                    <label for="to_date">To Date</label>
+                                    <input type="date" name="to_date" id="to_date" class="form-control"
+                                        value="{{ request()->to_date }}">
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <button type="submit" class="btn btn-outline-primary mt-4">Filter</button>
+                                <button type="button" class="btn btn-outline-danger mt-4"
+                                    onclick="window.location.href='{{ route('BuyerWiseTnaSummary') }}'">Reset</button>
+                            </div>
+                        </div>
+                    </form>
+
+                </div>
+                @if (auth()->user()->role_id == 1 || auth()->user()->role_id == 4)
+                    <div class="col-md-3">
+                        <a href="{{ route('MailBuyerWiseTnaSummary') }}" class="btn btn-outline-secondary float-right"
+                            style="display: inline-block;">
+                            <i class="fas fa-envelope"></i> Mail Report to Marchandiser </a>
+
+                    </div>
+            </div>
+        @else
             @endif
 
             <table class="table table-bordered table-hover text-center text-wrap" style="font-size: 12px;">
