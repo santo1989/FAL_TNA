@@ -149,12 +149,14 @@ class TNAController extends Controller
             $tna->save();
         });
 
-        //find the tna id for edit
-        $tnas = TNA::where('buyer_id', $request->buyer_id)->where('style', $request->style)->where('po', $request->po)->where('item', $request->item)->where('qty_pcs', $request->qty_pcs)->where('po_receive_date', $poReceiveDate)->where('shipment_etd', $shipmentETD)->where('print_wash', $printAndwash)->first();
-        $buyers = Buyer::all()->where('is_active', '0');
-        // dd($tna);
+        // //find the tna id for edit
+        // $tnas = TNA::where('buyer_id', $request->buyer_id)->where('style', $request->style)->where('po', $request->po)->where('item', $request->item)->where('qty_pcs', $request->qty_pcs)->where('po_receive_date', $poReceiveDate)->where('shipment_etd', $shipmentETD)->where('print_wash', $printAndwash)->first();
+        // $buyers = Buyer::all()->where('is_active', '0');
+        // // dd($tna);
 
-        return view('backend.library.tnas.Conform_create', compact('tnas', 'buyers'));
+        // return view('backend.library.tnas.Conform_create', compact('tnas', 'buyers'));
+
+        return redirect()->route('tnas.index')->withMessage('TNA created successfully');
     }
 
     public function update(Request $request, $id)
@@ -900,8 +902,7 @@ class TNAController extends Controller
                             'shipment_etd' => Carbon::parse($row->shipment_etd)->format('d-M-y')
                         ];
                     }
-                   
-                }elseif ($row->$planColumn && !$row->$actualColumn && $row->$planColumn <= $currentDate) {
+                } elseif ($row->$planColumn && !$row->$actualColumn && $row->$planColumn <= $currentDate) {
                     $buyers[$buyerName]['data'][$column]++;
                     // Store details with formatted PlanDate
                     $buyers[$buyerName]['details'][$column][] = [
@@ -2284,11 +2285,9 @@ class TNAController extends Controller
     public function testtnas_dashboard()
     {
         $tnas = TNA::where('order_close', '0')
-        ->orderBy('shipment_etd', 'asc')
-        ->get();
+            ->orderBy('shipment_etd', 'asc')
+            ->get();
 
         return response()->json($tnas);
     }
-
-  
 }
