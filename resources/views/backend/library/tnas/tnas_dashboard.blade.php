@@ -1171,16 +1171,32 @@ $buyerIds = DB::table('buyer_assigns')
                     explanation: explanation
                 },
                 success: function(response) {
-                    // Update the cell content dynamically without reloading
-                    const cellToUpdate = document.querySelector(`[data-id="${id}"][data-task="${task}"]`);
-                    if (cellToUpdate) {
-                        cellToUpdate.textContent = formattedDate;
-                        cellToUpdate.classList.add('updated-class'); // Optional: add a class for styling
-                    }
+                    // // Update the cell content dynamically without reloading
+                    // const cellToUpdate = document.querySelector(`[data-id="${id}"][data-task="${task}"]`);
+                    // if (cellToUpdate) {
+                    //     cellToUpdate.textContent = formattedDate;
+                    //     cellToUpdate.classList.add('updated-class'); // Optional: add a class for styling
+                    // }
+                    console.log(response);
+                    // window.location.reload();
 
-                    // Optionally update totals, averages, and sticky column widths
+                    $.ajax({
+                url: "{{ route('tnas_dashboard') }}",
+                type: 'GET',
+                success: function(data) {
+                    $('#tnaTableBody').html(data);
                     calculateTotalsAndAverages();
                     updateStickyColumnWidths();
+                },
+                error: function(error) {
+                    console.error('Ajax error:', error);
+                }
+            });
+                
+
+                    // // Optionally update totals, averages, and sticky column widths
+                    // calculateTotalsAndAverages();
+                    // updateStickyColumnWidths();
                 },
                 error: function(error) {
                     console.error('Error updating date:', error);
@@ -1209,6 +1225,7 @@ $buyerIds = DB::table('buyer_assigns')
         $('#dateModal').on('hidden.bs.modal', function() {
             $('#dateForm').trigger('reset');
         });
+
     </script>
 
 </x-backend.layouts.report_master>

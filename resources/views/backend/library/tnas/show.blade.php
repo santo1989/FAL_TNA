@@ -493,9 +493,9 @@
 
             const today = new Date().toISOString().split('T')[0];
             if (planDate && new Date(planDate) < new Date(today)) {
-                document.getElementById('explanation').style.display = 'block';
-            } else {
                 document.getElementById('explanation').style.display = 'none';
+            } else {
+                document.getElementById('explanation').style.display = 'block';
             }
 
             $('#dateModal').modal('show');

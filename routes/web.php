@@ -57,7 +57,9 @@ Route::get('/real-time-data', [TNAController::class, 'real_time_data'])->name('r
 // Route::get('/fal-mos', [JobController::class, 'monthlyOrderSummary'])->name('fal-mos');
 // Route::get('/fal-qws', [JobController::class, 'quantityWiseSummary'])->name('quantity_wise_summary');
 // Route::get('/fal-iws', [JobController::class, 'itemWiseSummary'])->name('item_wise_summary');
-// Route::get('/fal-ds', [JobController::class, 'deliverySummary'])->name('delivery_summary');
+Route::get('/fal-bwsf',
+    [TNAController::class, 'FAL_BuyerWiseFactoryTnaSummary']
+)->name('FAL_BuyerWiseFactoryTnaSummary');
 Route::get('/fal-bws', [TNAController::class, 'FAL_BuyerWiseTnaSummary'])->name('FAL_BuyerWiseTnaSummary');
 //fal_tnas_dashboard
 Route::get('/fal-tnas', [TNAController::class, 'fal_tnas_dashboard'])->name('fal_tnas_dashboard');
@@ -234,6 +236,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/archives_dashboard_update', [TNAController::class, 'archives_dashboard_update'])->name('archives_dashboard_update');
     //Reports
     Route::get('/buyer-wise-tna-summary', [TNAController::class, 'BuyerWiseTnaSummary'])->name('BuyerWiseTnaSummary');
+    Route::get('/buyer-wise-tna-summary-factory', [TNAController::class, 'BuyerWiseFactoryTnaSummary'])->name('BuyerWiseFactoryTnaSummary');
     Route::get('/BuyerWiseProductionLeadTimeSummary', [TNAController::class, 'BuyerWiseProductionLeadTimeSummary'])->name('BuyerWiseProductionLeadTimeSummary');
     //BuyerWiseOnTimeShipmentSummary
     Route::get('/BuyerWiseOnTimeShipmentSummary', [TNAController::class, 'BuyerWiseOnTimeShipmentSummary'])->name('BuyerWiseOnTimeShipmentSummary');

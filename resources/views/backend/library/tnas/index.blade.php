@@ -150,7 +150,7 @@
                                                      @endif
 
                                                      @can('TNA-Factory')
-                                                         @if ($tna->cutting_plan == null)
+                                                         {{-- @if ($tna->cutting_plan == null)
                                                              <!--modal for creating a new Cutting plan date -->
                                                              <button type="button" class="btn btn-outline-primary"
                                                                  data-bs-toggle="modal"
@@ -245,7 +245,7 @@
                                                                  </div>
                                                              </div>
                                                          </div>
-                                                         <!--modal for creating a new Cutting actual date End-->
+                                                         <!--modal for creating a new Cutting actual date End--> --}}
 
 
 
@@ -430,7 +430,7 @@
          </script>
 
          <!--auto update  <tbody class="text-nowrap">$tnas as $tna for realtime update table data from backend -->
-         @php
+         {{-- @php
              $old_data = json_encode($tnas);
          @endphp
          <script>
@@ -455,7 +455,24 @@
                      });
                  }, 1000);
              });
-         </script>
+         </script> --}}
+
+         <script>
+    $(document).ready(function() {
+        setInterval(function() {
+            $.ajax({
+                url: "{{ route('real_time_data') }}",
+                type: "GET",
+                success: function(response) {
+                    $('#datarowbody').html(response.html);
+                },
+                error: function(xhr) {
+                    console.error('Error fetching real-time data:', xhr.statusText);
+                }
+            });
+        }, 1000); // Poll every second
+    });
+</script>
 
 
 

@@ -15,42 +15,102 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator;
+use Illuminate\Support\Facades\Validator; 
 
 use function Symfony\Component\String\b;
 
 class TNAController extends Controller
 {
 
+    // public function index()
+    // {
+    //     $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
+    //     if (auth()->user()->role_id == 3) {
+    //         $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
+    //     } elseif (auth()->user()->role_id == 2 && $marchent_buyer_assigns->count() > 0) {
+    //         $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
+    //     } else {
+    //         $tnas = TNA::where('order_close', '0')->latest()->get();
+    //     }
+
+
+
+    //     return view('backend.library.tnas.index', compact('tnas'));
+    // }
+
+    // public function real_time_data()
+    // {
+
+    //     $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
+    //     if (auth()->user()->role_id == 3) {
+    //         $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
+    //     } elseif (auth()->user()->role_id == 2 && $marchent_buyer_assigns->count() > 0) {
+    //         $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
+    //     } else {
+    //         $tnas = TNA::where('order_close', '0')->latest()->get();
+    //     }
+
+    //     return response()->json($tnas);
+    // }
+
+
+
     public function index()
     {
-        $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
-        if (auth()->user()->role_id == 3) {
-            $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
-        } elseif (auth()->user()->role_id == 2 && $marchent_buyer_assigns->count() > 0) {
-            $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
-        } else {
-            $tnas = TNA::where('order_close', '0')->latest()->get();
-        }
+        $user = auth()->user();
+        $cacheKey = 'tnas_user_' . $user->id;
+
+        $tnas = Cache::remember($cacheKey, now()->addHours(1), function () use ($user) {
+            $marchent_buyer_assigns = BuyerAssign::where('user_id', $user->id)->get();
+
+            if ($user->role_id == 3) {
+                return TNA::where('order_close', '0')
+                    ->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))
+                    ->latest()
+                    ->get();
+            } elseif ($user->role_id == 2 && $marchent_buyer_assigns->isNotEmpty()
+            ) {
+                return TNA::where('order_close', '0')
+                    ->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))
+                    ->latest()
+                    ->get();
+            } else {
+                return TNA::where('order_close', '0')->latest()->get();
+            }
+        });
 
         return view('backend.library.tnas.index', compact('tnas'));
     }
 
     public function real_time_data()
     {
+        $user = auth()->user();
+        $cacheKey = 'tnas_user_' . $user->id;
 
-        $marchent_buyer_assigns = BuyerAssign::where('user_id', auth()->user()->id)->get();
-        if (auth()->user()->role_id == 3) {
-            $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
-        } elseif (auth()->user()->role_id == 2 && $marchent_buyer_assigns->count() > 0) {
-            $tnas = TNA::where('order_close', '0')->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))->latest()->get();
-        } else {
-            $tnas = TNA::where('order_close', '0')->latest()->get();
-        }
+        $tnas = Cache::remember($cacheKey, now()->addHours(1), function () use ($user) {
+            // Same query logic as index method
+            $marchent_buyer_assigns = BuyerAssign::where('user_id', $user->id)->get();
 
-        return response()->json($tnas);
+            if ($user->role_id == 3) {
+                return TNA::where('order_close', '0')
+                    ->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))
+                    ->latest()
+                    ->get();
+            } elseif ($user->role_id == 2 && $marchent_buyer_assigns->isNotEmpty()) {
+                return TNA::where('order_close', '0')
+                ->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))
+                ->latest()
+                    ->get();
+            } else {
+                return TNA::where('order_close', '0')->latest()->get();
+            }
+        });
+
+        $html = view('backend.library.tnas.partials.tna_rows',
+            compact('tnas')
+        )->render();
+        return response()->json(['html' => $html]);
     }
-
 
 
     public function create()
@@ -922,6 +982,95 @@ class TNAController extends Controller
         ]);
     }
 
+    public function BuyerWiseFactoryTnaSummary()
+    {
+        // Get current date
+        $currentDate = Carbon::now()->format('Y-m-d');
+        // Retrieve the user's role and assigned buyers
+        $user = auth()->user();
+        $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
+
+        // Query TNAs based on the user's role and assigned buyers
+        $query =
+            Tna::where('order_close', '0')
+            ->orderBy('shipment_etd', 'asc');
+
+        if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
+            $query->whereIn('buyer_id', $buyerIds);
+        }
+
+        // Fetch data from t_n_a_s table
+        $tnaData = $query->get();
+
+
+        // Process data to get counts
+        $buyers = [];
+        $columns = [
+            'fabrics_and_accessories_inspection',
+            'size_set_making',
+            'pattern_correction',
+            'machines_layout',
+            'print_start',
+            'bulk_sewing_input',
+            'bulk_wash_start',
+            'bulk_finishing_start',
+            'bulk_cutting_close',
+            'print_close',
+            'bulk_sewing_close',
+            'bulk_wash_close',
+            'bulk_finishing_close',
+            'pre_final_inspection',
+            'final_inspection',
+            'ex_factory'
+        ];
+
+        foreach ($tnaData as $row) {
+            $buyerName = $row->buyer;
+            if (!isset($buyers[$buyerName])) {
+                $buyers[$buyerName] = [
+                    'data' => array_fill_keys($columns, 0),
+                    'details' => []
+                ];
+            }
+            foreach ($columns as $column) {
+                $planColumn = $column . '_plan';
+                $actualColumn = $column . '_actual';
+                // Check if PlanDate is set and ActualDate is not set and PlanDate is less than or equal to current date else if requested has from and to date then check if PlanDate is set and ActualDate is not set and PlanDate is between from and to date
+                // Fetch data from t_n_a_s table if any request to_date and from_date
+                if (request()->has('from_date') && request()->has('to_date')) {
+                    $fromDate = Carbon::parse(request()->from_date)->format('Y-m-d');
+                    $toDate = Carbon::parse(request()->to_date)->format('Y-m-d');
+                    if ($row->$planColumn && !$row->$actualColumn && $row->$planColumn >= $fromDate && $row->$planColumn <= $toDate) {
+                        $buyers[$buyerName]['data'][$column]++;
+                        // Store details with formatted PlanDate
+                        $buyers[$buyerName]['details'][$column][] = [
+                            'style' => $row->style,
+                            'po' => $row->po,
+                            'task' => $column,
+                            'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y'),
+                            'shipment_etd' => Carbon::parse($row->shipment_etd)->format('d-M-y')
+                        ];
+                    }
+                } elseif ($row->$planColumn && !$row->$actualColumn && $row->$planColumn <= $currentDate) {
+                    $buyers[$buyerName]['data'][$column]++;
+                    // Store details with formatted PlanDate
+                    $buyers[$buyerName]['details'][$column][] = [
+                        'style' => $row->style,
+                        'po' => $row->po,
+                        'task' => $column,
+                        'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y'),
+                        'shipment_etd' => Carbon::parse($row->shipment_etd)->format('d-M-y')
+                    ];
+                }
+            }
+        }
+
+        return view('backend.OMS.reports.buyer_wise_tna_summary_factory', [
+            'buyers' => $buyers,
+            'columns' => $columns
+        ]);
+    }
+
     // TEX_EBO
     public function update_actual_TEX_EBO(Request $request)
     {
@@ -1129,6 +1278,70 @@ class TNAController extends Controller
         }
 
         return view('backend.OMS.reports.buyer_wise_tna_summary', [
+            'buyers' => $buyers,
+            'columns' => $columns
+        ]);
+    }
+
+    public function FAL_BuyerWiseFactoryTnaSummary()
+    {
+        // Get current date
+        $currentDate = Carbon::now()->format('Y-m-d');
+
+        // Fetch data from t_n_a_s table
+        $tnaData = Tna::where('order_close', '0')
+        ->orderBy('shipment_etd', 'asc') // Sort by shipment_etd in ascending order
+            ->get();
+
+
+        // Process data to get counts
+        $buyers = [];
+        $columns = [
+           'fabrics_and_accessories_inspection',
+            'size_set_making',
+            'pattern_correction',
+            'machines_layout',
+            'print_start',
+            'bulk_sewing_input',
+            'bulk_wash_start',
+            'bulk_finishing_start',
+            'bulk_cutting_close',
+            'print_close',
+            'bulk_sewing_close',
+            'bulk_wash_close',
+            'bulk_finishing_close',
+            'pre_final_inspection',
+            'final_inspection',
+            'ex_factory'
+            
+        ];
+
+        foreach ($tnaData as $row) {
+            $buyerName = $row->buyer;
+            if (!isset($buyers[$buyerName])) {
+                $buyers[$buyerName] = [
+                    'data' => array_fill_keys($columns, 0),
+                    'details' => []
+                ];
+            }
+            foreach ($columns as $column) {
+                $planColumn = $column . '_plan';
+                $actualColumn = $column . '_actual';
+                if ($row->$planColumn && !$row->$actualColumn && $row->$planColumn <= $currentDate) {
+                    $buyers[$buyerName]['data'][$column]++;
+                    // Store details with formatted PlanDate
+                    $buyers[$buyerName]['details'][$column][] = [
+                        'style' => $row->style,
+                        'po' => $row->po,
+                        'task' => $column,
+                        'PlanDate' => Carbon::parse($row->$planColumn)->format('d-M-y'),
+                        'shipment_etd' => Carbon::parse($row->shipment_etd)->format('d-M-y')
+                    ];
+                }
+            }
+        }
+
+        return view('backend.OMS.reports.buyer_wise_tna_summary_factory', [
             'buyers' => $buyers,
             'columns' => $columns
         ]);
@@ -2282,12 +2495,12 @@ class TNAController extends Controller
         return $tna;
     }
 
-    public function testtnas_dashboard()
-    {
-        $tnas = TNA::where('order_close', '0')
-            ->orderBy('shipment_etd', 'asc')
-            ->get();
+    // public function testtnas_dashboard()
+    // {
+    //     $tnas = TNA::where('order_close', '0')
+    //         ->orderBy('shipment_etd', 'asc')
+    //         ->get();
 
-        return response()->json($tnas);
-    }
+    //     return response()->json($tnas);
+    // }
 }

@@ -389,6 +389,14 @@
                             </a> 
 
                         </div>
+                         <div class="col-3 pt-1 pb-1">
+                            <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                href="{{ route('BuyerWiseFactoryTnaSummary') }}" target="_blank">
+                                <div class="sb-nav-link-icon"><i class="fas fa-user"></i></div>
+                                Factory TNA Pending List
+                            </a> 
+
+                        </div>
                         <div class="col-3 pt-1 pb-1">
                             <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
                                 href="{{ route('TnaSummaryReport') }}" target="_blank">
