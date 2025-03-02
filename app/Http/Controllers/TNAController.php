@@ -2092,11 +2092,11 @@ class TNAController extends Controller
                     case 'Bulk Yarn Inhouse':
                         $tna->bulk_yarn_inhouse_plan = $planDate;
                         break;
-                        // new start
+                    // new start
                     case 'Bulk Accessories Inhouse':
                         $tna->bulk_accessories_inhouse_plan = $planDate;
                         break;
-                        // new end
+                    // new end
                     case 'PP Sample Submission':
                         $tna->pp_sample_submission_plan = $planDate;
                         break;
@@ -2115,7 +2115,7 @@ class TNAController extends Controller
                     case 'PP Meeting':
                         $tna->pp_meeting_plan = $planDate;
                         break;
-                        //factory data
+                    //factory data
                     case 'Fabrics and Accessories Inspection':
                         $tna->fabrics_and_accessories_inspection_plan = $planDate;
                         break;
@@ -2197,11 +2197,11 @@ class TNAController extends Controller
                     case 'Bulk Yarn Inhouse':
                         $tna->bulk_yarn_inhouse_plan = $planDate;
                         break;
-                        // new start
+                    // new start
                     case 'Bulk Accessories Inhouse':
                         $tna->bulk_accessories_inhouse_plan = $planDate;
                         break;
-                        // new end
+                    // new end
                     case 'PP Sample Submission':
                         $tna->pp_sample_submission_plan = $planDate;
                         break;
@@ -2220,7 +2220,7 @@ class TNAController extends Controller
                     case 'PP Meeting':
                         $tna->pp_meeting_plan = $planDate;
                         break;
-                        //factory data
+                    //factory data
                     case 'Fabrics and Accessories Inspection ( Only Print )':
                         $tna->fabrics_and_accessories_inspection_plan = $planDate;
                         break;
@@ -2243,9 +2243,9 @@ class TNAController extends Controller
                     case 'Bulk Sewing Input ( Only Print )':
                         $tna->bulk_sewing_input_plan = $planDate;
                         break;
-                        // case 'Bulk Wash Start':
-                        //     $tna->bulk_wash_start_plan = $planDate;
-                        //     break;
+                    // case 'Bulk Wash Start':
+                    //     $tna->bulk_wash_start_plan = $planDate;
+                    //     break;
                     case 'Bulk Finishing Start ( Only Print )':
                         $tna->bulk_finishing_start_plan = $planDate;
                         break;
@@ -2258,10 +2258,10 @@ class TNAController extends Controller
                     case 'Bulk Sewing Close ( Only Print )':
                         $tna->bulk_sewing_close_plan = $planDate;
                         break;
-                        // case 'Bulk Wash Close or Finihsing Recived':
-                        //     $tna->bulk_wash_close_plan = $planDate;
-                        //     $tna->finishing_received_plan = $planDate;
-                        //     break;
+                    // case 'Bulk Wash Close or Finihsing Recived':
+                    //     $tna->bulk_wash_close_plan = $planDate;
+                    //     $tna->finishing_received_plan = $planDate;
+                    //     break;
                     case 'Bulk Finishing Close ( Only Print )':
                         $tna->bulk_finishing_close_plan = $planDate;
                         break;
@@ -2303,11 +2303,11 @@ class TNAController extends Controller
                     case 'Bulk Yarn Inhouse':
                         $tna->bulk_yarn_inhouse_plan = $planDate;
                         break;
-                        // new start
+                    // new start
                     case 'Bulk Accessories Inhouse':
                         $tna->bulk_accessories_inhouse_plan = $planDate;
                         break;
-                        // new end
+                    // new end
                     case 'PP Sample Submission':
                         $tna->pp_sample_submission_plan = $planDate;
                         break;
@@ -2326,7 +2326,7 @@ class TNAController extends Controller
                     case 'PP Meeting':
                         $tna->pp_meeting_plan = $planDate;
                         break;
-                        //factory data
+                    //factory data
                     case 'Fabrics and Accessories Inspection ( Only Wash )':
                         $tna->fabrics_and_accessories_inspection_plan = $planDate;
                         break;
@@ -2343,9 +2343,9 @@ class TNAController extends Controller
                         $tna->machines_layout_plan = $planDate;
                         break;
 
-                        // case 'Print/Emb. Start':
-                        //     $tna->print_start_plan = $planDate;
-                        //     break;
+                    // case 'Print/Emb. Start':
+                    //     $tna->print_start_plan = $planDate;
+                    //     break;
                     case 'Bulk Sewing Input ( Only Wash )':
                         $tna->bulk_sewing_input_plan = $planDate;
                         break;
@@ -2358,9 +2358,9 @@ class TNAController extends Controller
                     case 'Bulk Cutting Close ( Only Wash )':
                         $tna->bulk_cutting_close_plan = $planDate;
                         break;
-                        // case 'Print/Emb. Close':
-                        //    $tna->print_close_plan = $planDate;
-                        //     break;
+                    // case 'Print/Emb. Close':
+                    //    $tna->print_close_plan = $planDate;
+                    //     break;
                     case 'Bulk Sewing Close ( Only Wash )':
                         $tna->bulk_sewing_close_plan = $planDate;
                         break;
@@ -2408,11 +2408,11 @@ class TNAController extends Controller
                     case 'Bulk Yarn Inhouse':
                         $tna->bulk_yarn_inhouse_plan = $planDate;
                         break;
-                        // new start
+                    // new start
                     case 'Bulk Accessories Inhouse':
                         $tna->bulk_accessories_inhouse_plan = $planDate;
                         break;
-                        // new end
+                    // new end
                     case 'PP Sample Submission':
                         $tna->pp_sample_submission_plan = $planDate;
                         break;
@@ -2431,7 +2431,7 @@ class TNAController extends Controller
                     case 'PP Meeting':
                         $tna->pp_meeting_plan = $planDate;
                         break;
-                        //factory data
+                    //factory data
                     case 'Fabrics and Accessories Inspection ( Both Print and Wash )':
                         $tna->fabrics_and_accessories_inspection_plan = $planDate;
                         break;
@@ -2544,17 +2544,17 @@ class TNAController extends Controller
         $query->orderBy($sortColumn, $sortDirection);
 
         // Calculations
-        $totalQty = $query->sum('qty_pcs');
-        $totalLeadTime = $query->avg('total_lead_time');
-        $avgOrderFreeTime =
-            $query->whereNotNull('pp_meeting_actual')
-            ->whereNotNull('shipment_etd')
-            ->avg(DB::raw("DATEDIFF(DAY, pp_meeting_actual, shipment_etd)"));
+
 
         // Pagination
         $tnas = $query->paginate(25);
-
-
+        $totalQty = $tnas->sum('qty_pcs');
+        $totalLeadTime = $tnas->avg('total_lead_time');
+        $avgOrderFreeTime =
+            $tnas->whereNotNull('pp_meeting_actual')
+            ->whereNotNull('shipment_etd')
+            ->avg(DB::raw("DATEDIFF(DAY, pp_meeting_actual, shipment_etd)"));
+        // dd($totalQty, $totalLeadTime, $avgOrderFreeTime, $buyerIds, $user->role_id, $tnas);
 
         // Get unique buyers for filter buttons
         $buyerList = TNA::where('order_close', '0')->when(!in_array($user->role_id, [1, 2, 4]), function ($q) use ($buyerIds) {
