@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Validator; 
+use Illuminate\Support\Facades\Validator;
 
 use function Symfony\Component\String\b;
 
@@ -68,7 +68,8 @@ class TNAController extends Controller
                     ->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))
                     ->latest()
                     ->get();
-            } elseif ($user->role_id == 2 && $marchent_buyer_assigns->isNotEmpty()
+            } elseif (
+                $user->role_id == 2 && $marchent_buyer_assigns->isNotEmpty()
             ) {
                 return TNA::where('order_close', '0')
                     ->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))
@@ -98,15 +99,16 @@ class TNAController extends Controller
                     ->get();
             } elseif ($user->role_id == 2 && $marchent_buyer_assigns->isNotEmpty()) {
                 return TNA::where('order_close', '0')
-                ->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))
-                ->latest()
+                    ->whereIn('buyer_id', $marchent_buyer_assigns->pluck('buyer_id'))
+                    ->latest()
                     ->get();
             } else {
                 return TNA::where('order_close', '0')->latest()->get();
             }
         });
 
-        $html = view('backend.library.tnas.partials.tna_rows',
+        $html = view(
+            'backend.library.tnas.partials.tna_rows',
             compact('tnas')
         )->render();
         return response()->json(['html' => $html]);
@@ -1290,14 +1292,14 @@ class TNAController extends Controller
 
         // Fetch data from t_n_a_s table
         $tnaData = Tna::where('order_close', '0')
-        ->orderBy('shipment_etd', 'asc') // Sort by shipment_etd in ascending order
+            ->orderBy('shipment_etd', 'asc') // Sort by shipment_etd in ascending order
             ->get();
 
 
         // Process data to get counts
         $buyers = [];
         $columns = [
-           'fabrics_and_accessories_inspection',
+            'fabrics_and_accessories_inspection',
             'size_set_making',
             'pattern_correction',
             'machines_layout',
@@ -1313,7 +1315,7 @@ class TNAController extends Controller
             'pre_final_inspection',
             'final_inspection',
             'ex_factory'
-            
+
         ];
 
         foreach ($tnaData as $row) {
@@ -2503,4 +2505,110 @@ class TNAController extends Controller
 
     //     return response()->json($tnas);
     // }
+
+    //tna_dashboard 2 with defualt buyer filtering, pagination and search, and sorting, calculation of lead time and order free time, total quantity and buyer assign wise tna fields showing, and export to excel using laravel facade view
+
+    public function tnas_dashboard_new(Request $request)
+    {
+        $user = auth()->user();
+        $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
+
+
+
+        $query = TNA::query()->where('order_close', '0');
+
+        // Default buyer filtering
+        if ($user->role_id == 3 || ($user->role_id == 2 && $buyerIds->isNotEmpty())) {
+            $query->whereIn('buyer_id', $buyerIds);
+        }
+
+        // Search functionality
+        if ($request->has('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('po', 'like', "%$search%")
+                    ->orWhere('style', 'like', "%$search%")
+                    ->orWhere('buyer', 'like', "%$search%")
+                    ->orWhere('item', 'like', "%$search%");
+            });
+        }
+
+        // Buyer filter and if selected 'All' then show all
+        if ($request->filled('buyer') && $request->buyer != 'all') {
+            $query->where('buyer', $request->buyer);
+        }
+
+        // Sorting
+        $sortColumn = $request->get('sort', 'shipment_etd');
+        $sortDirection = $request->get('direction', 'asc');
+        $query->orderBy($sortColumn, $sortDirection);
+
+        // Calculations
+        $totalQty = $query->sum('qty_pcs');
+        $totalLeadTime = $query->avg('total_lead_time');
+        $avgOrderFreeTime =
+            $query->whereNotNull('pp_meeting_actual')
+            ->whereNotNull('shipment_etd')
+            ->avg(DB::raw("DATEDIFF(DAY, pp_meeting_actual, shipment_etd)"));
+
+        // Pagination
+        $tnas = $query->paginate(25);
+
+
+
+        // Get unique buyers for filter buttons
+        $buyerList = TNA::where('order_close', '0')->when(!in_array($user->role_id, [1, 2, 4]), function ($q) use ($buyerIds) {
+            $q->whereIn('buyer_id', $buyerIds);
+        })
+            ->distinct('buyer')
+            ->pluck('buyer');
+
+
+        return view('backend.library.tnas.tnas_dashboard_new', compact(
+            'tnas',
+            'totalQty',
+            'totalLeadTime',
+            'avgOrderFreeTime',
+            'buyerList'
+        ));
+    }
+
+    public function exportTnasExcel(Request $request)
+    {
+        // dd($request->all());
+        $user = auth()->user();
+        $buyerIds = BuyerAssign::where('user_id', $user->id)->pluck('buyer_id');
+
+        $query = TNA::query()->where('order_close', '0');
+
+        // Apply same filters as dashboard
+        if ($request->filled('search')) {
+            $search = $request->search;
+            $query->where(function ($q) use ($search) {
+                $q->where('po', 'like', "%$search%")
+                    ->orWhere('style', 'like', "%$search%")
+                    ->orWhere('buyer', 'like', "%$search%")
+                    ->orWhere('item', 'like', "%$search%");
+            });
+        }
+
+        // Buyer filter and if selected 'All' then show all
+        if ($request->filled('buyer') && $request->buyer != 'all') {
+            $query->where('buyer', $request->buyer);
+        }
+
+        $tnas = $query->get();
+
+        // dd($tnas);
+
+        $headers = [
+            'Content-Type' => 'application/vnd.ms-excel',
+            'Content-Disposition' => 'attachment; filename="tna_export_' . date('Ymd_His') . '.xls"',
+        ];
+
+        // resources\views\ExcelExports\tnasExcel.blad.php
+        return response()
+            ->view('ExcelExports.tnasExcel', compact('tnas'))
+            ->withHeaders($headers);
+    }
 }

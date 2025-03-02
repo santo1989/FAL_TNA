@@ -224,6 +224,11 @@ Route::middleware('auth')->group(function () {
     Route::get('/tnas_dashboard', [TNAController::class, 'tnas_dashboard'])->name('tnas_dashboard');
     // tnas_dashboard_update 
     Route::get('/tnas_dashboard_update', [TNAController::class, 'tnas_dashboard_update'])->name('tnas_dashboard_update');
+    //tnas_dashboard_new
+    Route::get('/tnas_dashboard_new', [TNAController::class, 'tnas_dashboard_new'])->name('tnas_dashboard_new');
+    //exportTnasExcel
+    Route::get('/export-tnas-excel', [TNAController::class, 'exportTnasExcel'])->name('export.tnas.excel');
+    
     //tnas_close
     Route::post('/tnas_close/{tna}', [TNAController::class, 'tnas_close'])->name('tnas_close');
     //tnas_open

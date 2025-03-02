@@ -383,6 +383,14 @@
                         </div>
                         <div class="col-3 pt-1 pb-1">
                             <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                                href="{{ route('tnas_dashboard_new') }}" target="_blank">
+                                <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
+                                TNA Dashboard New
+                            </a>
+
+                        </div>
+                        <div class="col-3 pt-1 pb-1">
+                            <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
                                 href="{{ route('BuyerWiseTnaSummary') }}" target="_blank">
                                 <div class="sb-nav-link-icon"><i class="fas fa-user"></i></div>
                                 TNA Pending List

@@ -63,6 +63,9 @@
 
                          <a href="{{ route('tnas_dashboard') }}" class="btn btn-outline-success"> <i
                                  class="fas fa-tachometer-alt"></i> TNA Dashboard</a>
+                        {{-- tnas_dashboard_new --}}
+                            <a href="{{ route('tnas_dashboard_new') }}" class="btn btn-outline-success"> <i
+                                    class="fas fa-tachometer-alt"></i> TNA Dashboard New</a>
 
 
                          @can('TNA-CURD')
