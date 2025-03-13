@@ -44,7 +44,8 @@
                                         <th>Itam</th>
                                         <th>Color</th>
                                         <th>Size</th>
-                                        <th>Sewing Plan Qty</th>  
+                                        <th>Sewing Plan Qty</th> 
+                                        <th>Action</th> 
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -60,6 +61,23 @@
                                             <td>{{ $balance->color }}</td>
                                             <td>{{ $balance->size }}</td>
                                             <td>{{ $balance->color_quantity }}</td>  
+                                            <td>
+                                                <a href="{{ route('sewing_plans.edit', $balance->id) }}"
+                                                    class="btn btn-outline-primary">
+                                                    <i class="fas fa-edit"></i> Edit
+                                                </a>
+                                                
+                                                <!-- Blade Template -->
+                                                <form
+                                                    action="{{ route('sewing_plans_destroy', ['sewing_plan' => $balance->id]) }}"
+                                                    method="POST" style="display: inline;" class="delete-form">
+                                                    @csrf
+                                                    @method('DELETE')
+                                                    <button type="submit" class="btn btn-outline-danger">
+                                                        <i class="fas fa-trash"></i> Delete
+                                                    </button>
+                                                </form>
+                                            </td>
                                         </tr>
                                     @empty
                                         <tr>

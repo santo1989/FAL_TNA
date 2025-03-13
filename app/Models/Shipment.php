@@ -30,8 +30,20 @@ class Shipment extends Model
     {
         return $this->belongsTo(Job::class);
     }
+
+    public function sewingplan()
+    {
+        return $this->belongsTo(SewingPlan::class);
+    }
     public function SewingBalance()
     {
         return $this->hasMany(SewingBalance::class);
     }
+
+    public function tna()
+    {
+        return $this->hasMany(TNA::class);
+    }
+
+   
 }

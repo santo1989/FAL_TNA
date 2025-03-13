@@ -40,7 +40,7 @@
                                 <thead>
                                     <tr>
                                         <th>Month</th>
-                                        <th>Job ID</th>
+                                        {{-- <th>Job ID</th> --}}
                                         <th>Job No</th>
                                         <th>Color</th>
                                         <th>Size</th>
@@ -53,23 +53,23 @@
                                         <tr>
                                             <td>{{ \Carbon\Carbon::parse($balance->production_plan)->format('M Y') }}
                                             </td>
-
-                                            <td>{{ $balance->job_id }}</td>
+{{-- 
+                                            <td>{{ $balance->job_id }}</td> --}}
                                             <td>{{ $balance->job_no }}</td>
                                             <td>{{ $balance->color }}</td>
                                             <td>{{ $balance->size }}</td>
-                                            <td>{{ $balance->color_quantity }}</td>
+                                            <td>{{ $balance->total_sewing_quantity }}</td>
                                             <td>
-                                                <a href="{{ route('sewing_plans.edit', $balance->job_no) }}"
+                                                {{-- <a href="{{ route('sewing_plans.edit', $balance->job_no) }}"
                                                     class="btn btn-outline-primary">
                                                     <i class="fas fa-edit"></i> Edit
-                                                </a>
+                                                </a> --}}
                                                 <a href="{{ route('sewing_plans.show', $balance->job_no) }}"
                                                     class="btn btn-outline-info">
                                                     <i class="fas fa-eye"></i> View
                                                 </a>
                                                 <!-- Blade Template -->
-                                                <form
+                                                {{-- <form
                                                     action="{{ route('sewing_plans_destroy', ['sewing_plan' => $balance->id]) }}"
                                                     method="POST" style="display: inline;" class="delete-form">
                                                     @csrf
@@ -77,8 +77,8 @@
                                                     <button type="submit" class="btn btn-outline-danger">
                                                         <i class="fas fa-trash"></i> Delete
                                                     </button>
-                                                </form>
-
+                                                </form> --}}
+                                            </td>
 
                                         </tr>
                                     @empty

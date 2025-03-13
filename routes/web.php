@@ -286,6 +286,11 @@ Route::middleware('auth')->group(function () {
 
     Route::get('/get_color_sizes_qties', [SewingBalanceController::class, 'get_color_sizes_qties'])->name('get_color_sizes_qties');
 
+    //search_color_sizes_qties
+    Route::get('/search_color_sizes_qties', [SewingBalanceController::class, 'get_color_sizes_qties'])->name('search_color_sizes_qties');
+    // get_buyer_po_styles
+    Route::get('/get_buyer_po_styles', [SewingBalanceController::class, 'get_buyer_po_styles'])->name('get_buyer_po_styles');
+
     //sewing_balances
     Route::get('/sewing_balances', [SewingBalanceController::class, 'index'])->name('sewing_balances.index');
     Route::get('/sewing_balances/create/{sewing_balances}', [SewingBalanceController::class, 'create_sewing_balances'])->name('sewing_balances.create');

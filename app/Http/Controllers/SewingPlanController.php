@@ -12,14 +12,25 @@ use Illuminate\Support\Facades\DB;
 
 class SewingPlanController extends Controller
 {
+
     public function index()
     {
-        $sewing_plan = SewingPlan::latest()->get();
+        $sewing_plan = SewingPlan::select(
+            'job_no',
+            'color',
+            'size',
+            'production_plan',
+            DB::raw('SUM(color_quantity) as total_sewing_quantity')
+        )
+            ->groupBy('job_no', 'color', 'size', 'production_plan')
+            ->orderBy('production_plan', 'desc')
+            ->get();
+
         // dd($sewing_plan);
-        //push buyer, style, po_no, item,
+
         return view('backend.OMS.sewing_plans.index', compact('sewing_plan'));
     }
-     
+
     public function create()
     {
         // Use DB transaction to prevent null/empty values or deadlocks
@@ -212,7 +223,9 @@ class SewingPlanController extends Controller
     {
         // dd($job_no);
 
-        $old_sewing_basic_info = SewingPlan::where('job_no', $job_no)->first();
+        $old_sewing_basic_info = SewingPlan::where('id', $job_no)->first();
+
+        $job_no = $old_sewing_basic_info->job_no;
 
         // dd($old_sewing_basic_info);
 

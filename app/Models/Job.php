@@ -25,4 +25,24 @@ class Job extends Model
     {
         return $this->belongsTo(Division::class);
     }
+
+    public function tna()
+    {
+        return $this->hasMany(TNA::class);
+    }
+
+    public function sewingplan()
+    {
+        return $this->hasMany(SewingPlan::class);
+    }
+
+    public function sewingbalance()
+    {
+        return $this->hasMany(SewingBalance::class);
+    }
+
+    public function shipment()
+    {
+        return $this->hasMany(Shipment::class);
+    }
 }

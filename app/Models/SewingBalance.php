@@ -16,6 +16,11 @@ class SewingBalance extends Model
         return $this->belongsTo(Job::class);
     }
 
+    public function sewingplan()
+    {
+        return $this->belongsTo(SewingPlan::class);
+    }
+
     public function buyer()
     {
         return $this->belongsTo(Buyer::class);
