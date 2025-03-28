@@ -60,7 +60,11 @@
 
 </head>
 
-<body style="background-color:#a5bcfc">
+<body style="background-color:#1A5276">
+
+    <!-- #a5bcfc changed to #1A5276-->
+<!-- #b3c6fd changed to #2980B9-->
+<!-- #ccd9fe changed to #85C1E9-->
 
     <div class="container-fluid">
 
