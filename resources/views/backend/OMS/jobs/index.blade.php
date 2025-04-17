@@ -98,7 +98,7 @@
                                              <td>{{ $job->item }}</td>
                                              <td>{{ $job->order_quantity }}</td>
                                              <td>
-                                                 {{-- @php
+                                                 @php
                                                      $sewing_qty = DB::table('sewing_balances')
                                                          ->where('job_no', $job->job_no)
                                                          ->get()
@@ -110,13 +110,13 @@
                                                      data-job-id="{{ $job->job_no }}"
                                                      data-job-no="{{ $job->job_no }}">
                                                      {{ $total_sewing_qty }}
-                                                 </button> --}}
+                                                 </button>
 
 
 
                                              </td>
                                              <td>
-                                                 {{-- @php
+                                                 @php
                                                      $total_shipped_qty = DB::table('shipments')
                                                          ->where('job_no', $job->job_no)
                                                          ->get()
@@ -128,7 +128,7 @@
                                                      data-job-id="{{ $job->job_no }}"
                                                      data-job-no="{{ $job->job_no }}">
                                                      {{ $total_shipped_qty }}
-                                                 </button> --}}
+                                                 </button>
 
 
                                              </td>
@@ -294,7 +294,7 @@
 
 
 
-     {{-- <!-- SewingModal Start-->
+     <!-- SewingModal Start-->
      <div class="modal fade" id="sewingModal" tabindex="-1" role="dialog" aria-labelledby="sewingModalLabel"
          aria-hidden="true">
          <div class="modal-dialog modal-xl" role="document">
@@ -515,7 +515,7 @@
          </div>
      </div>
      </div>
-     <!-- ShipmentModal End--> --}}
+     <!-- ShipmentModal End-->
 
      <script>
          setInterval(function() {

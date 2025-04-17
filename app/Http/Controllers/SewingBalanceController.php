@@ -90,6 +90,110 @@ class SewingBalanceController extends Controller
     //     ]);
     // }
 
+    // public function create_sewing_balances(Request  $request, $job_no)
+    // {
+
+
+    //     $color_sizes_qties = SewingPlan::where('job_no', $job_no)->get();
+    //     // dd($color_sizes_qties);
+    //     // now check if production_plan is set in request then just get the sewing plan for that production plan only 
+    //     if ($request->has('production_plan')) {
+    //         $color_sizes_qties = SewingPlan::where('job_no', $job_no)->where('production_plan', $request->production_plan)->where('sewing_quantity', '>', 0)->get();
+    //     }
+    //     // dd($color_sizes_qties);
+
+
+    //     $basic_info = Job::where('job_no', $job_no)->first();
+    //     $jobs_no = $basic_info->job_no;
+    //     //if already sewing balance is created for this job_no then get the sewing balance for that job_no, color and size then deduct the sewing balance from the sewing plan and then return the sewing plan
+    //     $old_sewing_balances = SewingBalance::where('job_no', $job_no)->get();
+    //     if($request->has('production_plan')){
+    //         $old_sewing_balances = SewingBalance::where('job_no', $job_no)->where('production_plan', $request->production_plan)->get();
+    //     }
+    //     if($old_sewing_balances->count() > 0) {
+    //         foreach ($old_sewing_balances as $key => $value) {
+    //             $color_sizes_qties = $color_sizes_qties->where('color', $value->color)->where('size', $value->size)->first();
+    //             if ($color_sizes_qties) {
+    //                 $color_sizes_qties->sewing_quantity -= $value->sewing_balance;
+    //             }
+    //         }
+    //     }
+    //     // dd($color_sizes_qties);
+
+    //     // dd($color_sizes_qties, $basic_info, $old_sewing_balances, $jobs_no);
+
+    //     // Return a response or redirect as needed
+
+    //     return view('backend.OMS.sewing_balances.create', compact('color_sizes_qties', 'basic_info', 'old_sewing_balances', 'jobs_no'));
+    // }
+
+    public function create_sewing_balances(Request $request, $job_no)
+    {
+        // Base query for SewingPlan rows
+        $plans = SewingPlan::where('job_no', $job_no)
+            ->where('color_quantity', '>', 0);
+
+        if ($request->filled('production_plan')) {
+            $plans->where('production_plan', $request->production_plan);
+        }
+
+        $color_sizes = $plans->get();
+
+        // Fetch the Job basic info (we only expect one row per job_no)
+        $basic = Job::where('job_no', $job_no)->firstOrFail();
+
+        // Compute for each row: total_sewn and remaining
+        $color_sizes = $color_sizes->map(function ($row) use ($basic) {
+            $totalSewn = SewingPlan::where('job_no', $row->job_no)
+                ->where('color', $row->color)
+                ->where('size',  $row->size)
+                ->sum('color_quantity');
+
+            $row->order_qty            = $row->color_quantity;
+            $row->total_sewing_qty     = $totalSewn;
+            $row->remaining_qty        = $row->color_quantity - $totalSewn;
+            return $row;
+        });
+
+        // Old balances to subtract from the “remaining” column
+        $balances = SewingBalance::where('job_no', $job_no);
+        if ($request->filled('production_plan')) {
+            $balances->where('production_plan', $request->production_plan);
+        }
+        $oldBalances = $balances->get();
+
+        return view('backend.OMS.sewing_balances.create', [
+            'basic'              => $basic,
+            'color_sizes'        => $color_sizes,
+            'oldBalances'        => $oldBalances,
+            'filter_plan'        => $request->production_plan,
+        ]);
+    }
+
+    /**
+     * AJAX: Return JSON of color/size/qty rows for a given job & plan.
+     */
+    public function getColorSizesQties(Request $request, $job_no)
+    {
+        $request->validate([
+            'production_plan' => 'required|date_format:Y-m'
+        ]);
+
+        $plans = SewingPlan::where('job_no', $job_no)
+            ->where('production_plan', $request->production_plan)
+            ->where('sewing_quantity', '>', 0)
+            ->get()
+            ->map(function ($row) {
+                $row->order_qty     = $row->color_quantity;
+                $row->remaining_qty = $row->color_quantity; // we'll subtract old balances in JS
+                return $row;
+            });
+
+        return response()->json([
+            'color_sizes' => $plans,
+        ]);
+    }
+    
     // In SewingBalanceController.php
 
     public function get_buyer_po_styles(Request $request)

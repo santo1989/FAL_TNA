@@ -278,7 +278,7 @@ Route::middleware('auth')->group(function () {
     Route::put('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'update'])->name('sewing_plans.update');
 
     // Route
-    Route::delete('/sewingPlans/{sewing_plan}', [SewingPlanController::class, 'sewing_plans_destroy'])->name('sewing_plans_destroy');
+    Route::post('/sewing_plans_destroy/{job_no}', [SewingPlanController::class, 'sewing_plans_destroy'])->name('sewing_plans_destroy');
 
 
 

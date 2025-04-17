@@ -49,6 +49,7 @@
                                     </tr>
                                 </thead>
                                 <tbody>
+                                  
                                     @forelse ($sewing_plan as $balance)
                                         <tr>
                                             <td>{{ \Carbon\Carbon::parse($balance->production_plan)->format('M Y') }}
@@ -69,15 +70,23 @@
                                                     <i class="fas fa-eye"></i> View
                                                 </a>
                                                 <!-- Blade Template -->
-                                                {{-- <form
-                                                    action="{{ route('sewing_plans_destroy', ['sewing_plan' => $balance->id]) }}"
+                                                <form
+                                                    action="{{ route('sewing_plans_destroy', ['job_no' => $balance->job_no]) }}"
                                                     method="POST" style="display: inline;" class="delete-form">
                                                     @csrf
-                                                    @method('DELETE')
+                                                    @method('POST')
+                                                    <input type="hidden" name="job_no" value="{{ $balance->job_no }}">
+                                                    <input type="hidden" name="production_plan"
+                                                        value="{{ $balance->production_plan }}">
+                                                    <input type="hidden" name="color" value="{{ $balance->color }}">
+                                                    <input type="hidden" name="size" value="{{ $balance->size }}">
+                                                    <input type="hidden" name="sewing_plan_id"
+                                                        value="{{ $balance->sewing_plan_id }}">
+
                                                     <button type="submit" class="btn btn-outline-danger">
                                                         <i class="fas fa-trash"></i> Delete
                                                     </button>
-                                                </form> --}}
+                                                </form>
                                             </td>
 
                                         </tr>

@@ -376,10 +376,42 @@ class SewingPlanController extends Controller
     }
 
     // Controller
-    public function sewing_plans_destroy(SewingPlan $sewing_plan)
+    public function sewing_plans_destroy(Request $request, $job_no)
     {
-        $sewing_plan->delete();
+        // dd($request->all(), $job_no);
 
+        // Validate the request data
+        $request->validate([
+            'job_no' => 'required|string',
+            'color' => 'required|string',
+            'size' => 'required|string',
+            'production_plan' => 'required|date_format:Y-m',
+        ]);
+
+        // Find the sewing plan entry to delete
+        $sewing_plan = SewingPlan::where('job_no', $job_no)
+            ->where('color', $request->color)
+            ->where('size', $request->size)
+            ->where('production_plan', $request->production_plan)
+            ->get();
+
+            // dd($sewing_plan);
+
+        // Delete all the sewing plan entry which are not already in sewing balance
+        foreach ($sewing_plan as $plan) {
+            // Check if the sewing plan entry exists in the sewing balance
+            $exists_in_balance = SewingBalance::where('job_no', $plan->job_no)
+                ->where('color', $plan->color)
+                ->where('size', $plan->size)
+                ->exists();
+
+            // If it doesn't exist in the sewing balance, delete it
+            if (!$exists_in_balance) {
+                $plan->delete();
+            }
+        }
+
+    
         return redirect()->route('sewing_plans.index')->with('message', 'Sewing plan deleted successfully.');
     }
 }
