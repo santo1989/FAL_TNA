@@ -315,180 +315,138 @@
         </script>
     @endif
 
-    <x-backend.layouts.elements.errors/>
+    <x-backend.layouts.elements.errors />
 
     <div class="container">
         <h1 class="text-center">Update Sewing Balance</h1>
-
-        {{-- FILTER BY PRODUCTION PLAN --}}
-        <div class="row my-3">
-            <div class="col-md-4">
-                <label>Filter Production Month</label>
-                <input type="month" id="filter_plan" class="form-control"
-                       value="{{ old('production_plan', $filter_plan) }}">
-            </div>
-        </div>
-
-        <form action="{{ route('sewing_balances_store', $basic->job_no) }}" method="POST">
+        <form action="{{ route('sewing_balances_store', $jobs_no) }}" method="POST">
             @csrf
-            <input type="hidden" name="created_by" value="{{ auth()->user()->id }}">
-            {{-- … other hidden division/company fields as before … --}}
 
-            {{-- BASIC INFO TABLE --}}
-            <table class="table table-bordered">
+            <!-- Required hidden fields -->
+            <input type="hidden" name="job_no" value="{{ $jobs_no }}">
+            <input type="hidden" name="production_plan" value="{{ request('production_plan', now()->format('Y-m')) }}">
+            <input type="hidden" name="created_by" value="{{ auth()->user()->id }}">
+            <input type="hidden" name="division_id" value="2">
+            <input type="hidden" name="division_name" value="Factory">
+            <input type="hidden" name="company_id" value="3">
+            <input type="hidden" name="company_name" value="FAL - Factory">
+
+            <table class="table">
                 <tbody>
+                    <!-- Other basic info rows omitted for brevity -->
                     <tr>
-                        <td>Job No</td>
-                        <td><input type="text" name="job_no" class="form-control" 
-                                   value="{{ $basic->job_no }}" readonly></td>
-                        <td>Buyer</td>
-                        <td>{{ $basic->buyer }}</td>
-                        <td>Style</td>
-                        <td>{{ $basic->style }}</td>
-                    </tr>
-                    {{-- …other rows (PO, Department, Item, Destination, Order QTY) … --}}
-                    <tr>
-                        <td>Production Month</td>
-                        <td>
-                            <input type="text" class="form-control" 
-                                   value="{{ $filter_plan ?? '—' }}" readonly>
+                        <td class="create_label_column">Target SMV</td>
+                        <td class="create_input_column">
+                            <input type="number" step="0.01" id="target_smv" class="form-control" readonly
+                                   value="{{ $basic_info->target_smv }}">
                         </td>
-                        <td>Sewing Month</td>
-                        <td>
-                            <input type="month" name="sewing_month" class="form-control"
-                                   value="{{ now()->format('Y-m') }}" required>
+                        <td class="create_label_column">Total Sewing Balance</td>
+                        <td class="create_input_column">
+                            <input type="number" id="total_sewing_balance" class="form-control" readonly>
                         </td>
-                        <td>Target SMV</td>
-                        <td>
-                            <input type="number" step="0.01" id="target_smv" class="form-control"
-                                   value="{{ $basic->target_smv }}" readonly>
+                        <td class="create_label_column">Sewing Balance</td>
+                        <td class="create_input_column">
+                            <input type="number" id="sewing_balance" class="form-control" readonly>
+                        </td>
+                        <td class="create_label_column">Total Production Min</td>
+                        <td class="create_input_column">
+                            <input type="number" id="Total_Production_Min" class="form-control" readonly>
+                        </td>
+                        <td class="create_label_column">Production Min Balance</td>
+                        <td class="create_input_column">
+                            <input type="number" name="production_min_balance" id="production_min_balance" class="form-control" readonly>
                         </td>
                     </tr>
                 </tbody>
             </table>
 
-            {{-- COLOR/SIZE TABLE --}}
             <table class="table table-bordered text-center" id="colorWayTable">
                 <thead>
                     <tr>
                         <th>Color</th>
                         <th>Size</th>
-                        <th>Order QTY</th>
-                        <th>Remain QTY</th>
-                        <th>Sewing QTY</th>
+                        <th>Plan Qty</th>
+                        <th>Old Sewn</th>
+                        <th>Remaining</th>
+                        <th>New Sewing</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach ($color_sizes as $row)
-                        @php
-                            // subtract any old balances to get the true remaining
-                            $prev = $oldBalances
-                                ->where('color', $row->color)
-                                ->where('size',  $row->size)
-                                ->sum('sewing_balance');
-                            $trueRemain = $row->remaining_qty - $prev;
-                        @endphp
-                        <tr data-plan-id="{{ $row->id }}">
-                            <input type="hidden" name="color_id[]" value="{{ $row->id }}">
-                            <td>{{ $row->color }}<input type="hidden" name="color[]" value="{{ $row->color }}"></td>
-                            <td>{{ $row->size }}<input type="hidden" name="size[]" value="{{ $row->size }}"></td>
-                            <td>{{ $row->order_qty }}</td>
-                            <td>
-                                <input type="number" class="form-control color-quantity"
-                                       name="color_quantity[]" value="{{ $trueRemain }}" readonly>
-                            </td>
-                            <td>
-                                <input type="number" class="form-control sewing-quantity"
-                                       name="sewing_quantity[]" min="0" max="{{ $trueRemain }}">
-                            </td>
-                        </tr>
-                    @endforeach
+                @foreach ($color_sizes_qties as $color)
+                    @php
+                        $old = $old_sewing_balances
+                                   ->where('color',$color->color)
+                                   ->where('size',$color->size)
+                                   ->sum('sewing_balance');
+                        $remain = $color->color_quantity - $old;
+                    @endphp
+                    <tr>
+                        <input type="hidden" name="color_id[]" class="old-balance" value="{{ $old }}">
+
+                        <td>
+                            <input type="text" name="color[]" class="form-control" readonly value="{{ $color->color }}">
+                        </td>
+                        <td>
+                            <input type="text" name="size[]" class="form-control" readonly value="{{ $color->size }}">
+                        </td>
+                        <td>
+                            <input type="number" name="plan_quantity[]" class="form-control plan-quantity" readonly value="{{ $color->color_quantity }}">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control old-sewn" readonly value="{{ $old }}">
+                        </td>
+                        <td>
+                            <input type="number" class="form-control initial-remain" readonly value="{{ $remain }}">
+                        </td>
+                        <td>
+                            <input type="number" name="sewing_quantity[]" class="form-control new-sewing" placeholder="Enter qty">
+                        </td>
+                    </tr>
+                @endforeach
                 </tbody>
             </table>
 
-            {{-- TOTALS --}}
-            <div class="row my-3">
-                <div class="col-md-3">
-                    <label>Total Sewing Balance</label>
-                    <input type="number" id="total_sewing_balance" class="form-control" readonly>
-                </div>
-                <div class="col-md-3">
-                    <label>Sewing Balance</label>
-                    <input type="number" id="sewing_balance" class="form-control" readonly>
-                </div>
-                <div class="col-md-3">
-                    <label>Total Production Min</label>
-                    <input type="number" id="Total_Production_Min" class="form-control" readonly>
-                </div>
-                <div class="col-md-3">
-                    <label>Production Min Balance</label>
-                    <input type="number" id="production_min_balance" class="form-control" readonly>
-                </div>
-            </div>
-
-            <div class="d-flex justify-content-between">
+            <div class="mt-3">
                 <a href="{{ route('jobs.index') }}" class="btn btn-outline-secondary">
                     <i class="fas fa-arrow-left"></i> Cancel
                 </a>
-                <button type="submit" class="btn btn-success">
+                <button type="submit" class="btn btn-outline-success">
                     <i class="fas fa-save"></i> Update Balance
                 </button>
             </div>
         </form>
     </div>
 
-    {{-- JS / AJAX --}}
+    <!-- Scripts -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
     $(function(){
-        // Recalculate all totals
+        $('#colorWayTable').on('input', '.new-sewing', calculateTotals);
+
         function calculateTotals(){
-            let totalSewn = 0, totalOrder = 0;
-            $('.sewing-quantity').each(function(){
-                totalSewn += Number($(this).val()||0);
-            });
-            $('.color-quantity').each(function(){
-                totalOrder += Number($(this).val()||0);
-            });
-            let balance = totalOrder - totalSewn;
-            let smv     = Number($('#target_smv').val()||0);
+            let oldTotal  = 0;
+            let newTotal  = 0;
+            let planTotal = 0;
+
+            $('.old-balance').each(function(){ oldTotal += +$(this).val() || 0; });
+            $('.new-sewing').each(function(){ newTotal += +$(this).val() || 0; });
+            $('.plan-quantity').each(function(){ planTotal += +$(this).val() || 0; });
+
+            const totalSewn   = oldTotal + newTotal;
+            const remaining   = planTotal - totalSewn;
+            const smv         = parseFloat($('#target_smv').val()) || 0;
+            const totalMin    = (planTotal * smv).toFixed(2);
+            const remainMin   = (remaining * smv).toFixed(2);
+
             $('#total_sewing_balance').val(totalSewn);
-            $('#sewing_balance').val(balance);
-            $('#Total_Production_Min').val((totalOrder * smv).toFixed(2));
-            $('#production_min_balance').val((balance * smv).toFixed(2));
+            $('#sewing_balance').val(remaining);
+            $('#Total_Production_Min').val(totalMin);
+            $('#production_min_balance').val(remainMin);
         }
 
-        // Bind recalc on any change
-        $(document).on('input', '.sewing-quantity', calculateTotals);
-
-        // Initial calc
+        $('#target_smv').on('input', calculateTotals);
         calculateTotals();
-
-        // AJAX: when filter_plan changes
-        $('#filter_plan').on('change', function(){
-            let plan = $(this).val(),
-                jobNo = $('input[name="job_no"]').val();
-
-            $.get("{{ url('sewing-balances') }}/" + jobNo + "/colorsizes", 
-                  { production_plan: plan }, function(res){
-                let tbody = $('#colorWayTable tbody').empty();
-                res.color_sizes.forEach(r => {
-                    tbody.append(`
-                        <tr data-plan-id="${r.id}">
-                            <input type="hidden" name="color_id[]" value="${r.id}">
-                            <td>${r.color}<input type="hidden" name="color[]" value="${r.color}"></td>
-                            <td>${r.size}<input type="hidden" name="size[]" value="${r.size}"></td>
-                            <td>${r.order_qty}</td>
-                            <td><input type="number" name="color_quantity[]" class="form-control color-quantity" value="${r.remaining_qty}" readonly></td>
-                            <td><input type="number" name="sewing_quantity[]" class="form-control sewing-quantity" min="0" max="${r.remaining_qty}"></td>
-                        </tr>
-                    `);
-                });
-                calculateTotals();
-            }).fail(() => {
-                Swal.fire('Error','Could not load rows','error');
-            });
-        });
     });
     </script>
 </x-backend.layouts.master>
