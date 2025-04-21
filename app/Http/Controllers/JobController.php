@@ -254,10 +254,10 @@ class JobController extends Controller
                 return redirect()->back()->withErrors($validator)->withInput();
             }
 
-            // Pass data to TNAController
-            $tnaRequest = new Request($tna_data);
-            $tnaController = app(TNAController::class);
-            $tnaController->store($tnaRequest);
+            // // Pass data to TNAController
+            // $tnaRequest = new Request($tna_data);
+            // $tnaController = app(TNAController::class);
+            // $tnaController->store($tnaRequest);
 
 
 
