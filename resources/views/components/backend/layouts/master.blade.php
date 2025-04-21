@@ -47,7 +47,7 @@
 
     <style>
         .card, .table {
-            background-color: #F7DC6F;
+            background-color: white,
             color: black;
         }
 
