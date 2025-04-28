@@ -52,6 +52,9 @@ Route::get('/get-department/{company_id}', [CompanyController::class, 'getdepart
 // real_time_data
 Route::get('/real-time-data', [TNAController::class, 'real_time_data'])->name('real_time_data');
 
+//buyers/all_buyer for external api
+Route::get('/buyers/all_buyer', [BuyerController::class, 'all_buyer'])->name('all_buyer');
+
 // Report for sir 
 
 // Route::get('/fal-mos', [JobController::class, 'monthlyOrderSummary'])->name('fal-mos');

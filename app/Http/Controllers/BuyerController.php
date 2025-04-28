@@ -144,4 +144,9 @@ class BuyerController extends Controller
         $buyer = Buyer::where('company_id', $request->company_id)->get();
         return response()->json($buyer);
     }
+    public function all_buyer()
+    {
+        $buyers = Buyer::all();
+        return response()->json($buyers);
+    }
 }
