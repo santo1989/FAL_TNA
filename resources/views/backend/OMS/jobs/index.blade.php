@@ -41,6 +41,10 @@
                          @can('TNA-CURD')
                              <a href="{{ route('jobs.create') }}" class="btn btn-outline-primary"> <i
                                      class="fas fa-plus"></i> Add Job</a>
+                          
+                             <a href="{{ route('job_excel_upload') }}" class="btn btn-outline-primary"> <i
+                                     class="fas fa-plus"></i> Job Excel Upload</a>
+
                          @endcan
                      </div>
                      </tr>

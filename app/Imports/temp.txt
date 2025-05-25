@@ -1,0 +1,103 @@
+<?php
+
+namespace App\Imports;
+
+use App\Models\Job;
+use App\Models\Buyer;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\Importable;
+
+class JobsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnError
+{
+    use Importable;
+
+    public function model(array $row)
+    {
+        // dd($row);
+        $buyer = Buyer::where('name', $row['buyer'])->first();
+        // if buyer not found then first create it then import the data
+        if (!$buyer) {
+            $buyer = Buyer::create([
+                'division_id' => 2,
+                'company_id' => 3,
+                'company_name' => 'FAL - Factory',
+                'division_name' => 'Factory',
+                'name' => strtoupper($row['buyer'])
+            ]);
+        }
+
+        //automatically create the job_no
+
+        $job_no = Job::max('id') + 1;
+        $job_no =
+            'FAL-' . date('y') . '-' . str_pad($job_no, 6, '0', STR_PAD_LEFT);
+
+//calculate production_plan, total_value, total_cm, fabric_qnty, print_wash from the data
+        // $production_plan = $row['order_quantity'] * $row['target_smv'] / 60;
+        // $total_value = $row['order_quantity'] * $row['unit_price'];
+        // $total_cm = $row['order_quantity'] * $row['cm_pc'];
+        // $fabric_qnty = $row['consumption_dzn'] * $row['order_quantity'] / 12;
+       
+
+
+// dd($row);
+        return Job::updateOrCreate(
+            [
+                'job_no' => $job_no,
+                'color' => $row['color'],
+                'size' => $row['size'],
+            ],
+            [
+                'company_id' => 3,
+                'division_id' => 2,
+                'company_name' => 'FAL - Factory',
+                'division_name' => 'Factory',
+                'buyer_id' => $buyer->id,
+                'buyer' => $buyer->name,
+                'style' => $row['style'],
+                'po' => $row['po'],
+                'department' => $row['department'],
+                'item' => $row['item'],
+                'color_quantity' => $row['color_quantity'],
+                'destination' => $row['destination'],
+                'order_quantity' => $row['order_quantity'],
+                'delivery_date' => $row['delivery_date'],
+                'target_smv' => $row['target_smv'],
+                'unit_price' => $row['unit_price'],
+                'cm_pc' => $row['cm_pc'],
+                'consumption_dzn' => $row['consumption_dzn'],
+                'fabrication' => $row['fabrication'],
+                'order_received_date' => $row['order_received_date'],
+                'aop' => $row['aop'],
+                'print' => $row['print'],
+                'embroidery' => $row['embroidery'],
+                'wash' => $row['wash'],
+                'print_wash' => $row['print_wash'],
+                'remarks' => $row['remarks'],
+            ]
+        );
+    }
+
+    public function rules(): array
+    {
+        return [
+            'job_no' => 'required|string',
+            'buyer' => 'required|exists:buyers,name',
+            'style' => 'required|string',
+            'color' => 'required|string',
+            'size' => 'required|string',
+            'color_quantity' => 'required|numeric',
+            'order_quantity' => 'required|numeric',
+        ];
+    }
+
+    public function onError(\Throwable $e)
+    {
+        // Handle errors here, if buyer not found then first create it then import the data
+        Log::error('Error importing job: ' . $e->getMessage());
+    }
+}

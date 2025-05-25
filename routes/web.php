@@ -272,6 +272,13 @@ Route::middleware('auth')->group(function () {
     Route::get('/item-wise-summary', [JobController::class, 'itemWiseSummary'])->name('item_wise_summary');
     Route::get('/delivery-summary', [JobController::class, 'deliverySummary'])->name('delivery_summary');
 
+    //job excell upload job_excel_upload
+    Route::get('/job_excel_upload', [JobController::class, 'job_excel_upload'])->name('job_excel_upload');
+    Route::post('/jobs/import', [JobController::class, 'import'])->name('jobs.import');
+    // jobs . export
+    Route::get('/jobs/job_sample_download', [JobController::class, 'job_sample_download'])->name('job_sample_download');
+
+
     //sewing_plans
     Route::get('/sewing_plans', [SewingPlanController::class, 'index'])->name('sewing_plans.index');
     Route::get('/sewing_plans/create', [SewingPlanController::class, 'create'])->name('sewing_plans.create');

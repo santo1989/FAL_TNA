@@ -12,6 +12,9 @@ use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Validator;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Imports\JobsImport; // Add this line to import the JobsImport class
+use Illuminate\Support\Facades\File;
 
 class JobController extends Controller
 {
@@ -34,64 +37,7 @@ class JobController extends Controller
         return view('backend.OMS.jobs.create');
     }
 
-    // public function store(Request $request)
-    // {
-    //     dd($request->all());
-    //     try {
-    //         $color_name = $request->input('color_name');
-    //         $color_quantity = $request->input('color_quantity');
-    //         foreach($color_name as $key => $color) { 
-    //         $job = Job::create([
-    //             'company_id' => $request->input('company_id'),
-    //             'division_id' => $request->input('division_id'),
-    //             'buyer_id' => $request->input('buyer_id'),
-    //             'company_name' => $request->input('company_name'),
-    //             'division_name' => $request->input('division_name'),
-    //             'buyer' => Buyer::find($request->input('buyer_id'))->name,
-    //             'job_no' => $request->input('job_no'),
-    //             'style' => strtoupper($request->input('style')),
-    //             'po' => strtoupper($request->input('po')),
-    //             'department' => strtoupper($request->input('department')),
-    //             'item' => $request->input('item'),
-    //             'color' => strtoupper($color_name[$key]),
-    //             'color_quantity' => $color_quantity[$key],
-    //             'destination' => $request->input('country'),
-    //             'order_quantity' => $request->input('order_quantity'),
-    //             'sewing_balance' => $request->input('sewing_balance'),
-    //             'production_plan' => $request->input('production_plan'),
-    //             'ins_date' => $request->input('ins_date'),
-    //             'delivery_date' => $request->input('delivery_date'),
-    //             'target_smv' => $request->input('target_smv'),
-    //             'production_minutes' => $request->input('production_minutes'),
-    //             // 'production_min_balance' => $request->input('production_min_balance'),
-    //             'unit_price' => $request->input('unit_price'),
-    //             'total_value' => $request->input('total_value'),
-    //             'cm_pc' => $request->input('cm_pc'),
-    //             'total_cm' => $request->input('total_cm'),
-    //             'consumption_dzn' => $request->input('consumption_dzn'),
-    //             'fabric_qnty' => $request->input('fabric_qnty'),
-    //             'fabrication' => $request->input('fabrication'),
-    //             'order_received_date' => $request->input('order_received_date'),
-    //             'aop' => $request->input('aop'),
-    //             'print' => $request->input('print'),
-    //             'embroidery' => $request->input('embroidery'),
-    //             'remarks' => $request->input('remarks'),
-    //             // 'shipped_qty' => $request->input('shipped_qty'),
-    //             // 'ex_factory_date' => $request->input('ex_factory_date'),
-    //             // 'shipped_value' => $request->input('shipped_value'),
-    //             // 'excess_short_shipment_qty' => $request->input('excess_short_shipment_qty'),
-    //             // 'excess_short_shipment_value' => $request->input('excess_short_shipment_value'),
-    //         ]);
-
-    //         return redirect()->route('jobs.index')->withMessage('Job created successfully.');
-    //     }
-    //     } catch (\Exception $e) {
-    //         return redirect()->back()->withInput()->withErrors(['error' => $e->getMessage()]);
-    //     }
-    // }
-
-
-    public function store(Request $request)
+        public function store(Request $request)
     {
         // dd($request->all()); // Uncomment this line for debugging purposes only.
 
@@ -275,19 +221,6 @@ class JobController extends Controller
         return view('backend.OMS.jobs.show', compact('jobs'));
     }
 
-    // public function edit(Request $request, $job_no)
-    // {
-    //     $jobs = Job::where('job_no', $job_no)->get();
-    //     // dd($jobs);
-    //     return view('backend.OMS.jobs.edit', compact('jobs'));
-    // }
-
-    // public function update(Request $request, Job $job)
-    // {
-    //     $job->update($request->all());
-    //     return redirect()->route('jobs.index');
-    // }
-
 
     public function edit_jobs(Request $request, $edit_jobs)
     {
@@ -299,93 +232,6 @@ class JobController extends Controller
         return view('backend.OMS.jobs.edit_jobs', compact('job', 'jobs_no', 'colors'));
     }
 
-    // public function update_edit_jobs(Request $request, $edit_jobs)
-    // {
-    //     // Retrieve the job(s) using where clause
-    //     $jobs = Job::where('job_no', $edit_jobs)->get();
-
-    //     // Validate the request data if needed.
-    //     $request->validate([
-    //         'created_by' => 'required|integer',
-    //         'division_id' => 'required|integer',
-    //         'company_id' => 'required|integer',
-    //         'job_no' => 'required|string',
-    //         'style' => 'required|string',
-    //         'po' => 'required|string',
-    //         'department' => 'required|string',
-    //         'item' => 'required|string',
-    //         'country' => 'required|string',
-    //         'order_quantity' => 'required|integer',
-    //         'ins_date' => 'required|date',
-    //         'delivery_date' => 'required|date',
-    //         'target_smv' => 'required|numeric',
-    //         'production_minutes' => 'required|numeric',
-    //         'unit_price' => 'required|numeric',
-    //         'total_value' => 'required|numeric',
-    //         'cm_pc' => 'required|numeric',
-    //         'total_cm' => 'required|numeric',
-    //         'consumption_dzn' => 'required|numeric',
-    //         'fabric_qnty' => 'required|numeric',
-    //         'fabrication' => 'required|string',
-    //         'aop' => 'required|string',
-    //         'print' => 'required|string',
-    //         'embroidery' => 'required|string',
-    //         'color' => 'required|array',
-    //         'size' => 'required|array',
-    //         'color_quantity' => 'required|array',
-    //     ]);
-
-    //     // Extract the color, size, and color_quantity arrays from the request.
-    //     $colors = $request->input('color');
-    //     $sizes = $request->input('size');
-    //     $colorQuantities = $request->input('color_quantity');
-
-    //     try {
-    //         foreach ($jobs as $job) {
-    //             foreach ($colors as $key => $color) {
-    //                 // Update job attributes
-    //                 $job->update([
-    //                     'company_id' => $request->input('company_id'),
-    //                     'division_id' => $request->input('division_id'),
-    //                     'company_name' => $request->input('company_name'),
-    //                     'division_name' => $request->input('division_name'),
-    //                     'buyer_id' => $request->input('buyer_id'),
-    //                     'buyer' => Buyer::find($request->input('buyer_id'))->name,
-    //                     'job_no' => strtoupper($request->input('job_no')),
-    //                     'style' => strtoupper($request->input('style')),
-    //                     'po' => strtoupper($request->input('po')),
-    //                     'department' => strtoupper($request->input('department')),
-    //                     'item' => $request->input('item'),
-    //                     'color' => strtoupper($color),
-    //                     'size' => strtoupper($sizes[$key]),
-    //                     'color_quantity' => $colorQuantities[$key],
-    //                     'destination' => $request->input('country'),
-    //                     'order_quantity' => $request->input('order_quantity'),
-    //                     'ins_date' => $request->input('ins_date'),
-    //                     'delivery_date' => $request->input('delivery_date'),
-    //                     'target_smv' => $request->input('target_smv'),
-    //                     'production_minutes' => $request->input('production_minutes'),
-    //                     'unit_price' => $request->input('unit_price'),
-    //                     'total_value' => $request->input('total_value'),
-    //                     'cm_pc' => $request->input('cm_pc'),
-    //                     'total_cm' => $request->input('total_cm'),
-    //                     'consumption_dzn' => $request->input('consumption_dzn'),
-    //                     'fabric_qnty' => $request->input('fabric_qnty'),
-    //                     'fabrication' => strtoupper($request->input('fabrication')),
-    //                     'order_received_date' => $request->input('order_received_date'),
-    //                     'aop' => $request->input('aop'),
-    //                     'print' => $request->input('print'),
-    //                     'embroidery' => $request->input('embroidery'),
-    //                     'remarks' => strtoupper($request->input('remarks')),
-    //                 ]);
-    //             }
-    //         }
-
-    //         return redirect()->route('jobs.index')->with('message', 'Job updated successfully.');
-    //     } catch (\Exception $e) {
-    //         return redirect()->back()->withInput()->withErrors(['error' => $e->getMessage()]);
-    //     }
-    // }
 
     public function update_edit_jobs(Request $request, $edit_jobs)
     {
@@ -927,5 +773,42 @@ class JobController extends Controller
         }
 
         return view('backend.OMS.reports.delivery_summary', compact('summary', 'totals', 'buyers', 'statuses'));
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => 'required|mimes:xlsx,xls'
+        ]);
+
+        try {
+            // dd($request->file('file'));
+            // Import the Excel file using the JobsImport class
+            Excel::import(new JobsImport, $request->file('file'));
+            return redirect()->back()->withMessage('Jobs imported successfully!');
+        } catch (\Exception $e) {
+            return redirect()->back()->withErrors( 'Error importing jobs: ' . $e->getMessage());
+        }
+    }
+
+    public function job_excel_upload()
+    {
+
+        return view('backend.OMS.jobs.job_excel_upload');
+    }
+
+    public function job_sample_download()
+    {
+
+        //find the file prom public\excel_template\sample_jobs_import.xlsx and download it
+        // return response()->download(public_path('excel_template/sample_jobs_import.xlsx'));
+
+        $filePath = public_path('excel_template/sample_jobs_import.xlsx');
+
+        if (!file_exists($filePath)) {
+            abort(404, 'File not found');
+        }
+
+        return back()->download($filePath);
     }
 }

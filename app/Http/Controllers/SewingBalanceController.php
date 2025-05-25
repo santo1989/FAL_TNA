@@ -86,11 +86,7 @@ class SewingBalanceController extends Controller
                 'sewing_balance' => $qty,
                 'production_plan' => $r->input('production_plan'),
                 'production_min_balance' => $r->input('production_min_balance'),
-                // 'created_by' => $r->created_by,
-                // 'division_id' => $r->division_id,
-                // 'division_name' => $r->division_name,
-                // 'company_id' => $r->company_id,
-                // 'company_name' => $r->company_name,
+             
             ]);
         }
 
@@ -149,130 +145,6 @@ class SewingBalanceController extends Controller
         ]);
     }
 
-
-
-    //     public function store(Request $request)
-    //     {
-    //         // dd($request->all());
-    //         // Validate the request data
-    //         $request->validate([
-    //             'job_no' => 'required|string|max:255',
-    //             'production_plan' => 'required|date_format:Y-m',
-    //             'production_min_balance' => 'required|numeric',
-    //             'color_id' => 'required|array',
-    //             'color_id.*' => 'required|integer',
-    //             'color' => 'required|array',
-    //             'color.*' => 'required|string',
-    //             'size' => 'required|array',
-    //             'size.*' => 'required|string',
-    //             'sewing_quantity' => 'required|array',
-    //             'sewing_quantity.*' => 'required|integer',
-    //         ]);
-    // // dd($request->all());
-    //         // Iterate over the color and size arrays and save each combination
-    //         foreach ($request->color_id as $key => $value) {
-    //             dd($value);
-    //             // Find the job
-    //             $sewing_plan = SewingPlan::findOrFail($value);
-    //             $job = Job::findOrFail($sewing_plan->job_id);
-
-    //             if (!$job) {
-    //                 return redirect()->back()->withError('Job not found.');
-    //             }
-
-    //             // dd($job);
-
-    //             // Create a new sewing balance
-    //             $sewing_balance = SewingBalance::create([
-    //                 'job_id' => $job->id,
-    //                 'sewing_plan_id' => $sewing_plan->id,
-    //                 'job_no' => $request->job_no,
-    //                 'color' => $request->color[$key],
-    //                 'size' => $request->size[$key],
-    //                 'sewing_balance' => $request->sewing_quantity[$key],
-    //                 'production_plan' => $request->production_plan,
-    //                 'production_min_balance' => $request->production_min_balance,
-    //             ]);
-    //         }
-
-    //         // Redirect back with a success message
-    //         return redirect()->route('jobs.index')->withMessage('Sewing balances saved successfully.');
-    //     }
-
-
-    // public function store(Request $request)
-    // {
-    //     // Validate the request data
-    //     $request->validate([
-    //         'job_no' => 'required|string|max:255',
-    //         'production_plan' => 'required|date_format:Y-m',
-    //         'production_min_balance' => 'required|numeric',
-    //         'color_id' => 'required|array',
-    //         'color_id.*' => 'required|integer',
-    //         'color' => 'required|array',
-    //         'color.*' => 'required|string',
-    //         'size' => 'required|array',
-    //         'size.*' => 'required|string',
-    //         'sewing_quantity' => 'required|array',
-    //         'sewing_quantity.*' => 'required|integer|min:0', // Ensure sewing quantity is non-negative
-    //     ]);
-
-    //     // Start a database transaction to ensure data consistency
-    //     DB::beginTransaction();
-
-    //     try {
-    //         // Iterate over the color and size arrays and save each combination
-    //         foreach ($request->color_id as $key => $colorId) {
-    //             // Find the sewing plan
-    //             $sewingPlan = SewingPlan::find($colorId);
-
-    //             if (!$sewingPlan) {
-    //                 throw new \Exception("Sewing plan not found for color ID: {$colorId}");
-    //             }
-
-    //             // Find the job associated with the sewing plan
-    //             $job = Job::find($sewingPlan->job_id);
-
-    //             if (!$job) {
-    //                 throw new \Exception("Job not found for sewing plan ID: {$sewingPlan->id}");
-    //             }
-
-    //             // Check if the sewing quantity exceeds the remaining quantity
-    //             $remainingQuantity = $sewingPlan->color_quantity - $sewingPlan->total_sewing_quantity;
-    //             if ($request->sewing_quantity[$key] > $remainingQuantity) {
-    //                 throw new \Exception("Sewing quantity exceeds remaining quantity for color: {$request->color[$key]} and size: {$request->size[$key]}");
-    //             }
-
-    //             // Create a new sewing balance record
-    //             SewingBalance::create([
-    //                 'job_id' => $job->id,
-    //                 'sewing_plan_id' => $sewingPlan->id,
-    //                 'job_no' => $request->job_no,
-    //                 'color' => $request->color[$key],
-    //                 'size' => $request->size[$key],
-    //                 'sewing_balance' => $request->sewing_quantity[$key],
-    //                 'production_plan' => $request->production_plan,
-    //                 'production_min_balance' => $request->production_min_balance,
-    //             ]);
-
-    //             // Update the total sewing quantity in the sewing plan
-    //             $sewingPlan->total_sewing_quantity += $request->sewing_quantity[$key];
-    //             $sewingPlan->save();
-    //         }
-
-    //         // Commit the transaction
-    //         DB::commit();
-
-    //         // Redirect back with a success message
-    //         return redirect()->route('jobs.index')->with('message', 'Sewing balances saved successfully.');
-    //     } catch (\Exception $e) {
-    //         // Rollback the transaction in case of an error
-    //         DB::rollBack();
-
-    //         // Redirect back with an error message
-    //         return redirect()->back()->with('error', $e->getMessage());
-    //     }
-    // }
 
 public function show(Request $request, $job_no)
     {
