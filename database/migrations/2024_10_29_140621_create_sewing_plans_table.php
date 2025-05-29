@@ -11,9 +11,9 @@ class CreateSewingPlansTable extends Migration
     {
         Schema::create('sewing_plans', function (Blueprint $table) {
             $table->id();
-            $table->unsignedBigInteger('job_id')->nullable();
+            $table->unsignedBigInteger('job_id')->nullable()->index();
             $table->string('job_no')->nullable();
-            $table->string('production_plan')->nullable(); 
+            $table->string('production_plan')->nullable()->index(); 
             $table->string('color')->nullable();
             $table->string('size')->nullable();
             $table->bigInteger('color_quantity')->nullable(); 

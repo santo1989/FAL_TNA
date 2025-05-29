@@ -23,6 +23,14 @@ use App\Models\Notification;
 use Illuminate\Support\Facades\Artisan;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Log;
+
+
+
+Route::get('/test-log', function () {
+    Log::info('Windows 11 log test');
+    return 'Check storage\logs\laravel.log';
+});
 
 // Route::get('/', function () {
 //     return view('welcome');
@@ -278,6 +286,10 @@ Route::middleware('auth')->group(function () {
     // jobs . export
     Route::get('/jobs/job_sample_download', [JobController::class, 'job_sample_download'])->name('job_sample_download');
 
+    Route::get('/jobs/table-body', [JobController::class, 'tableBody'])->name('jobs.tableBody');
+    Route::get('/jobs/{job}/sewing-data', [JobController::class, 'sewingData']);
+    Route::get('/jobs/{job}/shipment-data', [JobController::class, 'shipmentData']);
+
 
     //sewing_plans
     Route::get('/sewing_plans', [SewingPlanController::class, 'index'])->name('sewing_plans.index');
@@ -345,6 +357,8 @@ Route::middleware('auth')->group(function () {
     Route::put('/capacity_plans/{capacity_plans}', [CapacityPlanController::class, 'update'])->name('capacity_plans.update');
     Route::delete('/capacity_plans/{capacity_plans}', [CapacityPlanController::class, 'destroy'])->name('cp_destroy');
 });
+
+
 // routes/web.php
 Route::get('/get-avg-smv', [CapacityPlanController::class, 'getAvgSMV'])->name('capacity_plans.getAvgSMV');
 

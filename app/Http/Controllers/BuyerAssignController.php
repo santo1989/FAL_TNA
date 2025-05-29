@@ -50,10 +50,13 @@ class BuyerAssignController extends Controller
                     return redirect()->route('buyer_assigns.index')->withErrors('BuyerAssign already exists!');
                 }
 
+                // Data insert
+                $buyer_name = Buyer::findOrFail($buyer_id)->name;
+
                 $buyer_assign = new BuyerAssign;
                 $buyer_assign->buyer_id = $buyer_id;
                 $buyer_assign->user_id = $user_id;
-                $buyer_assign->buyer_name = Buyer::findOrFail($buyer_id)->name;
+                $buyer_assign->buyer_name = strtoupper($buyer_name);
                 $buyer_assign->user_name = User::findOrFail($user_id)->name;
                 $buyer_assign->assign_date = date('Y-m-d');
                 $buyer_assign->assign_by = auth()->user()->name;
@@ -106,9 +109,11 @@ class BuyerAssignController extends Controller
                 }
             }
         }
+        // Update the buyer_assign
+        $buyer_name = Buyer::findOrFail($buyer_id)->name;
         $buyer_assign->buyer_id = $buyer_id;
         $buyer_assign->user_id = $user_id;
-        $buyer_assign->buyer_name = Buyer::findOrFail($buyer_id)->name;
+        $buyer_assign->buyer_name = strtoupper($buyer_name);
         $buyer_assign->user_name = User::findOrFail($user_id)->name;
         $buyer_assign->assign_date = date('Y-m-d');
         $buyer_assign->assign_by = auth()->user()->name;

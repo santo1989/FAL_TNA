@@ -18,18 +18,99 @@ use Illuminate\Support\Facades\File;
 
 class JobController extends Controller
 {
+    // public function index()
+    // {
+    //     //if job_no is not empty
+    //     $jobs = Job::select('buyer', 'job_no', 'style', 'po', 'department', 'item', 'order_quantity', 'delivery_date', 'order_received_date')->groupBy('buyer', 'job_no', 'style', 'po', 'department', 'item', 'order_quantity', 'delivery_date', 'order_received_date')->get();
+    //     // dd($jobs); 
+    //     //if job_no is empty
+    //     if ($jobs->isEmpty()) {
+    //         return view('backend.OMS.jobs.create');
+    //     }
+
+
+    //     return view('backend.OMS.jobs.index', compact('jobs'));
+    // }
+
+
     public function index()
     {
-        //if job_no is not empty
-        $jobs = Job::select('buyer', 'job_no', 'style', 'po', 'department', 'item', 'order_quantity', 'delivery_date', 'order_received_date')->groupBy('buyer', 'job_no', 'style', 'po', 'department', 'item', 'order_quantity', 'delivery_date', 'order_received_date')->get();
-        // dd($jobs); 
-        //if job_no is empty
-        if ($jobs->isEmpty()) {
-            return view('backend.OMS.jobs.create');
-        }
-
+        $jobs = Job::select(
+            'buyer',
+            'job_no',
+            'style',
+            'po',
+            'department',
+            'item',
+            'order_quantity',
+            'delivery_date',
+            'order_received_date'
+        )
+            ->groupBy(
+                'buyer',
+                'job_no',
+                'style',
+                'po',
+                'department',
+                'item',
+                'order_quantity',
+                'delivery_date',
+                'order_received_date'
+            )
+            ->with(['sewingBalances', 'shipments']) // Eager load relationships
+            ->get();
 
         return view('backend.OMS.jobs.index', compact('jobs'));
+    }
+    public function tableBody()
+    {
+        $jobs = Job::select(
+            'buyer',
+            'job_no',
+            'style',
+            'po',
+            'department',
+            'item',
+            'order_quantity',
+            'delivery_date',
+            'order_received_date'
+        )
+            ->groupBy(
+                'buyer',
+                'job_no',
+                'style',
+                'po',
+                'department',
+                'item',
+                'order_quantity',
+                'delivery_date',
+                'order_received_date'
+            )
+            ->with(['sewingBalances', 'shipments'])
+            ->get();
+
+        return view('backend.OMS.jobs.partials.job_rows', compact('jobs'));
+    }
+
+    // JobController.php
+    public function sewingData($jobNo)
+    {
+        $sewingData = SewingBalance::where('job_no', $jobNo)
+            ->select('color', 'size', DB::raw('SUM(sewing_balance) as total_sewing_balance'))
+            ->groupBy('color', 'size')
+            ->get();
+
+        return view('backend.OMS.jobs.partials.sewing_data', compact('sewingData', 'jobNo'));
+    }
+
+    public function shipmentData($jobNo)
+    {
+        $shipmentData = Shipment::where('job_no', $jobNo)
+            ->select('color', 'size', DB::raw('SUM(shipped_qty) as total_shipped_qty'))
+            ->groupBy('color', 'size')
+            ->get();
+
+        return view('backend.OMS.jobs.partials.shipment_data', compact('shipmentData', 'jobNo'));
     }
 
     public function create()

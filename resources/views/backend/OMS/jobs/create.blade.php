@@ -911,10 +911,10 @@
 
         $(document).ready(function() {
 
-            $('#style-select').select2();
-            $('#po-select').select2();
-            $('#department-select').select2();
-            $('#country').select2();
+            // $('#style-select').select2();
+            // $('#po-select').select2();
+            // $('#department-select').select2();
+            // $('#country').select2();
 
         })
         $(document).ready(function() {

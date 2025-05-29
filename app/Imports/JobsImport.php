@@ -6,7 +6,6 @@ use App\Models\Job;
 use App\Models\Buyer;
 use App\Models\Shipment;
 use App\Models\SewingBalance;
-use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -16,58 +15,47 @@ use Maatwebsite\Excel\Concerns\WithHeadingRow;
 use Maatwebsite\Excel\Concerns\WithValidation;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 
-class JobsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnError, WithBatchInserts
+class JobsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnError
 {
-    
     use SkipsErrors;
 
     private $processedRows = 0;
     private $failedRows = [];
+    private $batchId;
+
+    public function __construct()
+    {
+        $this->batchId = 'FAL-' . date('y') . '-' . uniqid();
+    }
 
     public function model(array $row)
     {
-        // dd($row); // Debugging line to inspect the row data
-         
-        DB::beginTransaction();
+        Log::info('JobsImport: Processing new row', ['row_data' => $row]);
+        DB::enableQueryLog();
+        $normalizedRow = [];
 
         try {
             $normalizedRow = $this->normalizeKeys($row);
-
-            // 1. Buyer Handling
+            $this->validateEssentialFields($normalizedRow);
             $buyer = $this->processBuyer($normalizedRow);
+            $parsedOrderRef = $this->parseOrderReference($normalizedRow['orderstylepo'] ?? '');
 
-            // 2. Job Number Generation
-            $jobNo = $this->generateJobNumber();
+            $sequence = $this->processedRows + count($this->failedRows) + 1;
+            $jobNo = $this->generateJobNumber($sequence);
 
-            // 3. Parse Combined Fields
-            $parsedOrderRef = $this->parseOrderReference($normalizedRow['or_no_ref_style_po'] ?? '');
+            $jobAttributes = $this->mapJobAttributes($normalizedRow, $buyer->id, $jobNo, $parsedOrderRef);
+            $job = $this->updateOrCreateJob($jobNo, $normalizedRow, $jobAttributes);
 
-            // dd($parsedOrderRef); // Debugging line to inspect parsed order reference
-
-            // 4. Job Creation
-            $job = Job::updateOrCreate(
-                [
-                    'job_no' => $jobNo,
-                    'color' => $normalizedRow['color'] ?? 'ALL',
-                    'size' => $normalizedRow['size'] ?? 'ALL'
-                ],
-                $this->mapJobAttributes($normalizedRow, $buyer->id, $jobNo, $parsedOrderRef)
-            );
-
-            // 5. Shipment Handling
             $this->processShipment($normalizedRow, $job);
-
-            // 6. Sewing Balance
             $this->processSewingBalance($normalizedRow, $job);
 
-            DB::commit();
             $this->processedRows++;
-
             return $job;
         } catch (\Exception $e) {
-            DB::rollBack();
-            $this->logError($e);
+            $this->logError($e, $normalizedRow);
             return null;
+        } finally {
+            DB::disableQueryLog();
         }
     }
 
@@ -75,184 +63,337 @@ class JobsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnErro
     {
         $keyMap = [
             'buyer' => 'buyer',
-            'Order_Style_PO' => 'or_no_ref_style_po',
-            'department' => 'dept',
+            'order_style_po' => 'orderstylepo',
+            'orderstylepo' => 'orderstylepo',
+            'department' => 'department',
+            'dept' => 'department',
             'item' => 'item',
-            'destination' => 'dest',
-            'order quantity' => 'order_quantity',
-            'sewing balance' => 'sewing_balance',
-            'shipment plan' => 'shipment_plan',
-            'ins_date' => 'ins_date',
-            'delivery date' => 'delivery_date',
-            'target smv' => 'target_smv',
-            'production minutes' => 'production_minutes',
-            'production balance' => 'production_balance',
+            'destination' => 'destination',
+            'dest' => 'destination',
+            'order_quantity' => 'orderquantity',
+            'orderquantity' => 'orderquantity',
+            'sewing_balance' => 'sewingbalance',
+            'sewingbalance' => 'sewingbalance',
+            'shipment_plan' => 'shipmentplan',
+            'shipmentplan' => 'shipmentplan',
+            'ins_date' => 'insdate',
+            'insdate' => 'insdate',
+            'delivery_date' => 'deliverydate',
+            'deliverydate' => 'deliverydate',
+            'target_smv' => 'targetsmv',
+            'targetsmv' => 'targetsmv',
+            'production_minutes' => 'productionminutes',
+            'productionminutes' => 'productionminutes',
+            'production_balance' => 'productionbalance',
+            'productionbalance' => 'productionbalance',
             'price' => 'price',
-            'total amount' => 'total_amount',
-            'cm_pc' => 'cm_pcs',
-            'total cm' => 'total_cm',
+            'total_amount' => 'totalamount',
+            'totalamount' => 'totalamount',
+            'cm_pc' => 'cmpc',
+            'cmpc' => 'cmpc',
+            'total_cm' => 'totalcm',
+            'totalcm' => 'totalcm',
             'consumption' => 'consumption',
-            'fabric qnty.' => 'fabric_qnty',
+            'fabric_qnty' => 'fabricqnty',
+            'fabricqnty' => 'fabricqnty',
             'fabrication' => 'fabrication',
-            'order received date' => 'order_received_date',
+            'order_received_date' => 'orderreceiveddate',
+            'orderreceiveddate' => 'orderreceiveddate',
             'remarks' => 'remarks',
-            'shipped qty' => 'shipped_qty',
-            'ex-factory date' => 'ex_factory_date',
-            'shipped value' => 'shipped_value',
-            'excess short shipment qty' => 'excess_short_shipment_qty',
-            'excess short shipment value' => 'excess_short_shipment_value',
-            'delivery status' => 'delivery_status'
+            'shipped_qty' => 'shippedqty',
+            'shippedqty' => 'shippedqty',
+            'ex_factory_date' => 'exfactorydate',
+            'exfactorydate' => 'exfactorydate',
+            'shipped_value' => 'shippedvalue',
+            'shippedvalue' => 'shippedvalue',
+            'excess_short_shipment_qty' => 'excessshortshipmentqty',
+            'excessshortshipmentqty' => 'excessshortshipmentqty',
+            'excess_short_shipment_value' => 'excessshortshipmentvalue',
+            'excessshortshipmentvalue' => 'excessshortshipmentvalue',
+            'delivery_status' => 'deliverystatus',
+            'deliverystatus' => 'deliverystatus',
+            'color' => 'color',
+            'size' => 'size',
         ];
 
         return collect($row)->mapWithKeys(function ($value, $key) use ($keyMap) {
-            $normalizedKey = strtolower(trim($key));
+            $normalizedKey = strtolower(preg_replace('/[^a-z0-9_]/', '', trim($key)));
             return [$keyMap[$normalizedKey] ?? $normalizedKey => $value];
         })->toArray();
     }
 
-    private function processBuyer(array $row): Buyer
-    {
-        return Buyer::lockForUpdate()->firstOrCreate(
-            ['name' => strtoupper($row['buyer'])],
-            [
-                'division_id' => 2,
-                'company_id' => 3,
-                'company_name' => 'FAL - Factory',
-                'division_name' => 'Factory'
-            ]
-        );
-    }
-
-    private function generateJobNumber(): string
-    {
-        $latestJob = Job::lockForUpdate()->latest('id')->first();
-        $sequence = $latestJob ? $latestJob->id + 1 : 1;
-        return 'FAL-' . date('y') . '-' . str_pad($sequence, 6, '0', STR_PAD_LEFT);
-    }
-
     private function parseOrderReference(string $reference): array
     {
-        preg_match_all('/PO-?\d+/', $reference, $poMatches);
-        $po = $poMatches[0][0] ?? null;
+        // Handle comma-separated references
+        if (strpos($reference, ',') !== false) {
+            $parts = array_map('trim', explode(',', $reference));
+            return [
+                'style' => $parts[0] ?? 'N/A',
+                'po' => $parts[1] ?? 'N/A'
+            ];
+        }
 
-        $stylePart = trim(preg_replace('/PO-?\d+/', '', $reference));
-        $stylePart = preg_replace('/\s{2,}/', ' ', $stylePart);
+        // Extract PO number with flexible patterns
+        $po = null;
+        if (preg_match('/\b(PO[- ]*[\dA-Z]+)\b/i', $reference, $poMatches)) {
+            $po = $poMatches[0];
+        }
+
+        $style = trim(str_replace($po ?? '', '', $reference));
+
+        if (empty($style)) {
+            $style = $reference;
+        }
+
+        if (empty($po)) {
+            $po = $reference;
+        }
 
         return [
-            'style' => $stylePart,
-            'po' => $po,
+            'style' => $style,
+            'po' => $po
         ];
+    }
+
+    private function generateJobNumber(int $sequence): string
+    {
+        return $this->batchId . '-' . str_pad($sequence, 4, '0', STR_PAD_LEFT);
     }
 
     private function mapJobAttributes(array $row, int $buyerId, string $jobNo, array $parsedRef): array
     {
-        return [
+        $numericFields = [
+            'orderquantity',
+            'targetsmv',
+            'productionminutes',
+            'price',
+            'totalamount',
+            'cmpc',
+            'totalcm',
+            'consumption',
+            'fabricqnty'
+        ];
+
+        foreach ($numericFields as $field) {
+            $row[$field] = is_numeric(str_replace(',', '', $row[$field] ?? '0'))
+                ? (float) str_replace(',', '', $row[$field])
+                : 0;
+        }
+
+        $attributes = [
             'company_id' => 3,
             'division_id' => 2,
             'buyer_id' => $buyerId,
-            'style' => $parsedRef['style'],
-            'po' => $parsedRef['po'],
-            'department' => $row['dept'] ?? null,
+            'job_no' => $jobNo,
+            'batch_id' => $this->batchId,
+            'style' => $parsedRef['style'] ?? 'N/A',
+            'po' => $parsedRef['po'] ?? 'N/A',
+            'department' => $row['department'] ?? null,
             'item' => $row['item'] ?? null,
-            'destination' => $row['dest'] ?? null,
-            'order_quantity' => $row['order_quantity'] ?? 0,
-            'delivery_date' => $this->parseDate($row['delivery_date']),
-            'target_smv' => $row['target_smv'] ?? 0,
-            'production_minutes' => $row['production_minutes'] ?? 0,
-            'unit_price' => $row['price'] ?? 0,
-            'total_value' => $row['total_amount'] ?? 0,
-            'cm_pc' => $row['cm_pcs'] ?? 0,
-            'total_cm' => $row['total_cm'] ?? 0,
-            'consumption_dzn' => $row['consumption'] ?? 0,
-            'fabric_qnty' => $row['fabric_qnty'] ?? 0,
-            // In mapJobAttributes()
-            'fabrication' => $row['fabrication'] ?? '', // Corrected from 'item_description'
-            'order_received_date' => $this->parseDate($row['order_received_date'] ?? null),
+            'destination' => $row['destination'] ?? null,
+            'color' => $row['color'] ?? 'ALL',
+            'size' => $row['size'] ?? 'ALL',
+            'order_quantity' => $row['orderquantity'],
+            'delivery_date' => $this->parseDate($row['deliverydate']),
+            'target_smv' => $row['targetsmv'],
+            'production_minutes' => $row['productionminutes'],
+            'unit_price' => $row['price'],
+            'total_value' => $row['totalamount'],
+            'cm_pc' => $row['cmpc'],
+            'total_cm' => $row['totalcm'],
+            'consumption_dzn' => $row['consumption'],
+            'fabric_qnty' => $row['fabricqnty'],
+            'fabrication' => $row['fabrication'] ?? '',
+            'order_received_date' => $this->parseDate($row['orderreceiveddate'] ?? null),
             'remarks' => $row['remarks'] ?? null
         ];
+
+        Log::debug('JobsImport: Mapped Job Attributes', $attributes);
+        return $attributes;
     }
 
-    private function processShipment(array $row, Job $job): void
+    private function parseDate($value): ?\Carbon\Carbon
     {
-        Shipment::updateOrCreate(
-            [
-                'job_id' => $job->id,
-                'color' => $row['color'] ?? 'ALL',
-                'size' => $row['size'] ?? 'ALL'
-            ],
-            [
-                'shipped_qty' => $row['shipped_qty'] ?? 0,
-                'ex_factory_date' => $this->parseDate($row['ex_factory_date'] ?? null),
-                'shipped_value' => $row['shipped_value'] ?? 0,
-                'excess_short_shipment_qty' => $row['excess_short_shipment_qty'] ?? 0,
-                'excess_short_shipment_value' => $row['excess_short_shipment_value'] ?? 0,
-                'delivery_status' => $row['delivery_status'] ?? 'Pending'
-            ]
-        );
-    }
-
-    private function processSewingBalance(array $row, Job $job): void
-    {
-        SewingBalance::updateOrCreate(
-            [
-                'job_id' => $job->id,
-                'color' => $row['color'] ?? 'ALL',
-                'size' => $row['size'] ?? 'ALL'
-            ],
-            [
-                'sewing_balance' => $row['sewing_balance'] ?? 0,
-                'production_plan' => $this->parseDate($row['shipment_plan'] ?? null),
-                'production_min_balance' => $row['production_balance'] ?? 0
-            ]
-        );
-    }
-
-    private function parseDate($value)
-    {
-        if (empty($value) || $value === '0000-00-00 00:00:00') {
+        if (empty($value)) {
             return null;
         }
-        try {
-            return \Carbon\Carbon::parse($value);
-        } catch (\Exception $e) {
-            Log::error("Failed to parse date: {$value}");
-            return null;
+
+        // Handle Excel numeric dates
+        if (is_numeric($value)) {
+            try {
+                return \Carbon\Carbon::instance(
+                    \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float)$value)
+                );
+            } catch (\Exception $e) {
+                Log::warning("Excel date conversion failed: {$value}");
+            }
         }
+
+        // Try various string formats
+        $formats = [
+            'Y-m-d H:i:s',
+            'Y-m-d',
+            'm/d/Y H:i:s',
+            'm/d/Y',
+            'd.m.Y H:i:s',
+            'd.m.Y',
+            'd/m/Y H:i:s',
+            'd/m/Y',
+        ];
+
+        foreach ($formats as $format) {
+            try {
+                return \Carbon\Carbon::createFromFormat($format, $value);
+            } catch (\Exception $e) {
+                continue;
+            }
+        }
+
+        Log::warning("Date parsing failed for value: {$value}");
+        return null;
     }
 
     public function rules(): array
     {
         return [
-            '*.buyer' => 'required|string|max:255',
-            '*.or_no_ref_style_po' => 'required|string',
-            '*.order_quantity' => 'required|numeric|min:0',
-            // Make other fields nullable
-            '*.delivery_date' => 'nullable|date',
-            '*.target_smv' => 'nullable|numeric|min:0',
+            '*.buyer' => 'nullable|string|max:255',
+            '*.orderstylepo' => 'nullable|string',
+            '*.orderquantity' => 'nullable|numeric|min:0',
+            '*.deliverydate' => 'nullable|date',
+            '*.targetsmv' => 'nullable|numeric|min:0',
             '*.price' => 'nullable|numeric|min:0',
-            '*.total_amount' => 'nullable|numeric|min:0',
-            '*.cm_pcs' => 'nullable|numeric|min:0',
-            '*.production_minutes' => 'nullable|numeric|min:0'
+            '*.totalamount' => 'nullable|numeric|min:0',
+            '*.cmpc' => 'nullable|numeric|min:0',
+            '*.productionminutes' => 'nullable|numeric|min:0'
         ];
     }
 
     private function logError(\Exception $e, array $row): void
     {
         $rowNumber = $this->processedRows + count($this->failedRows) + 1;
-        $this->failedRows[] = [
-            'row' => $rowNumber,
-            'data' => $row,
-            'error' => $e->getMessage()
-        ];
-        Log::error("Row {$rowNumber} failed: " . $e->getMessage(), [
-            'row_data' => $row,
+        $errorMessage = "Row {$rowNumber} failed: " . $e->getMessage();
+
+        Log::error($errorMessage, [
+            'raw_row' => $row,
+            'normalized_data' => $this->normalizeKeys($row),
             'trace' => $e->getTraceAsString()
         ]);
+
+        $this->failedRows[] = [
+            'row' => $rowNumber,
+            'error' => $errorMessage
+        ];
     }
 
-    public function batchSize(): int
+    private function validateEssentialFields(array $row): void
     {
-        return 100;
+        if (!isset($row['buyer']) || empty($row['buyer'])) {
+            throw new \Exception("Missing or empty 'buyer' field");
+        }
+        if (!isset($row['orderstylepo']) || empty($row['orderstylepo'])) {
+            throw new \Exception("Missing or empty 'orderstylepo' field");
+        }
+        if (!isset($row['orderquantity']) || !is_numeric(str_replace(',', '', $row['orderquantity']))) {
+            throw new \Exception("Invalid or missing 'orderquantity' field");
+        }
+    }
+
+    private function processBuyer(array $row): Buyer
+    {
+        Log::info('processBuyer: Attempting to create/update buyer', ['buyer_name' => $row['buyer']]);
+        try {
+            $buyer = Buyer::lockForUpdate()->firstOrCreate(
+                ['name' => strtoupper($row['buyer'])],
+                [
+                    'division_id' => 2,
+                    'company_id' => 3,
+                    'company_name' => 'FAL - Factory',
+                    'division_name' => 'Factory'
+                ]
+            );
+            Log::info('processBuyer: Buyer created/updated successfully', ['buyer_id' => $buyer->id]);
+            return $buyer;
+        } catch (\Exception $e) {
+            Log::error('processBuyer: Error creating/updating buyer', ['error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+
+    private function updateOrCreateJob(string $jobNo, array $row, array $jobAttributes): Job
+    {
+        Log::debug('JobsImport: Attempting Job updateOrCreate', [
+            'find_criteria' => ['job_no' => $jobNo],
+            'update_attributes' => $jobAttributes
+        ]);
+
+        try {
+            $job = Job::updateOrCreate(
+                ['job_no' => $jobNo],
+                $jobAttributes
+            );
+
+            $logMessage = $job->wasRecentlyCreated ? 'Job created successfully' : 'Job updated successfully';
+            Log::info("JobsImport: {$logMessage}", ['job_id' => $job->id, 'job_no' => $job->job_no]);
+            return $job;
+        } catch (\Exception $e) {
+            Log::error('JobsImport: Error during Job updateOrCreate', [
+                'error' => $e->getMessage(),
+                'query_log' => DB::getQueryLog()
+            ]);
+            throw $e;
+        }
+    }
+
+    private function processShipment(array $row, Job $job): void
+    {
+        Log::info('processShipment: Attempting to create/update shipment', ['job_id' => $job->id]);
+        try {
+            $shipmentAttributes = [
+                'shipped_qty' => $this->parseNumeric($row['shippedqty'] ?? 0),
+                'ex_factory_date' => $this->parseDate($row['exfactorydate'] ?? null),
+                'shipped_value' => $this->parseNumeric($row['shippedvalue'] ?? 0),
+                'excess_short_shipment_qty' => $this->parseNumeric($row['excessshortshipmentqty'] ?? 0),
+                'excess_short_shipment_value' => $this->parseNumeric($row['excessshortshipmentvalue'] ?? 0),
+                'delivery_status' => $row['deliverystatus'] ?? 'Pending'
+            ];
+
+            $shipment = Shipment::updateOrCreate(
+                ['job_id' => $job->id],
+                $shipmentAttributes
+            );
+            Log::info("processShipment: Shipment processed successfully", ['shipment_id' => $shipment->id]);
+        } catch (\Exception $e) {
+            Log::error('processShipment: Error creating/updating shipment', ['error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+
+    private function processSewingBalance(array $row, Job $job): void
+    {
+        Log::info('processSewingBalance: Attempting to create/update sewing balance', ['job_id' => $job->id]);
+        try {
+            $sewingBalanceAttributes = [
+                'sewing_balance' => $this->parseNumeric($row['sewingbalance'] ?? 0),
+                'production_plan' => $this->parseDate($row['shipmentplan'] ?? null),
+                'production_min_balance' => $this->parseNumeric($row['productionbalance'] ?? 0)
+            ];
+
+            $sewingBalance = SewingBalance::updateOrCreate(
+                ['job_id' => $job->id],
+                $sewingBalanceAttributes
+            );
+            Log::info("processSewingBalance: Sewing balance processed successfully", ['id' => $sewingBalance->id]);
+        } catch (\Exception $e) {
+            Log::error('processSewingBalance: Error creating/updating sewing balance', ['error' => $e->getMessage()]);
+            throw $e;
+        }
+    }
+
+    private function parseNumeric($value): float
+    {
+        return is_numeric(str_replace(',', '', $value))
+            ? (float) str_replace(',', '', $value)
+            : 0;
     }
 
     public function getProcessedRows(): int
@@ -267,8 +408,7 @@ class JobsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnErro
 
     public function onError(\Throwable $e)
     {
-        // Handled in main error handling
-        Log::error("Import error: {$e->getMessage()}", [
+        Log::error("Import error (from onError callback): {$e->getMessage()}", [
             'trace' => $e->getTraceAsString()
         ]);
     }

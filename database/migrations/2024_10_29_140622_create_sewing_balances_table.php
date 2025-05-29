@@ -16,14 +16,14 @@ class CreateSewingBalancesTable extends Migration
         Schema::create('sewing_balances', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('sewing_plan_id')->nullable();
-            $table->unsignedBigInteger('job_id')->nullable();
+            $table->unsignedBigInteger('job_id')->nullable()->index();
             $table->string('job_no')->nullable();
-            $table->date('sewing_date')->nullable();
+            $table->date('sewing_date')->nullable()->index();
             $table->string('color')->nullable();
             $table->string('size')->nullable();
             $table->bigInteger('sewing_balance')->nullable();
-            $table->string('production_plan')->nullable();
-            $table->decimal('production_min_balance', 8, 2)->nullable();
+            $table->string('production_plan')->nullable()->index();
+            $table->decimal('production_min_balance', 19, 4)->nullable();
             $table->timestamps();
         });
     }

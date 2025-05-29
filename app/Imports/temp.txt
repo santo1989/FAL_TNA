@@ -101,3 +101,74 @@ class JobsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnErro
         Log::error('Error importing job: ' . $e->getMessage());
     }
 }
+
+
+ private function parseOrderReference(string $reference): array
+    {
+        preg_match_all('/PO-?\d+/', $reference, $poMatches);
+        $po = $poMatches[0][0] ?? null;
+
+        $stylePart = trim(preg_replace('/PO-?\d+/', '', $reference));
+        $stylePart = preg_replace('/\s{2,}/', ' ', $stylePart);
+
+        return [
+            'style' => $stylePart,
+            'po' => $po,
+        ];
+    }
+
+    private function mapJobAttributes(array $row, int $buyerId, string $jobNo, array $parsedRef): array
+    {
+        return [
+            'company_id' => 3,
+            'division_id' => 2,
+            'buyer_id' => $buyerId,
+            'style' => $parsedRef['style'],
+            'po' => $parsedRef['po'],
+            'department' => $row['dept'] ?? null,
+            'item' => $row['item'] ?? null,
+            'destination' => $row['dest'] ?? null,
+            'order_quantity' => $row['order_quantity'] ?? 0,
+            'delivery_date' => $this->parseDate($row['delivery_date']),
+            'target_smv' => $row['target_smv'] ?? 0,
+            'production_minutes' => $row['production_minutes'] ?? 0,
+            'unit_price' => $row['price'] ?? 0,
+            'total_value' => $row['total_amount'] ?? 0,
+            'cm_pc' => $row['cm_pcs'] ?? 0,
+            'total_cm' => $row['total_cm'] ?? 0,
+            'consumption_dzn' => $row['consumption'] ?? 0,
+            'fabric_qnty' => $row['fabric_qnty'] ?? 0,
+            // In mapJobAttributes()
+            'fabrication' => $row['fabrication'] ?? '', // Corrected from 'item_description'
+            'order_received_date' => $this->parseDate($row['order_received_date'] ?? null),
+            'remarks' => $row['remarks'] ?? null
+        ];
+    }
+private function parseDate($value)
+    {
+        if (empty($value) || $value === '0000-00-00 00:00:00') {
+            return null;
+        }
+        try {
+            return \Carbon\Carbon::parse($value);
+        } catch (\Exception $e) {
+            Log::error("Failed to parse date: {$value}");
+            return null;
+        }
+    }
+
+    public function rules(): array
+    {
+        return [
+            '*.buyer' => 'required|string|max:255',
+            '*.or_no_ref_style_po' => 'required|string',
+            '*.order_quantity' => 'required|numeric|min:0',
+            // Make other fields nullable
+            '*.delivery_date' => 'nullable|date',
+            '*.target_smv' => 'nullable|numeric|min:0',
+            '*.price' => 'nullable|numeric|min:0',
+            '*.total_amount' => 'nullable|numeric|min:0',
+            '*.cm_pcs' => 'nullable|numeric|min:0',
+            '*.production_minutes' => 'nullable|numeric|min:0'
+        ];
+    }

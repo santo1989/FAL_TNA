@@ -12,11 +12,11 @@ class CreateCapacityPlansTable extends Migration
         Schema::create('capacity_plans', function (Blueprint $table) {
             $table->id();
             $table->unsignedBigInteger('created_by')->nullable();
-            $table->unsignedBigInteger('division_id')->nullable();
+            $table->unsignedBigInteger('division_id')->nullable()->index();
             $table->string('division_name')->nullable();
             $table->unsignedBigInteger('company_id')->nullable();
             $table->string('company_name')->nullable(); 
-            $table->string('production_plan')->nullable();
+            $table->string('production_plan')->nullable()->index();
             $table->bigInteger('running_machines')->nullable();
             $table->bigInteger('helpers')->nullable();
             $table->bigInteger('working_hours')->nullable();

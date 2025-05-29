@@ -1,0 +1,554 @@
+<?php
+
+namespace App\Imports;
+
+use App\Models\Job;
+use App\Models\Buyer;
+use App\Models\Shipment;
+use App\Models\SewingBalance;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Log;
+use Maatwebsite\Excel\Concerns\ToModel;
+use Maatwebsite\Excel\Concerns\SkipsErrors;
+use Maatwebsite\Excel\Concerns\SkipsOnError;
+use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithValidation;
+use Maatwebsite\Excel\Concerns\WithBatchInserts;
+
+class JobsImport implements ToModel, WithHeadingRow, WithValidation, SkipsOnError, WithBatchInserts
+{
+    use SkipsErrors;
+
+    private $processedRows = 0;
+    private $failedRows = [];
+
+    /**
+     * Process each row from the imported Excel file.
+     * This method attempts to create or update job-related data (Buyer, Job, Shipment, SewingBalance)
+     * within a database transaction.
+     *
+     * @param array $row The current row data from the Excel file.
+     * @return Job|null Returns the created/updated Job model on success, or null on failure.
+     */
+    public function model(array $row)
+    {
+        // Log the start of processing for the current row
+        Log::info('JobsImport: Processing new row', ['row_data' => $row]);
+
+        // Begin a database transaction for atomicity.
+        // All operations within this try block will either succeed together or fail together.
+        DB::beginTransaction();
+        Log::info('JobsImport: Transaction started');
+
+        // Enable query logging for this transaction to capture the exact SQL queries and bindings
+        DB::enableQueryLog();
+
+        try {
+            // Normalize array keys to a consistent format (e.g., camelCase or snake_case)
+            $normalizedRow = $this->normalizeKeys($row);
+
+            // Pre-validation: Perform essential checks on critical fields.
+            // If these fields are missing or invalid, an exception is thrown before database operations.
+            if (!isset($normalizedRow['buyer']) || empty($normalizedRow['buyer'])) {
+                throw new \Exception("Missing or empty 'buyer' field");
+            }
+            if (!isset($normalizedRow['orderstylepo']) || empty($normalizedRow['orderstylepo'])) {
+                throw new \Exception("Missing or empty 'orderstylepo' field");
+            }
+            if (!isset($normalizedRow['orderquantity']) || !is_numeric($normalizedRow['orderquantity'])) {
+                throw new \Exception("Invalid or missing 'orderquantity' field");
+            }
+
+            // 1. Buyer Handling: Create or update the buyer record.
+            // The buyer's ID is crucial for linking to the job.
+            $buyer = $this->processBuyer($normalizedRow);
+
+            // 2. Job Number Generation: Generate a unique job number for the new job.
+            $jobNo = $this->generateJobNumber();
+
+            // 3. Parse Combined Fields: Extract style and PO from the combined order_style_po field.
+            $parsedOrderRef = $this->parseOrderReference(
+                $normalizedRow['orderstylepo'] ?? ''
+            );
+
+            // 4. Job Creation: Create or update the main Job record.
+            $jobAttributes = $this->mapJobAttributes($normalizedRow, $buyer->id, $jobNo, $parsedOrderRef);
+
+            Log::debug('JobsImport: Attempting Job updateOrCreate', [
+                'find_criteria' => ['job_no' => $jobNo, 'color' => $normalizedRow['color'] ?? 'ALL', 'size' => $normalizedRow['size'] ?? 'ALL'],
+                'update_attributes' => $jobAttributes
+            ]);
+
+            try {
+                $job = Job::updateOrCreate(
+                    [
+                        'job_no' => $jobNo,
+                        'color' => $normalizedRow['color'] ?? 'ALL', // Default to 'ALL' if color is not provided
+                        'size' => $normalizedRow['size'] ?? 'ALL'   // Default to 'ALL' if size is not provided
+                    ],
+                    $jobAttributes
+                );
+                // Log whether the job was created or updated
+                if ($job->wasRecentlyCreated) {
+                    Log::info('JobsImport: Job created successfully', ['job_id' => $job->id, 'job_no' => $job->job_no, 'attributes' => $jobAttributes]);
+                } else {
+                    Log::info('JobsImport: Job updated successfully (or no changes)', ['job_id' => $job->id, 'job_no' => $job->job_no, 'attributes' => $jobAttributes]);
+                }
+            } catch (\Exception $jobException) {
+                Log::error('JobsImport: Error during Job updateOrCreate', [
+                    'error' => $jobException->getMessage(),
+                    'query_log' => DB::getQueryLog(), // Log queries that led to this error
+                    'trace' => $jobException->getTraceAsString()
+                ]);
+                throw $jobException; // Re-throw to trigger the main rollback
+            }
+
+
+            // 5. Shipment Handling: Create or update shipment details related to the job.
+            $this->processShipment($normalizedRow, $job);
+
+            // 6. Sewing Balance: Create or update sewing balance details related to the job.
+            $this->processSewingBalance($normalizedRow, $job);
+
+            // If all operations are successful, commit the transaction to save changes to the database.
+            DB::commit();
+            Log::info('JobsImport: Transaction committed successfully');
+
+            // Increment the counter for successfully processed rows.
+            $this->processedRows++;
+            return $job; // Return the created/updated Job model.
+
+        } catch (\Exception $e) {
+            // If an error occurs, check if there's an active transaction.
+            if (DB::transactionLevel() > 0) {
+                // Rollback the transaction to undo all changes made within this row's processing.
+                DB::rollBack();
+                Log::error('JobsImport: Transaction rolled back due to error', ['error' => $e->getMessage()]);
+            } else {
+                // Log if an error occurred but no active transaction was found (e.g., error before beginTransaction).
+                Log::error('JobsImport: Error occurred, but no active transaction to rollback!', ['error' => $e->getMessage()]);
+            }
+            // Log the specific error and the row data that caused the failure.
+            $this->logError($e, $normalizedRow ?? []);
+            return null; // Return null to indicate failure for this row.
+        } finally {
+            // Always disable query logging after processing each row
+            DB::disableQueryLog();
+        }
+    }
+
+    /**
+     * Normalizes the keys of the input array to a consistent format.
+     * This helps in handling variations in column names from the Excel file.
+     *
+     * @param array $row The raw row data from the Excel file.
+     * @return array The row data with normalized keys.
+     */
+    private function normalizeKeys(array $row): array
+    {
+        // Define a map for common variations of column names to their normalized form.
+        $keyMap = [
+            'buyer' => 'buyer',
+            'order_style_po' => 'orderstylepo',
+            'orderstylepo' => 'orderstylepo',
+            'department' => 'department',
+            'dept' => 'department',
+            'item' => 'item',
+            'destination' => 'destination',
+            'dest' => 'destination',
+            'order_quantity' => 'orderquantity',
+            'orderquantity' => 'orderquantity',
+            'sewing_balance' => 'sewingbalance',
+            'sewingbalance' => 'sewingbalance',
+            'shipment_plan' => 'shipmentplan',
+            'shipmentplan' => 'shipmentplan',
+            'ins_date' => 'insdate',
+            'insdate' => 'insdate',
+            'delivery_date' => 'deliverydate',
+            'deliverydate' => 'deliverydate',
+            'target_smv' => 'targetsmv',
+            'targetsmv' => 'targetsmv',
+            'production_minutes' => 'productionminutes',
+            'productionminutes' => 'productionminutes',
+            'production_balance' => 'productionbalance',
+            'productionbalance' => 'productionbalance',
+            'price' => 'price',
+            'total_amount' => 'totalamount',
+            'totalamount' => 'totalamount',
+            'cm_pc' => 'cmpc',
+            'cmpc' => 'cmpc',
+            'total_cm' => 'totalcm',
+            'totalcm' => 'totalcm',
+            'consumption' => 'consumption',
+            'fabric_qnty' => 'fabricqnty',
+            'fabricqnty' => 'fabricqnty',
+            'fabrication' => 'fabrication',
+            'order_received_date' => 'orderreceiveddate',
+            'orderreceiveddate' => 'orderreceiveddate',
+            'remarks' => 'remarks',
+            'shipped_qty' => 'shippedqty',
+            'shippedqty' => 'shippedqty',
+            'ex_factory_date' => 'exfactorydate',
+            'exfactorydate' => 'exfactorydate',
+            'shipped_value' => 'shippedvalue',
+            'shippedvalue' => 'shippedvalue',
+            'excess_short_shipment_qty' => 'excessshortshipmentqty',
+            'excessshortshipmentqty' => 'excessshortshipmentqty',
+            'excess_short_shipment_value' => 'excessshortshipmentvalue',
+            'excessshortshipmentvalue' => 'excessshortshipmentvalue',
+            'delivery_status' => 'deliverystatus',
+            'deliverystatus' => 'deliverystatus',
+        ];
+
+        // Iterate through the row, normalize keys, and return a new array.
+        return collect($row)->mapWithKeys(function ($value, $key) use ($keyMap) {
+            // Convert key to lowercase and remove non-alphanumeric characters for robust matching.
+            $normalizedKey = strtolower(preg_replace('/[^a-z0-9_]/', '', trim($key)));
+            // Use the mapped key if found, otherwise use the normalized key directly.
+            return [$keyMap[$normalizedKey] ?? $normalizedKey => $value];
+        })->toArray();
+    }
+
+    /**
+     * Parses the combined order reference string to extract style and PO number.
+     *
+     * @param string $reference The combined order style/PO reference string.
+     * @return array An associative array containing 'style' and 'po'.
+     */
+    private function parseOrderReference(string $reference): array
+    {
+        // // Use regex to find potential PO numbers (e.g., "PO-123", "PO 456").
+        // preg_match_all('/\bPO[- ]*\d+/i', $reference, $poMatches);
+        // $po = $poMatches[0][0] ?? null; // Get the first match if available.
+
+        // // Remove the identified PO part from the reference to get the style.
+        // $style = trim(preg_replace('/\bPO[- ]*\d+/i', '', $reference));
+
+        // // Handle edge cases where style or PO might be empty after parsing.
+        // if (empty($style) && empty($po)) {
+        //     $style = $reference ?: 'N/A'; // If both are empty, use the original reference as style.
+        //     $po = 'N/A';
+        // } elseif (empty($style)) {
+        //     $style = $po; // If style is empty but PO exists, use PO as style.
+        // }
+
+        $style = $reference; // Default to the full reference as style.
+        $po = $reference; // Default to the full reference as PO.
+
+        return [
+            'style' => $style,
+            'po' => $po
+        ];
+    }
+
+    /**
+     * Maps normalized row data to the attributes required for the Job model.
+     * Ensures numeric fields are cast correctly and defaults are applied.
+     *
+     * @param array $row The normalized row data.
+     * @param int $buyerId The ID of the associated buyer.
+     * @param string $jobNo The generated job number.
+     * @param array $parsedRef The parsed style and PO reference.
+     * @return array The array of attributes for the Job model.
+     */
+    private function mapJobAttributes(array $row, int $buyerId, string $jobNo, array $parsedRef): array
+    {
+        // List of fields expected to be numeric.
+        $numericFields = [
+            'orderquantity',
+            'targetsmv',
+            'productionminutes',
+            'price',
+            'totalamount',
+            'cmpc',
+            'totalcm',
+            'consumption',
+            'fabricqnty'
+        ];
+
+        // Iterate through numeric fields and cast them to float, defaulting to 0 if not numeric.
+        foreach ($numericFields as $field) {
+            $row[$field] = is_numeric($row[$field]) ?
+                (float) $row[$field] :
+                0;
+        }
+
+        // Return the mapped attributes for the Job model.
+        $mappedAttributes = [
+            'company_id' => 3, // Assuming a fixed company ID.
+            'division_id' => 2, // Assuming a fixed division ID.
+            'buyer_id' => $buyerId,
+            'style' => $parsedRef['style'] ?? 'N/A',
+            'po' => $parsedRef['po'] ?? 'N/A',
+            'department' => $row['department'] ?? null,
+            'item' => $row['item'] ?? null,
+            'destination' => $row['destination'] ?? null,
+            'order_quantity' => $row['orderquantity'],
+            'delivery_date' => $this->parseDate($row['deliverydate']),
+            'target_smv' => $row['targetsmv'],
+            'production_minutes' => $row['productionminutes'],
+            'unit_price' => $row['price'],
+            'total_value' => $row['totalamount'],
+            'cm_pc' => $row['cmpc'],
+            'total_cm' => $row['totalcm'],
+            'consumption_dzn' => $row['consumption'],
+            'fabric_qnty' => $row['fabricqnty'],
+            'fabrication' => $row['fabrication'] ?? '',
+            'order_received_date' => $this->parseDate($row['orderreceiveddate'] ?? null),
+            'remarks' => $row['remarks'] ?? null
+        ];
+
+        Log::debug('JobsImport: Mapped Job Attributes', $mappedAttributes);
+        return $mappedAttributes;
+    }
+
+    /**
+     * Parses various date formats from Excel into a Carbon date object.
+     * Handles both Excel numeric date format and standard date strings.
+     *
+     * @param mixed $value The date value from the Excel file.
+     * @return \Carbon\Carbon|null A Carbon date object if parsing is successful, otherwise null.
+     */
+    private function parseDate($value): ?\Carbon\Carbon
+    {
+        if (empty($value)) return null; // Return null if the value is empty.
+
+        try {
+            if (is_numeric($value)) {
+                // If numeric, assume it's an Excel date and convert it.
+                return \Carbon\Carbon::instance(
+                    \PhpOffice\PhpSpreadsheet\Shared\Date::excelToDateTimeObject((float)$value)
+                );
+            }
+            // Otherwise, try to parse it as a standard date string.
+            return \Carbon\Carbon::parse($value);
+        } catch (\Exception $e) {
+            // Log a warning if date parsing fails for a specific value.
+            Log::warning("Date parsing failed for value: {$value}");
+            return null; // Return null on parsing failure.
+        }
+    }
+
+    /**
+     * Defines validation rules for the imported data.
+     * These rules are applied before processing each row.
+     *
+     * @return array The validation rules.
+     */
+    public function rules(): array
+    {
+        return [
+            '*.buyer' => 'nullable|string|max:255',
+            '*.orderstylepo' => 'nullable|string',
+            '*.orderquantity' => 'nullable|numeric|min:0',
+            '*.deliverydate' => 'nullable|date',
+            '*.targetsmv' => 'nullable|numeric|min:0',
+            '*.price' => 'nullable|numeric|min:0',
+            '*.totalamount' => 'nullable|numeric|min:0',
+            '*.cmpc' => 'nullable|numeric|min:0',
+            '*.productionminutes' => 'nullable|numeric|min:0'
+        ];
+    }
+
+    /**
+     * Generates a unique job number in the format 'FAL-YY-00000X'.
+     *
+     * @return string The generated job number.
+     */
+    private function generateJobNumber(): string
+    {
+        // Acquire a lock to prevent race conditions when generating the job number in a multi-user environment.
+        $latestJob = Job::lockForUpdate()->latest('id')->first();
+        // Determine the next sequence number based on the latest job ID.
+        $sequence = $latestJob ? $latestJob->id + 1 : 1;
+        // Format the job number with the current year and a zero-padded sequence.
+        return 'FAL-' . date('y') . '-' . str_pad($sequence, 6, '0', STR_PAD_LEFT);
+    }
+
+    /**
+     * Logs detailed error information for failed rows and stores them in the failedRows array.
+     *
+     * @param \Exception $e The exception that occurred.
+     * @param array $row The row data that caused the error.
+     * @return void
+     */
+    private function logError(\Exception $e, array $row): void
+    {
+        // Calculate the approximate row number for logging purposes.
+        $rowNumber = $this->processedRows + count($this->failedRows) + 1;
+        $errorMessage = "Row {$rowNumber} failed: " . $e->getMessage();
+
+        // Log the error with raw row data, normalized data, and stack trace for debugging.
+        Log::error($errorMessage, [
+            'raw_row' => $row,
+            'normalized_data' => $this->normalizeKeys($row), // Normalize for logging consistency.
+            'trace' => $e->getTraceAsString()
+        ]);
+
+        // Add the failed row details to the internal failedRows array.
+        $this->failedRows[] = [
+            'row' => $rowNumber,
+            'error' => $errorMessage
+        ];
+    }
+
+    /**
+     * Specifies the batch size for importing rows.
+     * Maatwebsite\Excel will process rows in batches of this size.
+     *
+     * @return int The batch size.
+     */
+    public function batchSize(): int
+    {
+        return 100;
+    }
+
+    /**
+     * Returns the total number of successfully processed rows.
+     *
+     * @return int
+     */
+    public function getProcessedRows(): int
+    {
+        return $this->processedRows;
+    }
+
+    /**
+     * Returns an array of rows that failed during the import process.
+     *
+     * @return array
+     */
+    public function getFailedRows(): array
+    {
+        return $this->failedRows;
+    }
+
+    /**
+     * Callback method for handling errors during the import process.
+     * This method is part of the SkipsOnError concern.
+     *
+     * @param \Throwable $e The throwable exception.
+     * @return void
+     */
+    public function onError(\Throwable $e)
+    {
+        // Log general import errors that might not be tied to a specific row's model processing.
+        Log::error("Import error: {$e->getMessage()}", [
+            'trace' => $e->getTraceAsString()
+        ]);
+    }
+
+    /**
+     * Processes buyer information: creates a new buyer if not exists, or retrieves an existing one.
+     *
+     * @param array $row The current row data.
+     * @return Buyer The Buyer model instance.
+     * @throws \Exception If there's an error creating/updating the buyer.
+     */
+    private function processBuyer(array $row): Buyer
+    {
+        Log::info('processBuyer: Attempting to create/update buyer', ['buyer_name' => $row['buyer']]);
+        try {
+            // Use lockForUpdate to prevent race conditions when creating/retrieving buyers.
+            $buyer = Buyer::lockForUpdate()->firstOrCreate(
+                ['name' => strtoupper($row['buyer'])], // Convert buyer name to uppercase for consistency.
+                [
+                    'division_id' => 2,
+                    'company_id' => 3,
+                    'company_name' => 'FAL - Factory',
+                    'division_name' => 'Factory'
+                ]
+            );
+            Log::info('processBuyer: Buyer created/updated successfully', ['buyer_id' => $buyer->id]);
+            return $buyer;
+        } catch (\Exception $e) {
+            Log::error('processBuyer: Error creating/updating buyer', ['error' => $e->getMessage()]);
+            throw $e; // Re-throw the exception to trigger the main transaction rollback.
+        }
+    }
+
+    /**
+     * Processes shipment information: creates or updates a shipment record for the given job.
+     * Includes robust numeric conversion to prevent SQL errors.
+     *
+     * @param array $row The current row data.
+     * @param Job $job The associated Job model.
+     * @return void
+     * @throws \Exception If there's an error creating/updating the shipment.
+     */
+    private function processShipment(array $row, Job $job): void
+    {
+        Log::info('processShipment: Attempting to create/update shipment', ['job_id' => $job->id]);
+        try {
+            // Safely convert potential non-numeric values to numeric (float or int), defaulting to 0.
+            $shippedValue = is_numeric($row['shippedvalue']) ? (float)$row['shippedvalue'] : 0;
+            $excessShortShipmentQty = is_numeric($row['excessshortshipmentqty']) ? (int)$row['excessshortshipmentqty'] : 0;
+            $excessShortShipmentValue = is_numeric($row['excessshortshipmentvalue']) ? (float)$row['excessshortshipmentvalue'] : 0;
+
+            $shipmentAttributes = [
+                'shipped_qty' => $row['shippedqty'] ?? 0,
+                'ex_factory_date' => $this->parseDate($row['exfactorydate'] ?? null),
+                'shipped_value' => $shippedValue,
+                'excess_short_shipment_qty' => $excessShortShipmentQty,
+                'excess_short_shipment_value' => $excessShortShipmentValue,
+                'delivery_status' => $row['deliverystatus'] ?? 'Pending'
+            ];
+
+            $shipment = Shipment::updateOrCreate(
+                [
+                    'job_id' => $job->id,
+                    'color' => $row['color'] ?? 'ALL',
+                    'size' => $row['size'] ?? 'ALL'
+                ],
+                $shipmentAttributes
+            );
+            // Log whether the shipment was created or updated
+            if ($shipment->wasRecentlyCreated) {
+                Log::info('processShipment: Shipment created successfully', ['job_id' => $job->id, 'attributes' => $shipmentAttributes]);
+            } else {
+                Log::info('processShipment: Shipment updated successfully (or no changes)', ['job_id' => $job->id, 'attributes' => $shipmentAttributes]);
+            }
+        } catch (\Exception $e) {
+            Log::error('processShipment: Error creating/updating shipment', ['error' => $e->getMessage()]);
+            throw $e; // Re-throw the exception to trigger the main transaction rollback.
+        }
+    }
+
+    /**
+     * Processes sewing balance information: creates or updates a sewing balance record for the given job.
+     *
+     * @param array $row The current row data.
+     * @param Job $job The associated Job model.
+     * @return void
+     * @throws \Exception If there's an error creating/updating the sewing balance.
+     */
+    private function processSewingBalance(array $row, Job $job): void
+    {
+        Log::info('processSewingBalance: Attempting to create/update sewing balance', ['job_id' => $job->id]);
+        try {
+            $sewingBalanceAttributes = [
+                'sewing_balance' => $row['sewingbalance'] ?? 0,
+                'production_plan' => $this->parseDate($row['shipmentplan'] ?? null),
+                'production_min_balance' => $row['productionbalance'] ?? 0
+            ];
+
+            $sewingBalance = SewingBalance::updateOrCreate(
+                [
+                    'job_id' => $job->id,
+                    'color' => $row['color'] ?? 'ALL',
+                    'size' => $row['size'] ?? 'ALL'
+                ],
+                $sewingBalanceAttributes
+            );
+            // Log whether the sewing balance was created or updated
+            if ($sewingBalance->wasRecentlyCreated) {
+                Log::info('processSewingBalance: Sewing balance created successfully', ['job_id' => $job->id, 'attributes' => $sewingBalanceAttributes]);
+            } else {
+                Log::info('processSewingBalance: Sewing balance updated successfully (or no changes)', ['job_id' => $job->id, 'attributes' => $sewingBalanceAttributes]);
+            }
+        } catch (\Exception $e) {
+            Log::error('processSewingBalance: Error creating/updating sewing balance', ['error' => $e->getMessage()]);
+            throw $e; // Re-throw the exception to trigger the main transaction rollback.
+        }
+    }
+}
