@@ -60,7 +60,9 @@
 
                     <div class="card-body p-0">
                         <div class="table-responsive">
-                            <table class="table table-bordered table-striped text-nowrap" id="jobsTable">
+                            <table class="table table-bordered table-striped text-nowraptable table-bordered table-striped text-nowrap" id="datatablesSimple"
+                                 style="overflow-x: auto;"> 
+                                 {{-- name="jobsTable" --}}
                                 <thead class="bg-light">
                                     <tr>
                                         <th>Job No</th>

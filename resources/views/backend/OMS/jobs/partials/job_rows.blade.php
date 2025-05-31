@@ -36,8 +36,20 @@
                 {{ number_format($total_shipped_qty) }}
             </button>
         </td>
-        <td>{{ $job->order_received_date ? $job->order_received_date->format('Y-m-d') : 'N/A' }}</td>
-        <td>{{ $job->delivery_date ? $job->delivery_date->format('Y-m-d') : 'N/A' }}</td>
+        {{-- <td>{{ $job->order_received_date ? $job->order_received_date->format('Y-m-d') : 'N/A' }}</td> --}}
+        <td>
+            @php
+            $order_received_date = $job->order_received_date ? Carbon\Carbon::parse($job->order_received_date)->format('Y-m-d') : 'N/A';
+            @endphp
+            {{ $order_received_date }}
+        </td>
+        {{-- <td>{{ $job->delivery_date ? $job->delivery_date->format('Y-m-d') : 'N/A' }}</td> --}}
+        <td>
+            @php
+            $delivery_date = $job->delivery_date ? Carbon\Carbon::parse($job->delivery_date)->format('Y-m-d') : 'N/A';
+            @endphp
+            {{ $delivery_date }}
+        </td>
         <td>
             <div class="btn-group" role="group">
                 <a href="{{ route('jobs.show', $job->job_no) }}"

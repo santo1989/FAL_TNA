@@ -35,7 +35,7 @@ class JobController extends Controller
 
     public function index()
     {
-        $jobs = Job::select(
+        $jobs = Job::select([
             'buyer',
             'job_no',
             'style',
@@ -45,8 +45,9 @@ class JobController extends Controller
             'order_quantity',
             'delivery_date',
             'order_received_date'
-        )
-            ->groupBy(
+        ])
+            ->with(['sewingBalances', 'shipments']) // Add eager loading
+            ->groupBy([
                 'buyer',
                 'job_no',
                 'style',
@@ -56,8 +57,7 @@ class JobController extends Controller
                 'order_quantity',
                 'delivery_date',
                 'order_received_date'
-            )
-            ->with(['sewingBalances', 'shipments']) // Eager load relationships
+            ])
             ->get();
 
         return view('backend.OMS.jobs.index', compact('jobs'));
@@ -92,25 +92,25 @@ class JobController extends Controller
         return view('backend.OMS.jobs.partials.job_rows', compact('jobs'));
     }
 
-    // JobController.php
+  
     public function sewingData($jobNo)
     {
-        $sewingData = SewingBalance::where('job_no', $jobNo)
-            ->select('color', 'size', DB::raw('SUM(sewing_balance) as total_sewing_balance'))
-            ->groupBy('color', 'size')
-            ->get();
+        $sewingData = SewingBalance::where('job_no', $jobNo)->get();
 
-        return view('backend.OMS.jobs.partials.sewing_data', compact('sewingData', 'jobNo'));
+        return view('backend.OMS.jobs.partials.sewing_data', [
+            'sewingData' => $sewingData,
+            'jobNo' => $jobNo
+        ]);
     }
 
     public function shipmentData($jobNo)
     {
-        $shipmentData = Shipment::where('job_no', $jobNo)
-            ->select('color', 'size', DB::raw('SUM(shipped_qty) as total_shipped_qty'))
-            ->groupBy('color', 'size')
-            ->get();
+        $shipmentData = Shipment::where('job_no', $jobNo)->get();
 
-        return view('backend.OMS.jobs.partials.shipment_data', compact('shipmentData', 'jobNo'));
+        return view('backend.OMS.jobs.partials.shipment_data', [
+            'shipmentData' => $shipmentData,
+            'jobNo' => $jobNo
+        ]);
     }
 
     public function create()
@@ -858,17 +858,42 @@ class JobController extends Controller
 
     public function import(Request $request)
     {
-        $request->validate([
-            'file' => 'required|mimes:xlsx,xls'
-        ]);
+        // $request->validate([
+        //     'file' => 'required|mimes:xlsx,xls'
+        // ]);
+
+        // try {
+        //     // dd($request->file('file'));
+        //     // Import the Excel file using the JobsImport class
+        //     Excel::import(new JobsImport, $request->file('file'));
+        //     return redirect()->back()->withMessage('Jobs imported successfully!');
+        // } catch (\Exception $e) {
+        //     return redirect()->back()->withErrors( 'Error importing jobs: ' . $e->getMessage());
+        // }
+        $request->validate(['file' => 'required|mimes:xlsx,xls']);
 
         try {
-            // dd($request->file('file'));
-            // Import the Excel file using the JobsImport class
-            Excel::import(new JobsImport, $request->file('file'));
-            return redirect()->back()->withMessage('Jobs imported successfully!');
+            $import = new JobsImport();
+            Excel::import($import, $request->file('file'));
+
+            // return response()->json([
+            //     'message' => 'Import successful',
+            //     'processed' => $import->getProcessedRows(),
+            //     'failed' => count($import->getFailedRows()),
+            //     'batch_id' => $import->getBatchId(),
+            //     'failures' => $import->getFailedRows()
+            // ]);
+            return redirect()->back()->with('message', 'Jobs imported successfully!')->with([
+                'processed' => $import->getProcessedRows(),
+                'failed' => count($import->getFailedRows()),
+                'batch_id' => $import->getBatchId(),
+                'failures' => $import->getFailedRows()
+            ]);
         } catch (\Exception $e) {
-            return redirect()->back()->withErrors( 'Error importing jobs: ' . $e->getMessage());
+            // return response()->json([
+            //     'error' => 'Import failed: ' . $e->getMessage()
+            // ], 500);
+            return redirect()->back()->withErrors(['error' => 'Import failed: ' . $e->getMessage()]);
         }
     }
 

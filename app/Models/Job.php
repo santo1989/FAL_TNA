@@ -45,4 +45,14 @@ class Job extends Model
     {
         return $this->hasMany(Shipment::class);
     }
+
+    public function sewingBalances()
+    {
+        return $this->hasMany(SewingBalance::class, 'job_no', 'job_no');
+    }
+
+    public function shipments()
+    {
+        return $this->hasMany(Shipment::class, 'job_no', 'job_no');
+    }
 }
