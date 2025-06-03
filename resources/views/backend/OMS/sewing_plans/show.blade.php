@@ -69,7 +69,7 @@
                                                 
                                                 <!-- Blade Template -->
                                                 <form
-                                                    action="{{ route('sewing_plans_destroy', ['sewing_plan' => $balance->id]) }}"
+                                                    action="{{ route('sewing_plans_destroy_single', ['job_no' => $balance->id]) }}"
                                                     method="POST" style="display: inline;" class="delete-form">
                                                     @csrf
                                                     @method('DELETE')

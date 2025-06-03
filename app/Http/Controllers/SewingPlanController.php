@@ -203,6 +203,7 @@ class SewingPlanController extends Controller
 
     public function show(Request $request, $job_no)
     {
+        // dd($job_no);
         $basic_info = Job::where('job_no', $job_no)->first();
         $jobs_no = $basic_info->job_no;
         $old_sewing_balances = SewingPlan::where('job_no', $job_no)->get();
@@ -214,7 +215,7 @@ class SewingPlanController extends Controller
             $old_sewing_balances[$key]['item'] = $basic_info->item;
         }
 
-
+// dd($basic_info, $old_sewing_balances, $jobs_no);
 
         return view('backend.OMS.sewing_plans.show', compact('basic_info', 'old_sewing_balances', 'jobs_no'));
     }
@@ -413,5 +414,17 @@ class SewingPlanController extends Controller
 
     
         return redirect()->route('sewing_plans.index')->with('message', 'Sewing plan deleted successfully.');
+    }
+
+    public function sewing_plans_destroy_single($id)
+    {
+        // Find the sewing plan by ID
+        $sewing_plan = SewingPlan::findOrFail($id);
+
+        // Delete the sewing plan
+        $sewing_plan->delete();
+
+        // Redirect back with a success message
+        return redirect()->route('sewing_plans.index')->withMessage('Sewing plan deleted successfully.');
     }
 }

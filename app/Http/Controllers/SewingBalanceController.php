@@ -110,12 +110,49 @@ class SewingBalanceController extends Controller
         ]);
     }
 
+
     public function get_color_sizes_qties(Request $request)
     {
-        $jobs = Job::where('buyer_id', $request->buyer_id)
-            ->where('po', $request->po)
-            ->where('style', $request->style_id)
-            ->whereBetween('delivery_date', [$request->shipment_start_date, $request->shipment_end_date])
+        $request->validate([
+            // Uncomment and use these validations as needed
+            // 'buyer_id' => 'nullable|exists:buyers,id',
+            // 'po' => 'nullable|string',
+            // 'style_id' => 'nullable|exists:styles,id',
+            // 'shipment_start_date' => 'nullable|date',
+            // 'shipment_end_date' => 'nullable|date|after_or_equal:shipment_start_date',
+        ]);
+
+        $buyer_id_filter = $request->buyer_id;
+        $style_filter = $request->style_id;
+        $po_filter = $request->po;
+        $shipment_start_date = $request->shipment_start_date;
+        $shipment_end_date = $request->shipment_end_date;
+
+        // Convert style ID to style name
+        $style_name = null;
+        if ($style_filter) {
+            $style = Style::find($style_filter);
+            $style_name = $style ? $style->style : null;
+        }
+
+        $jobs = Job::when($buyer_id_filter, function ($query) use ($buyer_id_filter) {
+            return $query->where('buyer_id', $buyer_id_filter);
+        })
+            ->when($style_name, function ($query) use ($style_name) {
+                return $query->where('style', $style_name);
+            })
+            ->when($po_filter, function ($query) use ($po_filter) {
+                return $query->where('po', $po_filter);
+            })
+            ->when($shipment_start_date || $shipment_end_date, function ($query) use ($shipment_start_date, $shipment_end_date) {
+                if ($shipment_start_date && $shipment_end_date) {
+                    return $query->whereBetween('delivery_date', [$shipment_start_date, $shipment_end_date]);
+                } elseif ($shipment_start_date) {
+                    return $query->where('delivery_date', '>=', $shipment_start_date);
+                } else {
+                    return $query->where('delivery_date', '<=', $shipment_end_date);
+                }
+            })
             ->get();
 
         $colorSizesQties = [];
@@ -144,7 +181,6 @@ class SewingBalanceController extends Controller
             'data' => $colorSizesQties
         ]);
     }
-
 
 public function show(Request $request, $job_no)
     {

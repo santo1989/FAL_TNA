@@ -689,20 +689,27 @@ class JobController extends Controller
 
     public function itemWiseSummary()
     {
-        $items = [
-            'T-Shirt',
-            'Polo Shirt',
-            'Romper',
-            'Sweat Shirt',
-            'Jacket',
-            'Hoodie',
-            'Jogger',
-            'Pant/Bottom',
-            'Cargo Pant',
-            'Leggings',
-            'Ladies/Girls Dress',
-            'Others'
-        ];
+        // $items = [
+        //     'T-Shirt',
+        //     'Polo Shirt',
+        //     'Romper',
+        //     'Sweat Shirt',
+        //     'Jacket',
+        //     'Hoodie',
+        //     'Jogger',
+        //     'Pant/Bottom',
+        //     'Cargo Pant',
+        //     'Leggings',
+        //     'Ladies/Girls Dress',
+        //     'Others'
+        // ];
+
+        $items = Job::distinct()->pluck('item')->toArray();
+        // dd($items);
+        // if item name null then set that as others 
+        $items = array_map(function ($item) {
+            return $item ?: 'Others';
+        }, $items);
 
         $buyers = Job::distinct()->pluck('buyer')->toArray();
         $summary = [];
