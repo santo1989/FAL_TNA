@@ -31,7 +31,8 @@
                                     <td class="create_label_column">Production Plan</td>
                                     <td class="create_input_column">
                                         <input type="month" name="production_plan" id="productionPlan"
-                                            class="form-control" placeholder="Production Plan" required value="{{ optional($db_production_plan)->production_plan }}">
+                                            class="form-control" placeholder="Production Plan" required
+                                            value="{{ optional($db_production_plan)->production_plan }}">
                                     </td>
                                 </tr>
                             </tbody>
@@ -58,23 +59,29 @@
                                     <td><input type="text" class="form-control" name="workingDays" id="workingDays"
                                             readonly value="{{ optional($db_production_plan)->working_days }}"></td>
                                     <td><input type="text" name="running_machines" class="form-control"
-                                            id="runningMachines" readonly value="{{ optional($db_production_plan)->running_machines }}"></td>
+                                            id="runningMachines" readonly
+                                            value="{{ optional($db_production_plan)->running_machines }}"></td>
                                     <td><input type="text" name="helpers" class="form-control" id="helpers"
                                             readonly value="{{ optional($db_production_plan)->helpers }}"></td>
                                     <td><input type="text" name="working_hours" class="form-control"
-                                            id="workingHours" readonly value="{{ optional($db_production_plan)->working_hours }}"></td>
+                                            id="workingHours" readonly
+                                            value="{{ optional($db_production_plan)->working_hours }}"></td>
                                     <td><input type="text" name="efficiency" class="form-control" id="efficiency"
                                             readonly value="{{ optional($db_production_plan)->efficiency }}"></td>
                                     <td><input type="text" name="smv" class="form-control" id="smv_data"
                                             readonly value="{{ optional($db_production_plan)->smv }}"></td>
                                     <td><input type="text" class="form-control" name="daily_capacity_minutes"
-                                            id="dailyCapacityMinutes" readonly value="{{ optional($db_production_plan)->daily_capacity_minutes }}"></td>
+                                            id="dailyCapacityMinutes" readonly
+                                            value="{{ optional($db_production_plan)->daily_capacity_minutes }}"></td>
                                     <td><input type="text" name="weekly_capacity_minutes" class="form-control"
-                                            id="weeklyCapacityMinutes" readonly value="{{ optional($db_production_plan)->weekly_capacity_minutes }}"></td>
+                                            id="weeklyCapacityMinutes" readonly
+                                            value="{{ optional($db_production_plan)->weekly_capacity_minutes }}"></td>
                                     <td><input type="text" name="monthly_capacity_minutes" class="form-control"
-                                            id="monthlyCapacityMinutes" readonly value="{{ optional($db_production_plan)->monthly_capacity_minutes }}"></td>
+                                            id="monthlyCapacityMinutes" readonly
+                                            value="{{ optional($db_production_plan)->monthly_capacity_minutes }}"></td>
                                     <td><input type="text" name="monthly_capacity_quantity" class="form-control"
-                                            id="monthlyCapacityQuantity" readonly value="{{ optional($db_production_plan)->monthly_capacity_quantity }}">
+                                            id="monthlyCapacityQuantity" readonly
+                                            value="{{ optional($db_production_plan)->monthly_capacity_quantity }}">
                                 </tr>
                                 <tr>
                                     <td colspan="5" class="text-left">Old Capacity</td>
@@ -102,7 +109,7 @@
                                 <tr>
                                     <td class="create_label_column">Buyer</td>
                                     <td class="create_input_column">
-                                        <select name="buyer_id" id="buyer_id" class="form-control" >
+                                        <select name="buyer_id" id="buyer_id" class="form-control">
                                             <option value="">Select Buyer</option>
                                             @foreach ($buyers as $buyer)
                                                 <option value="{{ $buyer->buyer_id }}">{{ $buyer->buyer }}</option>
@@ -111,30 +118,30 @@
                                     </td>
                                     <td class="create_label_column">PO</td>
                                     <td class="create_input_column">
-                                        <select name="po" id="po" class="form-control" >
+                                        <select name="po" id="po" class="form-control">
                                             <option value="">Select PO</option>
                                         </select>
                                     </td>
                                     <td class="create_label_column">Style</td>
                                     <td class="create_input_column">
-                                        <select name="style_id" id="style_id" class="form-control" >
+                                        <select name="style_id" id="style_id" class="form-control">
                                             <option value="">Select Style</option>
                                         </select>
                                     </td>
                                     <td class="create_label_column">Shipment Start Date</td>
                                     <td class="create_input_column">
                                         <input type="date" name="shipment_start_date" class="form-control"
-                                            placeholder="Shipment Start Date" >
+                                            placeholder="Shipment Start Date">
                                     </td>
                                     <td class="create_label_column">Shipment End Date</td>
                                     <td class="create_input_column">
                                         <input type="date" name="shipment_end_date" class="form-control"
-                                            placeholder="Shipment End Date" >
+                                            placeholder="Shipment End Date">
                                     </td>
                                     <td class="create_input_column">
-                                        <button type="button" class="btn btn-primary" id="searchButton">
+                                        {{-- <button type="button" class="btn btn-primary" id="searchButton">
                                             <i class="fas fa-search"></i> Add to Plan
-                                        </button>
+                                        </button> --}}
                                         <button type="button" class="btn btn-danger" id="searchOnlyButton">
                                             <i class="fas fa-search"></i> Search Only
                                         </button>
@@ -147,14 +154,17 @@
                             </table>
                         </div>
 
-                        <form action="{{ route('sewing_plans.store') }}" method="POST">
+                        <form action="{{ route('sewing_plans_store') }}" method="POST">
                             @csrf
+                            <input type="hidden" name="production_plan" id="form_production_plan"
+                                value="{{ optional($db_production_plan)->production_plan }}">
                             <table class="table table-bordered mt-2 text-center" id="colorWayTable"
                                 style="overflow-x:auto;">
                                 <thead>
                                     <tr>
-                                        <th>Job ID</th>
-                                        <th>Job No</th>
+                                        <th>Select</th>
+                                        <th>Job ID / Buyer</th>
+                                        <th>Job No / Style</th>
                                         <th>Color</th>
                                         <th>Size</th>
                                         <th>Order Quantity</th>
@@ -167,12 +177,18 @@
                                     @foreach ($color_sizes_qties as $color)
                                         <tr>
                                             <td>
-                                                <input type="text" name="color_id[]" class="form-control"
-                                                    value="{{ $color->id }}" readonly>
+                                                <input type="checkbox" name="color_ids[]"
+                                                    value="{{ $color->id }}" checked>
                                             </td>
                                             <td>
-                                                <input type="text" name="job_no[]" class="form-control"
-                                                    value="{{ $color->job_no }}" readonly>
+                                                <input type="hidden" name="color_id[]" class="form-control"
+                                                    value="{{ $color->id }}">
+                                                <label class="form-control">{{ $color->buyer }}</label>
+                                            </td>
+                                            <td>
+                                                <input type="hidden" name="job_no[]" class="form-control"
+                                                    value="{{ $color->job_no }}">
+                                                <label class="form-control">{{ $color->style }}</label>
                                             </td>
                                             <td>
                                                 <input type="text" name="color[]" class="form-control"
@@ -256,20 +272,23 @@
                 $.ajax({
                     url: "{{ route('get_buyer_po_styles') }}",
                     method: "GET",
-                    data: { buyer_id: buyerId },
+                    data: {
+                        buyer_id: buyerId
+                    },
                     success: function(response) {
                         if (response.success) {
                             const pos = response.data.pos;
                             const styles = response.data.styles;
-                            
+
                             // Update PO dropdown
                             poSelect.empty().append('<option value="">Select PO</option>');
                             pos.forEach(po => {
                                 poSelect.append(new Option(po, po));
                             });
-                            
+
                             // Update Style dropdown
-                            styleSelect.empty().append('<option value="">Select Style</option>');
+                            styleSelect.empty().append(
+                                '<option value="">Select Style</option>');
                             styles.forEach(style => {
                                 styleSelect.append(new Option(style.style, style.id));
                             });
@@ -319,9 +338,22 @@
 
                             response.data.forEach(color => {
                                 const row = `
+                                
                                     <tr>
-                                        <td><input type="text" name="color_id[]" value="${color.id}" class="form-control" readonly></td>
-                                        <td><input type="text" name="job_no[]" value="${color.job_no}" class="form-control" readonly></td>
+                                        <td>
+                                                <input type="checkbox" name="color_ids[]" value="${color.id }" checked>
+                                                
+                                            </td>
+                                        <td>
+                                                <input type="hidden" name="color_id[]" class="form-control"
+                                                    value="${color.id }">
+                                                <label class="form-control">${color.buyer }</label>
+                                            </td>
+                                            <td>
+                                                <input type="hidden" name="job_no[]" class="form-control"
+                                                    value="${color.job_no }">
+                                                <label class="form-control">${color.style }</label>
+                                            </td>
                                         <td><input type="text" name="color[]" value="${color.color}" class="form-control" readonly></td>
                                         <td><input type="text" name="size[]" value="${color.size}" class="form-control" readonly></td>
                                         <td><input type="text" value="${color.color_quantity}" class="form-control" readonly></td>
@@ -334,11 +366,13 @@
                             });
 
                             // Restore saved sewing quantities
-                            const savedData = JSON.parse(localStorage.getItem('sewingPlanFormData'));
+                            const savedData = JSON.parse(localStorage.getItem(
+                                'sewingPlanFormData'));
                             if (savedData) {
                                 savedData.colorQuantities.forEach(item => {
                                     $(`input[name="color_id[]"][value="${item.colorId}"]`)
-                                        .closest('tr').find('.sewing-quantity').val(item.quantity);
+                                        .closest('tr').find('.sewing-quantity').val(item
+                                            .quantity);
                                 });
                             }
 
@@ -348,14 +382,21 @@
 
                             // Save search criteria
                             localStorage.setItem('sewingPlanSearchCriteria', JSON.stringify({
-                                buyerId, po, styleId, shipmentStartDate, shipmentEndDate, productionPlan
+                                buyerId,
+                                po,
+                                styleId,
+                                shipmentStartDate,
+                                shipmentEndDate,
+                                productionPlan
                             }));
                         } else {
-                            Swal.fire('Warning', response.message || 'No data found.', 'warning');
+                            Swal.fire('Warning', response.message || 'No data found.',
+                                'warning');
                         }
                     },
                     error: function(xhr) {
-                        Swal.fire('Error', xhr.responseJSON?.message || 'Server error', 'error');
+                        Swal.fire('Error', xhr.responseJSON?.message || 'Server error',
+                            'error');
                     }
                 });
             });
@@ -398,9 +439,22 @@
 
                             response.data.forEach(color => {
                                 const row = `
+                               
                                     <tr>
-                                        <td><input type="text" name="color_id[]" value="${color.id}" class="form-control" readonly></td>
-                                        <td><input type="text" name="job_no[]" value="${color.job_no}" class="form-control" readonly></td>
+                                        <td>
+                                                <input type="checkbox" name="color_ids[]" value="${color.id }" checked>
+                                                
+                                            </td>
+                                        <td>
+                                                <input type="hidden" name="color_id[]" class="form-control"
+                                                    value="${color.id }">
+                                                <label class="form-control">${color.buyer }</label>
+                                            </td>
+                                            <td>
+                                                <input type="hidden" name="job_no[]" class="form-control"
+                                                    value="${color.job_no }">
+                                                <label class="form-control">${color.style }</label>
+                                            </td>
                                         <td><input type="text" name="color[]" value="${color.color}" class="form-control" readonly></td>
                                         <td><input type="text" name="size[]" value="${color.size}" class="form-control" readonly></td>
                                         <td><input type="text" value="${color.color_quantity}" class="form-control" readonly></td>
@@ -418,14 +472,21 @@
 
                             // Save search criteria
                             localStorage.setItem('sewingPlanSearchCriteria', JSON.stringify({
-                                buyerId, po, styleId, shipmentStartDate, shipmentEndDate, productionPlan
+                                buyerId,
+                                po,
+                                styleId,
+                                shipmentStartDate,
+                                shipmentEndDate,
+                                productionPlan
                             }));
                         } else {
-                            Swal.fire('Warning', response.message || 'No data found.', 'warning');
+                            Swal.fire('Warning', response.message || 'No data found.',
+                                'warning');
                         }
                     },
                     error: function(xhr) {
-                        Swal.fire('Error', xhr.responseJSON?.message || 'Server error', 'error');
+                        Swal.fire('Error', xhr.responseJSON?.message || 'Server error',
+                            'error');
                     }
                 });
             });
@@ -436,7 +497,9 @@
                 $.ajax({
                     url: "{{ route('check_existing_capacity') }}",
                     method: "GET",
-                    data: { production_plan: productionPlan },
+                    data: {
+                        production_plan: productionPlan
+                    },
                     success: function(response) {
                         if (response.exists === true) {
                             const data = response.data;
@@ -485,12 +548,12 @@
                 $('.sewing-quantity').off('input').on('input', function() {
                     const remaining = parseInt($(this).closest('tr').find('.remaining-quantity').val(), 10);
                     const entered = parseInt($(this).val(), 10) || 0;
-                    
+
                     if (entered > remaining) {
                         Swal.fire('Error', 'Exceeds remaining quantity.', 'error');
                         $(this).val(remaining);
                     }
-                    
+
                     saveFormData();
                     calculateAvailableCapacity();
                 });
@@ -501,7 +564,7 @@
                 const formData = {
                     colorQuantities: []
                 };
-                
+
                 $('.sewing-quantity').each(function() {
                     const colorId = $(this).closest('tr').find('input[name="color_id[]"]').val();
                     formData.colorQuantities.push({
@@ -509,7 +572,7 @@
                         quantity: $(this).val()
                     });
                 });
-                
+
                 localStorage.setItem('sewingPlanFormData', JSON.stringify(formData));
             }
 
@@ -547,11 +610,7 @@
                 });
             }
 
-            // Clear localStorage on save
-            $('#saveButton').on('click', function() {
-                localStorage.removeItem('sewingPlanSearchCriteria');
-                localStorage.removeItem('sewingPlanFormData');
-            });
+
 
             //reset button click event
             $('#resetButton').on('click', function() {
@@ -569,6 +628,39 @@
             // Initialize handlers
             attachSewingQuantityHandlers();
             calculateAvailableCapacity();
+        });
+
+
+        $(document).ready(function() {
+            // Sync production plan to hidden input
+            $('#productionPlan').on('change', function() {
+                $('#form_production_plan').val($(this).val());
+            });
+
+            // Initialize hidden field
+            $('#form_production_plan').val($('#productionPlan').val());
+
+            // Fix save button handler
+            $('#saveButton').on('click', function() {
+                const checkedRows = $('#colorWayTableBody input[type="checkbox"]:checked');
+                if (checkedRows.length === 0) {
+                    Swal.fire('Warning', 'Please select at least one color to save.', 'warning');
+                    return false;
+                }
+
+                // Disable unchecked rows
+                $('#colorWayTableBody tr').each(function() {
+                    if (!$(this).find('input[type="checkbox"]').is(':checked')) {
+                        $(this).find('input').prop('disabled', true);
+                    }
+                });
+
+                // Clear localStorage
+                localStorage.removeItem('sewingPlanSearchCriteria');
+                localStorage.removeItem('sewingPlanFormData');
+
+                return true;
+            });
         });
     </script>
 </x-backend.layouts.master>

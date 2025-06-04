@@ -117,6 +117,14 @@ class SewingPlanController extends Controller
                     ->where('size', $color_size->size)
                     ->sum('color_quantity');
 
+                // add buyer, style, po to the color_size object from the jobs table
+                $job_information = Job::select('buyer', 'style', 'po')
+                    ->where('job_no', $color_size->job_no)
+                    ->first();
+                $color_size->buyer = $job_information->buyer ?? 'N/A';
+                $color_size->style = $job_information->style ?? 'N/A';
+                $color_size->po = $job_information->po ?? 'N/A';
+
                 // Calculate remaining quantity and total sewing quantity
                 $color_size->remaining_quantity = $color_size->color_quantity - $completed_qty - $planned_qty;
                 $color_size->total_sewing_quantity = $completed_qty + $planned_qty;
@@ -147,8 +155,9 @@ class SewingPlanController extends Controller
 
 
 
-    public function store(Request $request)
+    public function sewing_plans_store(Request $request)
     {
+        // dd($request->all());
         // Validate the request data
         $request->validate([
             'job_no' => 'required|array',
@@ -163,6 +172,7 @@ class SewingPlanController extends Controller
             'color_quantity' => 'required|array', // Validate the array itself
             'color_quantity.*' => 'nullable|integer|min:0', // Allow null but enforce integer >= 0
         ]);
+        
 
         // Check if at least one color_quantity is greater than 0
         $hasValidQuantity = collect($request->color_quantity)

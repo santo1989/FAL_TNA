@@ -163,10 +163,24 @@ class SewingBalanceController extends Controller
                 ->sum('color_quantity');
 
             $remaining = $job->color_quantity - $totalSewing;
+            // add buyer, style, po to the color_size object from the jobs table
+            $job_information = Job::select('buyer', 'style', 'po')
+                ->where('job_no', $job->job_no)
+                ->where('color', $job->color)
+                ->where('size', $job->size)
+                ->first();
+           
+            $buyer = $job_information ? $job_information->buyer : null;
+            $style = $job_information ? $job_information->style : null;
+            $po = $job_information ? $job_information->po : null;
+
             if ($remaining > 0) {
                 $colorSizesQties[] = [
                     'id' => $job->id,
                     'job_no' => $job->job_no,
+                    'buyer' => $buyer,
+                    'po' => $po,
+                    'style' => $style,
                     'color' => $job->color,
                     'size' => $job->size,
                     'color_quantity' => $job->color_quantity,

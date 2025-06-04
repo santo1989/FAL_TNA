@@ -294,7 +294,7 @@ Route::middleware('auth')->group(function () {
     //sewing_plans
     Route::get('/sewing_plans', [SewingPlanController::class, 'index'])->name('sewing_plans.index');
     Route::get('/sewing_plans/create', [SewingPlanController::class, 'create'])->name('sewing_plans.create');
-    Route::post('/sewing_plans', [SewingPlanController::class, 'store'])->name('sewing_plans.store');
+    Route::post('/sewing_plans', [SewingPlanController::class, 'sewing_plans_store'])->name('sewing_plans_store');
     Route::get('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'show'])->name('sewing_plans.show');
     Route::get('/sewing_plans/{sewing_plan}/edit', [SewingPlanController::class, 'edit'])->name('sewing_plans.edit');
     Route::put('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'update'])->name('sewing_plans.update');
