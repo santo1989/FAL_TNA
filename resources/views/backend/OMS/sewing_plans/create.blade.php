@@ -165,8 +165,7 @@
                                         <th>Select</th>
                                         <th>Job ID / Buyer</th>
                                         <th>Job No / Style</th>
-                                        <th>Color</th>
-                                        <th>Size</th>
+                                        <th>Color/Size/Shipment Date</th>
                                         <th>Order Quantity</th>
                                         <th>Total Sewing Quantity</th>
                                         <th>Remain Quantity</th>
@@ -191,12 +190,15 @@
                                                 <label class="form-control">{{ $color->style }}</label>
                                             </td>
                                             <td>
-                                                <input type="text" name="color[]" class="form-control"
+                                                <input type="hidden" name="color[]" class="form-control"
                                                     value="{{ $color->color }}" readonly>
-                                            </td>
-                                            <td>
-                                                <input type="text" name="size[]" class="form-control"
+                                            
+                                                <input type="hidden" name="size[]" class="form-control"
                                                     value="{{ $color->size }}" readonly>
+                                                    @php
+                                                        $shipmentDate = \Carbon\Carbon::parse($color->shipment_date)->format('d-m-Y') ?? 'N/A';
+                                                    @endphp
+                                                <label class="form-control">{{ $shipmentDate }}</label>
                                             </td>
                                             <td>
                                                 <input type="text" class="form-control"
@@ -214,8 +216,8 @@
                                             </td>
                                             <td>
                                                 <input type="number" name="color_quantity[]"
-                                                    class="form-control sewing-quantity"
-                                                    placeholder="Sewing Quantity">
+                                                    class="form-control sewing-quantity" placeholder="Sewing Quantity"
+                                                    value="{{ $color->remaining_quantity }}">
                                             </td>
                                         </tr>
                                     @endforeach
@@ -359,7 +361,10 @@
                                         <td><input type="text" value="${color.color_quantity}" class="form-control" readonly></td>
                                         <td><input type="number" name="total_sewing_quantity[]" value="${color.total_sewing_quantity}" class="form-control" readonly></td>
                                         <td><input type="number" name="remaining_quantity[]" value="${color.remaining_quantity}" class="form-control remaining-quantity" readonly></td>
-                                        <td><input type="number" name="color_quantity[]" class="form-control sewing-quantity" placeholder="0"></td>
+                                        <td><input type="number" name="color_quantity[]" 
+                           class="form-control sewing-quantity" 
+                           placeholder="0" 
+                           value="${color.remaining_quantity}"></td>
                                     </tr>
                                 `;
                                 colorWayTableBody.append(row);
@@ -460,7 +465,10 @@
                                         <td><input type="text" value="${color.color_quantity}" class="form-control" readonly></td>
                                         <td><input type="number" name="total_sewing_quantity[]" value="${color.total_sewing_quantity}" class="form-control" readonly></td>
                                         <td><input type="number" name="remaining_quantity[]" value="${color.remaining_quantity}" class="form-control remaining-quantity" readonly></td>
-                                        <td><input type="number" name="color_quantity[]" class="form-control sewing-quantity" placeholder="0"></td>
+                                        <td><input type="number" name="color_quantity[]" 
+                           class="form-control sewing-quantity" 
+                           placeholder="0" 
+                           value="${color.remaining_quantity}"></td>
                                     </tr>
                                 `;
                                 colorWayTableBody.append(row);
@@ -542,6 +550,7 @@
                 $(this).closest('tr').find('.sewing-quantity').val(remainingQuantity);
                 calculateAvailableCapacity();
             });
+
 
             // Function to attach sewing quantity handlers
             function attachSewingQuantityHandlers() {
