@@ -9,26 +9,189 @@ use App\Models\SewingPlan;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Maatwebsite\Excel\Facades\Excel;
+use App\Exports\SewingPlansExport;
 
 class SewingPlanController extends Controller
 {
+    
 
-    public function index()
+    public function index(Request $request)
     {
-        $sewing_plan = SewingPlan::select(
-            'job_no',
-            'color',
-            'size',
-            'production_plan',
-            DB::raw('SUM(color_quantity) as total_sewing_quantity')
-        )
-            ->groupBy('job_no', 'color', 'size', 'production_plan')
+        $production_plan = SewingPlan::select('production_plan')
+            ->distinct()
             ->orderBy('production_plan', 'desc')
             ->get();
 
-        // dd($sewing_plan);
+        // Get distinct buyers for filter dropdown
+        $buyers = Job::select('buyer_id', 'buyer')
+            ->whereNotNull('buyer_id')
+            ->distinct()
+            ->get();
+        
 
-        return view('backend.OMS.sewing_plans.index', compact('sewing_plan'));
+        // Apply filters
+        $sewing_plan = SewingPlan::join('jobs', 'sewing_plans.job_id', '=', 'jobs.id')
+            ->select(
+                'sewing_plans.production_plan',
+                'sewing_plans.job_no',
+                'sewing_plans.color',
+                'sewing_plans.size',
+                'jobs.id as job_id',
+                'jobs.buyer',
+                'jobs.style',
+                'jobs.delivery_date as shipment_date',
+                'jobs.color_quantity as order_quantity',
+                DB::raw('SUM(sewing_plans.color_quantity) as total_plan_quantity_row'),
+                DB::raw('(SELECT COALESCE(SUM(sewing_balance),0) 
+                      FROM sewing_balances 
+                      WHERE sewing_balances.job_no = sewing_plans.job_no 
+                        AND sewing_balances.color = sewing_plans.color 
+                        AND sewing_balances.size = sewing_plans.size) as total_sewing_quantity')
+            )
+            ->whereNull('jobs.buyer_hold_shipment')
+            ->whereNull('jobs.buyer_cancel_shipment')
+            ->whereNull('jobs.order_close')
+            ->whereNotNull('sewing_plans.color_quantity')
+            ->whereNotNull('sewing_plans.production_plan')
+            ->whereNotNull('sewing_plans.size')
+            ->whereNotNull('sewing_plans.color')
+            ->when($request->buyer_filter, function ($query) use ($request) {
+                return $query->where('jobs.buyer_id', $request->buyer_filter);
+            })
+            ->when($request->shipment_date_from, function ($query) use ($request) {
+                return $query->where('jobs.delivery_date', '>=', $request->shipment_date_from);
+            })
+            ->when($request->shipment_date_to, function ($query) use ($request) {
+                return $query->where('jobs.delivery_date', '<=', $request->shipment_date_to);
+            })
+            ->when($request->production_plan, function ($query) use ($request) {
+                return $query->where('sewing_plans.production_plan', 'like', $request->production_plan . '%');
+            })
+            ->groupBy(
+                'sewing_plans.job_no',
+                'sewing_plans.color',
+                'sewing_plans.size',
+                'sewing_plans.production_plan',
+                'jobs.id',
+                'jobs.buyer',
+                'jobs.style',
+                'jobs.delivery_date',
+                'jobs.color_quantity'
+            )
+            ->orderBy('sewing_plans.production_plan', 'desc')
+            ->get();
+
+        // Precompute total planned quantity per job/color/size
+        $totalPlans = SewingPlan::select(
+            'job_no',
+            'color',
+            'size',
+            DB::raw('SUM(color_quantity) as total_plan_quantity_all')
+        )
+            ->groupBy('job_no', 'color', 'size')
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->job_no . '_' . $item->color . '_' . $item->size;
+            });
+
+        // Calculate remain quantities
+        $sewing_plan = $sewing_plan->map(function ($item) use ($totalPlans) {
+            $key = $item->job_no . '_' . $item->color . '_' . $item->size;
+            $total_plan_all = $totalPlans[$key]->total_plan_quantity_all ?? 0;
+
+            $item->remain_sewing = max(0, $item->order_quantity - $item->total_sewing_quantity);
+            $item->remain_plan = max(0, $item->order_quantity - $item->total_sewing_quantity - $total_plan_all);
+            $item->total_plan_all = $total_plan_all;
+
+            return $item;
+        });
+
+        // dd($sewing_plan->toArray());
+
+        return view('backend.OMS.sewing_plans.index', compact('sewing_plan', 'buyers', 'production_plan'));
+    }
+
+    public function export(Request $request)
+    {
+        // Apply same filters as index method with same calculations
+        $data = SewingPlan::join('jobs', 'sewing_plans.job_id', '=', 'jobs.id')
+            ->select(
+                'sewing_plans.production_plan',
+                'sewing_plans.job_no',
+                'sewing_plans.color',
+                'sewing_plans.size',
+                'jobs.id as job_id',
+                'jobs.buyer',
+                'jobs.style',
+                'jobs.delivery_date as shipment_date',
+                'jobs.color_quantity as order_quantity',
+                DB::raw('SUM(sewing_plans.color_quantity) as total_plan_quantity_row'),
+                DB::raw('(SELECT COALESCE(SUM(sewing_balance),0) 
+              FROM sewing_balances 
+              WHERE sewing_balances.job_no = sewing_plans.job_no 
+                AND sewing_balances.color = sewing_plans.color 
+                AND sewing_balances.size = sewing_plans.size) as total_sewing_quantity')
+            )
+            ->whereNull('jobs.buyer_hold_shipment')
+            ->whereNull('jobs.buyer_cancel_shipment')
+            ->whereNull('jobs.order_close')
+            ->whereNotNull('sewing_plans.color_quantity')
+            ->whereNotNull('sewing_plans.production_plan')
+            ->whereNotNull('sewing_plans.size')
+            ->whereNotNull('sewing_plans.color')
+            ->when($request->buyer_filter, function ($query) use ($request) {
+                return $query->where('jobs.buyer_id', $request->buyer_filter);
+            })
+            ->when($request->shipment_date_from, function ($query) use ($request) {
+                return $query->where('jobs.delivery_date', '>=', $request->shipment_date_from);
+            })
+            ->when($request->shipment_date_to, function ($query) use ($request) {
+                return $query->where('jobs.delivery_date', '<=', $request->shipment_date_to);
+            })
+            ->when($request->production_plan, function ($query) use ($request) {
+                return $query->where('sewing_plans.production_plan', 'like', $request->production_plan . '%');
+            })
+            ->groupBy(
+                'sewing_plans.job_no',
+                'sewing_plans.color',
+                'sewing_plans.size',
+                'sewing_plans.production_plan',
+                'jobs.id',
+                'jobs.buyer',
+                'jobs.style',
+                'jobs.delivery_date',
+                'jobs.color_quantity'
+            )
+            ->orderBy('sewing_plans.production_plan', 'desc')
+            ->get();
+
+        // Precompute total planned quantity per job/color/size
+        $totalPlans = SewingPlan::select(
+            'job_no',
+            'color',
+            'size',
+            DB::raw('SUM(color_quantity) as total_plan_quantity_all')
+        )
+            ->groupBy('job_no', 'color', 'size')
+            ->get()
+            ->keyBy(function ($item) {
+                return $item->job_no . '_' . $item->color . '_' . $item->size;
+            });
+
+        // Calculate remain quantities
+        $data = $data->map(function ($item) use ($totalPlans) {
+            $key = $item->job_no . '_' . $item->color . '_' . $item->size;
+            $total_plan_all = $totalPlans[$key]->total_plan_quantity_all ?? 0;
+
+            $item->remain_sewing = max(0, $item->order_quantity - $item->total_sewing_quantity);
+            $item->remain_plan = max(0, $item->order_quantity - $item->total_sewing_quantity - $total_plan_all);
+            $item->total_plan_all = $total_plan_all;
+
+            return $item;
+        });
+
+        return Excel::download(new SewingPlansExport($data), 'sewing_plans.xlsx');
     }
 
     public function create()

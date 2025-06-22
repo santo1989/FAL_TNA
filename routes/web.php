@@ -303,6 +303,8 @@ Route::middleware('auth')->group(function () {
     Route::post('/sewing_plans_destroy/{job_no}', [SewingPlanController::class, 'sewing_plans_destroy'])->name('sewing_plans_destroy');
     //sewing_plans_destroy_single
     Route::post('/sewing_plans_destroy_single/{job_no}', [SewingPlanController::class, 'sewing_plans_destroy_single'])->name('sewing_plans_destroy_single');
+    Route::get('/sewing-plans/export', [SewingPlanController::class, 'export'])
+        ->name('sewing_plans.export');
 
 
 

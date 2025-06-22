@@ -11,14 +11,11 @@
                         <a href="{{ route('sewing_plans.create') }}" class="btn btn-outline-primary">
                             <i class="fas fa-plus"></i> Add Sewing Plan
                         </a>
-
                     </div>
                     <div class="col-6 text-end">
                         <a href="{{ route('home') }}" class="btn btn-outline-success">
                             <i class="fas fa-tachometer-alt"></i> Home
                         </a>
-
-
                     </div>
                 </div>
             </div>
@@ -35,64 +32,124 @@
                     <x-backend.layouts.elements.errors />
 
                     <div class="card-body">
+                        <!-- Filter Form -->
+                        <form method="GET" action="{{ route('sewing_plans.index') }}" id="filterForm">
+                            <div class="row mb-3">
+                                <div class="col-md-3">
+                                    <label for="buyer_filter">Buyer</label>
+                                    <select class="form-control" name="buyer_filter" id="buyer_filter">
+                                        <option value="">All Buyers</option>
+                                        @foreach($buyers as $buyer)
+                                            <option value="{{ $buyer->buyer_id }}" 
+                                                {{ request('buyer_filter') == $buyer->buyer_id ? 'selected' : '' }}>
+                                                {{ $buyer->buyer }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label for="shipment_date_from">Shipment From</label>
+                                    <input type="date" class="form-control" name="shipment_date_from" 
+                                        id="shipment_date_from" value="{{ request('shipment_date_from') }}">
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label for="shipment_date_to">Shipment To</label>
+                                    <input type="date" class="form-control" name="shipment_date_to" 
+                                        id="shipment_date_to" value="{{ request('shipment_date_to') }}">
+                                </div>
+                                
+                                <div class="col-md-3">
+                                    <label for="production_plan">Production Plan (Month)</label>
+                                    <select class="form-control" name="production_plan" id="production_plan">
+                                        <option value="">All Months</option>
+                                        @foreach($production_plan as $plan)
+                                            <option value="{{ $plan->production_plan }}" 
+                                                {{ request('production_plan') == $plan->production_plan ? 'selected' : '' }}>
+                                                {{ \Carbon\Carbon::parse($plan->production_plan)->format('M Y') }}
+                                            </option>
+                                        @endforeach
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="row mb-3">
+                                <div class="col-md-12 text-end">
+                                    <a type="button" class="btn btn-secondary" href="{{ route('sewing_plans.index') }}">
+                                        <i class="fas fa-sync"></i> Reset
+                                    </a>
+                                    <button type="submit" class="btn btn-primary">
+                                        <i class="fas fa-filter"></i> Apply Filter
+                                    </button>
+                                    <button type="button" class="btn btn-success" id="exportBtn">
+                                        <i class="fas fa-file-excel"></i> Export
+                                    </button>
+                                </div>
+                            </div>
+                        </form>
+
                         <div class="table-responsive">
                             <table class="table table-bordered table-striped text-nowrap" id="datatablesSimple">
                                 <thead>
                                     <tr>
                                         <th>Month</th>
-                                        {{-- <th>Job ID</th> --}}
-                                        <th>Job No</th>
-                                        <th>Color</th>
-                                        <th>Size</th>
-                                        <th>Sewing Qty</th>
-                                        <th>Action </th>
+                                        <th>Buyer</th>
+                                        <th>Style</th>
+                                        <th>Shipment Date</th>
+                                        <th>Order Quantity</th>
+                                        <th>Total Plan Quantity</th>
+                                        <th>Total Sewing Quantity</th>
+                                        <th>Remain Sewing Quantity</th>
+                                        <th>Remain Plan Quantity</th>
+                                        <th>Action</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                  
-                                    @forelse ($sewing_plan as $balance)
+                                    @forelse ($sewing_plan as $plan)
                                         <tr>
-                                            <td>{{ \Carbon\Carbon::parse($balance->production_plan)->format('M Y') }}
-                                            </td>
-{{-- 
-                                            <td>{{ $balance->job_id }}</td> --}}
-                                            <td>{{ $balance->job_no }}</td>
-                                            <td>{{ $balance->color }}</td>
-                                            <td>{{ $balance->size }}</td>
-                                            <td>{{ $balance->total_sewing_quantity }}</td>
+                                            <td>{{ \Carbon\Carbon::parse($plan->production_plan)->format('M Y') }}</td>
+                                            <td>{{ $plan->buyer }}</td>
+                                            <td>{{ $plan->style }}</td>
                                             <td>
-                                                {{-- <a href="{{ route('sewing_plans.edit', $balance->job_no) }}"
-                                                    class="btn btn-outline-primary">
-                                                    <i class="fas fa-edit"></i> Edit
-                                                </a> --}}
-                                                <a href="{{ route('sewing_plans.show', $balance->job_no) }}"
+                                                @if ($plan->shipment_date)
+                                                    {{ \Carbon\Carbon::parse($plan->shipment_date)->format('d M Y') }}
+                                                @else
+                                                    N/A
+                                                @endif
+                                            </td>
+                                            <td>{{ $plan->order_quantity }}</td>
+                                            <td>{{ $plan->total_plan_quantity_row }}</td>
+                                            <td>{{ $plan->total_sewing_quantity }}</td>
+                                            <td>{{ $plan->remain_sewing }}</td>
+                                            <td>{{ $plan->remain_plan }}</td>
+                                            <td>
+                                                <a href="{{ route('sewing_plans.show', $plan->job_no) }}"
                                                     class="btn btn-outline-info">
                                                     <i class="fas fa-eye"></i> View
                                                 </a>
-                                                <!-- Blade Template -->
                                                 <form
-                                                    action="{{ route('sewing_plans_destroy', ['job_no' => $balance->job_no]) }}"
+                                                    action="{{ route('sewing_plans_destroy', ['job_no' => $plan->job_no]) }}"
                                                     method="POST" style="display: inline;" class="delete-form">
                                                     @csrf
                                                     @method('POST')
-                                                    <input type="hidden" name="job_no" value="{{ $balance->job_no }}">
+                                                    <input type="hidden" name="job_no" value="{{ $plan->job_no }}">
                                                     <input type="hidden" name="production_plan"
-                                                        value="{{ $balance->production_plan }}">
-                                                    <input type="hidden" name="color" value="{{ $balance->color }}">
-                                                    <input type="hidden" name="size" value="{{ $balance->size }}">
+                                                        value="{{ $plan->production_plan }}">
+                                                    <input type="hidden" name="color" value="{{ $plan->color }}">
+                                                    <input type="hidden" name="size" value="{{ $plan->size }}">
                                                     <input type="hidden" name="sewing_plan_id"
-                                                        value="{{ $balance->sewing_plan_id }}">
+                                                        value="{{ $plan->sewing_plan_id }}">
 
                                                     <button type="submit" class="btn btn-outline-danger">
                                                         <i class="fas fa-trash"></i> Delete
                                                     </button>
                                                 </form>
                                             </td>
-
                                         </tr>
                                     @empty
                                         <tr>
-                                            <td colspan="6" class="text-center">No Sewing Plan Found</td>
+                                            <td colspan="10" class="text-center">No Sewing Plan Found</td>
                                         </tr>
                                     @endforelse
                                 </tbody>
@@ -106,7 +163,20 @@
 
     <script>
         $(document).ready(function() {
-            $('#datatablesSimple').DataTable();
+            
+            // Export functionality
+            $('#exportBtn').click(function() {
+                // Get current filter parameters
+                const params = new URLSearchParams({
+                    buyer_filter: $('#buyer_filter').val(),
+                    shipment_date_from: $('#shipment_date_from').val(),
+                    shipment_date_to: $('#shipment_date_to').val(),
+                    production_plan: $('#production_plan').val()
+                });
+                
+                // Redirect to export route with filters
+                window.location.href = "{{ route('sewing_plans.export') }}?" + params.toString();
+            });
         });
     </script>
 </x-backend.layouts.master>
