@@ -36,6 +36,7 @@
     <table border="1">
         <thead>
             <tr>
+                <th>id</th>
                 <th>Buyer</th>
                 <th>Style</th>
                 <th>PO Number</th>
@@ -112,6 +113,7 @@
         <tbody>
             @foreach ($tnas as $tna)
                 <tr>
+                    <td>{{ $tna->id }}</td>
                     <td>{{ $tna->buyer }}</td>
                     <td>{{ $tna->style }}</td>
                     <td>{{ $tna->po }}</td>
@@ -137,20 +139,19 @@
                     </td>
                     @foreach (['lab_dip_submission', 'fabric_booking', 'fit_sample_submission', 'print_strike_off_submission', 'bulk_accessories_booking', 'fit_comments', 'bulk_yarn_inhouse', 'bulk_accessories_inhouse', 'pp_sample_submission', 'bulk_fabric_knitting', 'pp_comments_receive', 'bulk_fabric_dyeing', 'bulk_fabric_delivery', 'pp_meeting', 'fabrics_and_accessories_inspection', 'size_set_making', 'pattern_correction', 'machines_layout', 'cutting', 'print_start', 'bulk_sewing_input', 'bulk_wash_start', 'bulk_finishing_start', 'bulk_cutting_close', 'print_close', 'bulk_sewing_close', 'bulk_wash_close', 'bulk_finishing_close', 'pre_final_inspection', 'final_inspection', 'ex_factory'] as $task)
                         <td>
-    @if(!empty($tna->{$task . '_plan'}) && strtotime($tna->{$task . '_plan'}))
-        {{ \Carbon\Carbon::parse($tna->{$task . '_plan'})->format('d-M-Y') }}
-    @else
-        N/A
-    @endif
-</td>
-<td>
-    @if(!empty($tna->{$task . '_actual'}) && strtotime($tna->{$task . '_actual'}))
-        {{ \Carbon\Carbon::parse($tna->{$task . '_actual'})->format('d-M-Y') }}
-    @else
-        N/A
-    @endif
-</td>
-
+                            @if (!empty($tna->{$task . '_plan'}) && strtotime($tna->{$task . '_plan'}))
+                                {{ \Carbon\Carbon::parse($tna->{$task . '_plan'})->format('d-M-Y') }}
+                            @else
+                                N/A
+                            @endif
+                        </td>
+                        <td>
+                            @if (!empty($tna->{$task . '_actual'}) && strtotime($tna->{$task . '_actual'}))
+                                {{ \Carbon\Carbon::parse($tna->{$task . '_actual'})->format('d-M-Y') }}
+                            @else
+                                N/A
+                            @endif
+                        </td>
                     @endforeach
                 </tr>
             @endforeach

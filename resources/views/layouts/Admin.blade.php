@@ -373,14 +373,16 @@
 
                 <div class="card-body">
                     <div class="row justify-content-center">
-                        <div class="col-3 pt-1 pb-1">
-                            <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
+                       {{-- <div class="col-3 pt-1 pb-1">
+                             <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
                                 href="{{ route('tnas_dashboard') }}" target="_blank">
                                 <div class="sb-nav-link-icon"><i class="fas fa-users"></i></div>
                                 TNA Dashboard
-                            </a>
+                            </a> 
 
-                        </div>
+                           
+
+                        </div>--}}
                         <div class="col-3 pt-1 pb-1">
                             <a class="btn btn-sm btn-outline-primary" style="width: 10rem;"
                                 href="{{ route('tnas_dashboard_new') }}" target="_blank">
@@ -433,6 +435,13 @@
                         </div>
                         
                         @if (Auth()->user()->role_id == 1 || Auth()->user()->role_id == 4)
+                        <div class="col-3 pt-1 pb-1">
+                            <a href="{{ route('monthly_booking_summary') }}" class="btn btn-sm btn-outline-primary"
+                                style="width: 10rem;" target="_blank">
+                                <div class="sb-nav-link-icon"><i class="fas fa-list"></i></div>
+                                Monthly Booking Summary
+                            </a>
+                        </div>
                             <div class="col-3 pt-1 pb-1">
                                 <a href="{{ route('monthly_order_summary') }}" class="btn btn-sm btn-outline-primary"
                                     style="width: 10rem;" target="_blank">

@@ -92,7 +92,7 @@ class JobController extends Controller
         return view('backend.OMS.jobs.partials.job_rows', compact('jobs'));
     }
 
-  
+
     public function sewingData($jobNo)
     {
         $sewingData = SewingBalance::where('job_no', $jobNo)->get();
@@ -118,7 +118,7 @@ class JobController extends Controller
         return view('backend.OMS.jobs.create');
     }
 
-        public function store(Request $request)
+    public function store(Request $request)
     {
         // dd($request->all()); // Uncomment this line for debugging purposes only.
 
@@ -924,4 +924,268 @@ class JobController extends Controller
 
         return back()->download($filePath);
     }
+
+    public function monthlyBookingSummary()
+    {
+        $startDate = DB::table('jobs')->min('delivery_date');
+        $endDate = DB::table('jobs')->max('delivery_date') ?? now();
+
+        // Generate all months between start and end dates
+        $months = [];
+        $current = Carbon::parse($startDate)->startOfMonth();
+        $end = Carbon::parse($endDate);
+
+        while ($current <= $end) {
+            $months[] = $current->format('Y-m');
+            $current->addMonth();
+        }
+
+        $reportData = [];
+        $grandTotals = [
+            'number_of_orders' => 0,
+            'order_qty' => 0,
+            'sewing_balance' => 0,
+            'produced_min' => 0,
+            'production_balance' => 0,
+            'total_value' => 0,
+            'total_cm' => 0,
+            'shipped_qty' => 0,
+            'shipment_balance' => 0,
+            'excess_short_qty' => 0,
+            'shipped_value' => 0,
+            'value_balance' => 0,
+            'excess_short_value' => 0,
+        ];
+
+        foreach ($months as $month) {
+            $startOfMonth = Carbon::parse($month)->startOfMonth();
+            $endOfMonth = Carbon::parse($month)->endOfMonth();
+
+            $monthTotalOrderQty = Job::whereBetween('delivery_date', [$startOfMonth, $endOfMonth])
+                ->sum('order_quantity');
+
+            // Get buyers active in this month
+            $buyers = Job::whereBetween('delivery_date', [$startOfMonth, $endOfMonth])
+                ->distinct('buyer')
+                ->pluck('buyer');
+
+            $monthData = [
+                'month' => $startOfMonth->format('F Y'),
+                'buyers' => [],
+                'monthTotals' => [
+                    'number_of_orders' => 0,
+                    'order_qty' => 0,
+                    'sewing_balance' => 0,
+                    'produced_min' => 0,
+                    'production_balance' => 0,
+                    'total_value' => 0,
+                    'total_cm' => 0,
+                    'shipped_qty' => 0,
+                    'shipment_balance' => 0,
+                    'excess_short_qty' => 0,
+                    'shipped_value' => 0,
+                    'value_balance' => 0,
+                    'excess_short_value' => 0,
+                ]
+            ];
+
+            foreach ($buyers as $buyer) {
+                // CORRECTED RELATIONSHIP NAME: 'sewingBalances' instead of 'sewing_balances'
+                $buyerJobs = Job::with(['sewingBalances', 'shipments'])
+                    ->where('buyer', $buyer)
+                    ->whereBetween('delivery_date', [$startOfMonth, $endOfMonth])
+                    ->get();
+
+                $sewingBalance = $buyerJobs->sum(function ($job) {
+                    return $job->sewingBalances->sum('sewing_balance');
+                });
+
+                $productionBalance = $buyerJobs->sum(function ($job) {
+                    return $job->sewingBalances->sum('production_min_balance');
+                });
+
+                $shippedQty = $buyerJobs->sum(function ($job) {
+                    return $job->shipments->sum('shipped_qty');
+                });
+
+                $excessShortQty = $buyerJobs->sum(function ($job) {
+                    return $job->shipments->sum('excess_short_shipment_qty');
+                });
+
+                $shippedValue = $buyerJobs->sum(function ($job) {
+                    return $job->shipments->sum('shipped_value');
+                });
+
+                $excessShortValue = $buyerJobs->sum(function ($job) {
+                    return $job->shipments->sum('excess_short_shipment_value');
+                });
+
+                $buyerData = [
+                    'buyer' => $buyer,
+                    'number_of_orders' => $buyerJobs->unique('job_no')->count(),
+                    'order_qty' => $buyerJobs->sum('order_quantity'),
+                    'sewing_balance' => $sewingBalance,
+                    'avg_smv' => $buyerJobs->avg('target_smv'),
+                    'produced_min' => $buyerJobs->sum('production_minutes'),
+                    'production_balance' => $productionBalance,
+                    'booking_percentage' => $monthTotalOrderQty ? ($buyerJobs->sum('order_quantity') / $monthTotalOrderQty * 100) : 0,
+                    'avg_unit_price' => $buyerJobs->avg('unit_price'),
+                    'total_value' => $buyerJobs->sum('total_value'),
+                    'avg_cm_pcs' => $buyerJobs->avg('cm_pc'),
+                    'total_cm' => $buyerJobs->sum('total_cm'),
+                    'shipped_qty' => $shippedQty,
+                    'shipment_balance' => $buyerJobs->sum('order_quantity') - $shippedQty,
+                    'excess_short_qty' => $excessShortQty,
+                    'shipped_value' => $shippedValue,
+                    'value_balance' => $buyerJobs->sum('total_value') - $shippedValue,
+                    'excess_short_value' => $excessShortValue,
+                ];
+
+                $monthData['buyers'][] = $buyerData;
+
+                // Accumulate month totals
+                $monthData['monthTotals']['number_of_orders'] += $buyerData['number_of_orders'];
+                $monthData['monthTotals']['order_qty'] += $buyerData['order_qty'];
+                $monthData['monthTotals']['sewing_balance'] += $buyerData['sewing_balance'];
+                $monthData['monthTotals']['produced_min'] += $buyerData['produced_min'];
+                $monthData['monthTotals']['production_balance'] += $buyerData['production_balance'];
+                $monthData['monthTotals']['total_value'] += $buyerData['total_value'];
+                $monthData['monthTotals']['total_cm'] += $buyerData['total_cm'];
+                $monthData['monthTotals']['shipped_qty'] += $buyerData['shipped_qty'];
+                $monthData['monthTotals']['shipment_balance'] += $buyerData['shipment_balance'];
+                $monthData['monthTotals']['excess_short_qty'] += $buyerData['excess_short_qty'];
+                $monthData['monthTotals']['shipped_value'] += $buyerData['shipped_value'];
+                $monthData['monthTotals']['value_balance'] += $buyerData['value_balance'];
+                $monthData['monthTotals']['excess_short_value'] += $buyerData['excess_short_value'];
+
+                // Accumulate grand totals
+                $grandTotals['number_of_orders'] += $buyerData['number_of_orders'];
+                $grandTotals['order_qty'] += $buyerData['order_qty'];
+                $grandTotals['sewing_balance'] += $buyerData['sewing_balance'];
+                $grandTotals['produced_min'] += $buyerData['produced_min'];
+                $grandTotals['production_balance'] += $buyerData['production_balance'];
+                $grandTotals['total_value'] += $buyerData['total_value'];
+                $grandTotals['total_cm'] += $buyerData['total_cm'];
+                $grandTotals['shipped_qty'] += $buyerData['shipped_qty'];
+                $grandTotals['shipment_balance'] += $buyerData['shipment_balance'];
+                $grandTotals['excess_short_qty'] += $buyerData['excess_short_qty'];
+                $grandTotals['shipped_value'] += $buyerData['shipped_value'];
+                $grandTotals['value_balance'] += $buyerData['value_balance'];
+                $grandTotals['excess_short_value'] += $buyerData['excess_short_value'];
+            }
+
+            // Calculate averages for month totals
+            $monthData['monthTotals']['avg_smv'] = $monthData['monthTotals']['order_qty']
+                ? $monthData['monthTotals']['produced_min'] / $monthData['monthTotals']['order_qty']
+                : 0;
+
+            $monthData['monthTotals']['avg_unit_price'] = $monthData['monthTotals']['order_qty']
+                ? $monthData['monthTotals']['total_value'] / $monthData['monthTotals']['order_qty']
+                : 0;
+
+            $monthData['monthTotals']['avg_cm_pcs'] = $monthData['monthTotals']['order_qty']
+                ? $monthData['monthTotals']['total_cm'] / $monthData['monthTotals']['order_qty']
+                : 0;
+
+            $monthData['monthTotals']['booking_percentage'] = 100;
+
+            $reportData[] = $monthData;
+        }
+
+        // Calculate grand total averages
+        $grandTotals['avg_smv'] = $grandTotals['order_qty']
+            ? $grandTotals['produced_min'] / $grandTotals['order_qty']
+            : 0;
+
+        $grandTotals['avg_unit_price'] = $grandTotals['order_qty']
+            ? $grandTotals['total_value'] / $grandTotals['order_qty']
+            : 0;
+
+        $grandTotals['avg_cm_pcs'] = $grandTotals['order_qty']
+            ? $grandTotals['total_cm'] / $grandTotals['order_qty']
+            : 0;
+
+        $grandTotals['booking_percentage'] = 100;
+
+        $allBuyers = Job::distinct()->pluck('buyer')->toArray();
+
+        return view('backend.OMS.reports.monthly_booking_summary', compact(
+            'reportData',
+            'grandTotals',
+            'allBuyers'
+        ));
+    }
+
+    // public function monthlyBookingSummary()
+    // {
+    //     $startDate = DB::table('jobs')->min('delivery_date');
+    //     $endDate = DB::table('jobs')->max('delivery_date') ?? now();
+
+    //     // Get all active buyers
+    //     $buyers = JOB::distinct()->pluck('buyer')->toArray();
+
+    //     // Get total order quantity for booking percentage calculation
+    //     $totalOrderQty = Job::whereBetween('delivery_date', [$startDate, $endDate])
+    //         ->sum('order_quantity');
+
+    //     // Get report data for each buyer
+    //     $reportData = [];
+    //     foreach ($buyers as $buyer) {
+    //         $buyerJobs = Job::where('buyer', $buyer)
+    //             ->whereBetween('delivery_date', [$startDate, $endDate])
+    //             ->get();
+
+    //         $jobIds = $buyerJobs->pluck('id');
+
+    //         $reportData[] = [
+    //             'buyer' => $buyer,
+    //             'number_of_orders' => $buyerJobs->unique('job_no')->count(),
+    //             'order_qty' => $buyerJobs->sum('order_quantity'),
+    //             'sewing_balance' => SewingBalance::whereIn('job_id', $jobIds)->sum('sewing_balance'),
+    //             'avg_smv' => $buyerJobs->avg('target_smv'),
+    //             'produced_min' => $buyerJobs->sum('production_minutes'),
+    //             'production_balance' => SewingBalance::whereIn('job_id', $jobIds)->sum('production_min_balance'),
+    //             'booking_percentage' => $totalOrderQty ? ($buyerJobs->sum('order_quantity') / $totalOrderQty) * 100 : 0,
+    //             'avg_unit_price' => $buyerJobs->avg('unit_price'),
+    //             'total_value' => $buyerJobs->sum('total_value'),
+    //             'avg_cm_pcs' => $buyerJobs->avg('cm_pc'),
+    //             'total_cm' => $buyerJobs->sum('total_cm'),
+    //             'shipped_qty' => Shipment::whereIn('job_id', $jobIds)->sum('shipped_qty'),
+    //             'shipment_balance' => $buyerJobs->sum('order_quantity') - Shipment::whereIn('job_id', $jobIds)->sum('shipped_qty'),
+    //             'excess_short_qty' => Shipment::whereIn('job_id', $jobIds)->sum('excess_short_shipment_qty'),
+    //             'shipped_value' => Shipment::whereIn('job_id', $jobIds)->sum('shipped_value'),
+    //             'value_balance' => $buyerJobs->sum('total_value') - Shipment::whereIn('job_id', $jobIds)->sum('shipped_value'),
+    //             'excess_short_value' => Shipment::whereIn('job_id', $jobIds)->sum('excess_short_shipment_value'),
+    //         ];
+    //     }
+
+    //     // Calculate totals for the footer
+    //     $totals = [
+    //         'number_of_orders' => array_sum(array_column($reportData, 'number_of_orders')),
+    //         'order_qty' => array_sum(array_column($reportData, 'order_qty')),
+    //         'sewing_balance' => array_sum(array_column($reportData, 'sewing_balance')),
+    //         'produced_min' => array_sum(array_column($reportData, 'produced_min')),
+    //         'production_balance' => array_sum(array_column($reportData, 'production_balance')),
+    //         'booking_percentage' => 100,
+    //         'total_value' => array_sum(array_column($reportData, 'total_value')),
+    //         'total_cm' => array_sum(array_column($reportData, 'total_cm')),
+    //         'shipped_qty' => array_sum(array_column($reportData, 'shipped_qty')),
+    //         'shipment_balance' => array_sum(array_column($reportData, 'shipment_balance')),
+    //         'excess_short_qty' => array_sum(array_column($reportData, 'excess_short_qty')),
+    //         'shipped_value' => array_sum(array_column($reportData, 'shipped_value')),
+    //         'value_balance' => array_sum(array_column($reportData, 'value_balance')),
+    //         'excess_short_value' => array_sum(array_column($reportData, 'excess_short_value')),
+    //     ];
+
+    //     // Calculate weighted averages
+    //     $totals['avg_smv'] = $totals['order_qty'] ? ($totals['produced_min'] / $totals['order_qty']) : 0;
+    //     $totals['avg_unit_price'] = $totals['order_qty'] ? ($totals['total_value'] / $totals['order_qty']) : 0;
+    //     $totals['avg_cm_pcs'] = $totals['order_qty'] ? ($totals['total_cm'] / $totals['order_qty']) : 0;
+
+    //     return view('backend.OMS.reports.monthly_booking_summary', compact(
+    //         'reportData',
+    //         'totals',
+    //         'buyers'
+    //     ));
+    // }
 }

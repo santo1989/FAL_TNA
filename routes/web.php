@@ -88,6 +88,9 @@ Route::post('/update-task-details', [TNAController::class, 'updateTaskDetails'])
 // updateShipmentActualDates
 Route::post('/update-shipment-actual-dates', [TNAController::class, 'updateShipmentActualDates'])->name('updateShipmentActualDates');
 
+//monthlyBookingSummary
+Route::get('/monthly-booking-summary', [JobController::class, 'monthlyBookingSummary'])->name('monthly_booking_summary');
+
 
 Route::middleware('auth')->group(function () {
     // Route::get('/check', function () {
