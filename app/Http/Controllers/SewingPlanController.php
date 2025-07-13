@@ -14,6 +14,7 @@ use App\Exports\SewingPlansExport;
 
 class SewingPlanController extends Controller
 {
+   
     
 
     public function index(Request $request)
@@ -49,6 +50,7 @@ class SewingPlanController extends Controller
                         AND sewing_balances.color = sewing_plans.color 
                         AND sewing_balances.size = sewing_plans.size) as total_sewing_quantity')
             )
+            ->whereNotNull('jobs.id')
             ->whereNull('jobs.buyer_hold_shipment')
             ->whereNull('jobs.buyer_cancel_shipment')
             ->whereNull('jobs.order_close')
@@ -133,6 +135,7 @@ class SewingPlanController extends Controller
                 AND sewing_balances.color = sewing_plans.color 
                 AND sewing_balances.size = sewing_plans.size) as total_sewing_quantity')
             )
+            ->whereNotNull('jobs.id')
             ->whereNull('jobs.buyer_hold_shipment')
             ->whereNull('jobs.buyer_cancel_shipment')
             ->whereNull('jobs.order_close')
@@ -192,6 +195,64 @@ class SewingPlanController extends Controller
         });
 
         return Excel::download(new SewingPlansExport($data), 'sewing_plans.xlsx');
+    }
+
+    public function SewingPlanmonthlySummary(Request $request)
+    {
+        // Get distinct production plans (months)
+        $months = SewingPlan::select('production_plan')
+            ->distinct()
+            ->orderBy('production_plan', 'desc')
+            ->get();
+        // $capacity_plan = CapacityPlan::select('production_plan', 'monthly_capacity_quantity')
+        //     ->distinct()
+        //     ->orderBy('production_plan', 'desc')
+        //     ->get();
+        // dd($months, $capacity_plan)->toArray();
+
+        $summary = [];
+
+        foreach ($months as $month) {
+            $production_plan = $month->production_plan;
+
+            // Calculate total plan quantity
+            $total_plan_qty = SewingPlan::where('production_plan', $production_plan)
+                ->sum('color_quantity');
+
+            // Calculate total order quantity
+            $total_order_qty = SewingPlan::join('jobs', 'sewing_plans.job_id', '=', 'jobs.id')
+                ->where('sewing_plans.production_plan', $production_plan)
+                ->sum('jobs.color_quantity');
+
+            // Calculate total sewing quantity
+            $total_sewing_qty = SewingPlan::join('sewing_balances', function ($join) {
+                $join->on('sewing_plans.job_no', '=', 'sewing_balances.job_no')
+                    ->on('sewing_plans.color', '=', 'sewing_balances.color')
+                    ->on('sewing_plans.size', '=', 'sewing_balances.size');
+            })
+                ->where('sewing_plans.production_plan', $production_plan)
+                ->sum('sewing_balances.sewing_balance');
+
+            // Get capacity
+            $capacity_plan = CapacityPlan::where('production_plan', $production_plan)->first();
+            $total_capacity = $capacity_plan ? $capacity_plan->monthly_capacity_quantity : 0;
+
+            // Calculate booking percentage
+            $booking_percent = $total_capacity > 0
+                ? ($total_plan_qty / $total_capacity) * 100
+                : 0;
+
+            $summary[] = [
+                'month' => $production_plan,
+                'total_order_qty' => $total_order_qty,
+                'total_plan_qty' => $total_plan_qty,
+                'total_sewing_qty' => $total_sewing_qty,
+                'total_capacity' => $total_capacity,
+                'booking_percent' => $booking_percent,
+            ];
+        }
+
+        return view('backend.OMS.sewing_plans.monthly_summary', compact('summary'));
     }
 
     public function create()
@@ -599,5 +660,27 @@ class SewingPlanController extends Controller
 
         // Redirect back with a success message
         return redirect()->route('sewing_plans.index')->withMessage('Sewing plan deleted successfully.');
+    }
+
+    // update_production_plan
+
+    public function update_production_plan(Request $request)
+    {
+        // dd($request->all());
+        // Validate the request data
+        $request->validate([
+            'current_production_plan' => 'required|date_format:Y-m',
+            'new_production_plan' => 'required|date_format:Y-m',
+            'job_no' => 'required',
+        ]);
+
+        // Update the production plan for where the job_no  sewing plans and jobs table
+        SewingPlan::where('job_no', $request->job_no)
+            ->update(['production_plan' => $request->new_production_plan]);
+        Job::where('job_no', $request->job_no)
+            ->update(['production_plan' => $request->new_production_plan]);
+
+        // Redirect back with a success message
+        return redirect()->route('sewing_plans.index')->withMessage('Production plan updated successfully.');
     }
 }

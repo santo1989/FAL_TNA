@@ -1,5 +1,4 @@
 <x-backend.layouts.master>
-    <!--message show in .swl sweet alert-->
     @if (session('message'))
         <script>
             Swal.fire({
@@ -139,13 +138,9 @@
                                             placeholder="Shipment End Date">
                                     </td>
                                     <td class="create_input_column">
-                                        {{-- <button type="button" class="btn btn-primary" id="searchButton">
-                                            <i class="fas fa-search"></i> Add to Plan
-                                        </button> --}}
                                         <button type="button" class="btn btn-danger" id="searchOnlyButton">
                                             <i class="fas fa-search"></i> Search Only
                                         </button>
-                                        <!--reset button-->
                                         <button type="reset" class="btn btn-secondary" id="resetButton">
                                             <i class="fas fa-undo"></i> Reset
                                         </button>
@@ -243,6 +238,39 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         $(document).ready(function() {
+            // Auto-capture remain quantity when sewing quantity field is focused
+            $(document).on('focus', '.sewing-quantity', function() {
+                const row = $(this).closest('tr');
+                const remainQty = row.find('.remaining-quantity').val();
+                
+                // Only set if current value is empty or zero
+                if ($(this).val() === '' || $(this).val() == 0) {
+                    $(this).val(remainQty);
+                }
+            });
+
+            // Validate sewing quantity input
+            $(document).on('input', '.sewing-quantity', function() {
+                const row = $(this).closest('tr');
+                const max = parseInt(row.find('.remaining-quantity').val());
+                const entered = parseInt($(this).val()) || 0;
+                
+                if (entered > max) {
+                    Swal.fire('Error', 'Cannot exceed remain quantity: ' + max, 'error');
+                    $(this).val(max);
+                }
+                
+                calculateAvailableCapacity();
+            });
+
+            // Double-click to set sewing quantity
+            $(document).on('dblclick', '.remaining-quantity', function() {
+                const row = $(this).closest('tr');
+                const remainQty = row.find('.remaining-quantity').val();
+                row.find('.sewing-quantity').val(remainQty);
+                calculateAvailableCapacity();
+            });
+
             // Cache selectors
             const workingDays = $('#workingDays');
             const runningMachines = $('#runningMachines');
@@ -302,110 +330,6 @@
                 });
             });
 
-            // Search Button Click Event
-            $('#searchButton').on('click', function() {
-                const buyerId = $('#buyer_id').val();
-                const po = $('#po').val();
-                const styleId = $('#style_id').val();
-                const shipmentStartDate = $('input[name="shipment_start_date"]').val();
-                const shipmentEndDate = $('input[name="shipment_end_date"]').val();
-                const productionPlan = $('#productionPlan').val();
-
-                // Validate inputs
-                if (!buyerId && !po && !styleId && !shipmentStartDate && !shipmentEndDate) {
-                    Swal.fire('Warning', 'Please select at least one search criteria.', 'warning');
-                    return;
-                }
-
-                if (!productionPlan) {
-                    Swal.fire('Warning', 'Production Plan is required.', 'warning');
-                    return;
-                }
-
-                $.ajax({
-                    url: "{{ route('search_color_sizes_qties') }}",
-                    method: "GET",
-                    data: {
-                        buyer_id: buyerId,
-                        po: po,
-                        style_id: styleId,
-                        shipment_start_date: shipmentStartDate,
-                        shipment_end_date: shipmentEndDate,
-                        production_plan: productionPlan
-                    },
-                    success: function(response) {
-                        if (response.success) {
-                            const colorWayTableBody = $('#colorWayTableBody');
-                            colorWayTableBody.empty();
-
-                            response.data.forEach(color => {
-                                const row = `
-                                
-                                    <tr>
-                                        <td>
-                                                <input type="checkbox" name="color_ids[]" value="${color.id }" checked>
-                                                
-                                            </td>
-                                        <td>
-                                                <input type="hidden" name="color_id[]" class="form-control"
-                                                    value="${color.id }">
-                                                <label class="form-control">${color.buyer }</label>
-                                            </td>
-                                            <td>
-                                                <input type="hidden" name="job_no[]" class="form-control"
-                                                    value="${color.job_no }">
-                                                <label class="form-control">${color.style }</label>
-                                            </td>
-                                        <td><input type="text" name="color[]" value="${color.color}" class="form-control" readonly></td>
-                                        <td><input type="text" name="size[]" value="${color.size}" class="form-control" readonly></td>
-                                        <td><input type="text" value="${color.color_quantity}" class="form-control" readonly></td>
-                                        <td><input type="number" name="total_sewing_quantity[]" value="${color.total_sewing_quantity}" class="form-control" readonly></td>
-                                        <td><input type="number" name="remaining_quantity[]" value="${color.remaining_quantity}" class="form-control remaining-quantity" readonly></td>
-                                        <td><input type="number" name="color_quantity[]" 
-                           class="form-control sewing-quantity" 
-                           placeholder="0" 
-                           value="${color.remaining_quantity}"></td>
-                                    </tr>
-                                `;
-                                colorWayTableBody.append(row);
-                            });
-
-                            // Restore saved sewing quantities
-                            const savedData = JSON.parse(localStorage.getItem(
-                                'sewingPlanFormData'));
-                            if (savedData) {
-                                savedData.colorQuantities.forEach(item => {
-                                    $(`input[name="color_id[]"][value="${item.colorId}"]`)
-                                        .closest('tr').find('.sewing-quantity').val(item
-                                            .quantity);
-                                });
-                            }
-
-                            // Attach input handlers
-                            attachSewingQuantityHandlers();
-                            calculateAvailableCapacity();
-
-                            // Save search criteria
-                            localStorage.setItem('sewingPlanSearchCriteria', JSON.stringify({
-                                buyerId,
-                                po,
-                                styleId,
-                                shipmentStartDate,
-                                shipmentEndDate,
-                                productionPlan
-                            }));
-                        } else {
-                            Swal.fire('Warning', response.message || 'No data found.',
-                                'warning');
-                        }
-                    },
-                    error: function(xhr) {
-                        Swal.fire('Error', xhr.responseJSON?.message || 'Server error',
-                            'error');
-                    }
-                });
-            });
-
             // Search Only Button Click Event
             $('#searchOnlyButton').on('click', function() {
                 const buyerId = $('#buyer_id').val();
@@ -443,42 +367,46 @@
                             colorWayTableBody.empty();
 
                             response.data.forEach(color => {
+                                const shipmentDate = color.shipment_date ? new Date(color.shipment_date).toLocaleDateString('en-GB') : 'N/A';
                                 const row = `
-                               
                                     <tr>
                                         <td>
-                                                <input type="checkbox" name="color_ids[]" value="${color.id }" checked>
-                                                
-                                            </td>
+                                            <input type="checkbox" name="color_ids[]" value="${color.id}" checked>
+                                        </td>
                                         <td>
-                                                <input type="hidden" name="color_id[]" class="form-control"
-                                                    value="${color.id }">
-                                                <label class="form-control">${color.buyer }</label>
-                                            </td>
-                                            <td>
-                                                <input type="hidden" name="job_no[]" class="form-control"
-                                                    value="${color.job_no }">
-                                                <label class="form-control">${color.style }</label>
-                                            </td>
-                                        <td><input type="text" name="color[]" value="${color.color}" class="form-control" readonly></td>
-                                        <td><input type="text" name="size[]" value="${color.size}" class="form-control" readonly></td>
-                                        <td><input type="text" value="${color.color_quantity}" class="form-control" readonly></td>
-                                        <td><input type="number" name="total_sewing_quantity[]" value="${color.total_sewing_quantity}" class="form-control" readonly></td>
-                                        <td><input type="number" name="remaining_quantity[]" value="${color.remaining_quantity}" class="form-control remaining-quantity" readonly></td>
-                                        <td><input type="number" name="color_quantity[]" 
-                           class="form-control sewing-quantity" 
-                           placeholder="0" 
-                           value="${color.remaining_quantity}"></td>
+                                            <input type="hidden" name="color_id[]" value="${color.id}">
+                                            <label class="form-control">${color.buyer}</label>
+                                        </td>
+                                        <td>
+                                            <input type="hidden" name="job_no[]" value="${color.job_no}">
+                                            <label class="form-control">${color.style}</label>
+                                        </td>
+                                        <td>
+                                            <input type="hidden" name="color[]" value="${color.color}">
+                                            <input type="hidden" name="size[]" value="${color.size}">
+                                            <label class="form-control">${shipmentDate}</label>
+                                        </td>
+                                        <td>
+                                            <input type="text" class="form-control" value="${color.color_quantity}" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="total_sewing_quantity[]" value="${color.total_sewing_quantity}" class="form-control" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="remaining_quantity[]" value="${color.remaining_quantity}" class="form-control remaining-quantity" readonly>
+                                        </td>
+                                        <td>
+                                            <input type="number" name="color_quantity[]" 
+                                                class="form-control sewing-quantity" 
+                                                placeholder="Sewing Quantity"
+                                                value="${color.remaining_quantity}">
+                                        </td>
                                     </tr>
                                 `;
                                 colorWayTableBody.append(row);
                             });
 
-                            // Attach input handlers
-                            attachSewingQuantityHandlers();
                             calculateAvailableCapacity();
-
-                            // Save search criteria
                             localStorage.setItem('sewingPlanSearchCriteria', JSON.stringify({
                                 buyerId,
                                 po,
@@ -488,13 +416,11 @@
                                 productionPlan
                             }));
                         } else {
-                            Swal.fire('Warning', response.message || 'No data found.',
-                                'warning');
+                            Swal.fire('Warning', response.message || 'No data found.', 'warning');
                         }
                     },
                     error: function(xhr) {
-                        Swal.fire('Error', xhr.responseJSON?.message || 'Server error',
-                            'error');
+                        Swal.fire('Error', xhr.responseJSON?.message || 'Server error', 'error');
                     }
                 });
             });
@@ -544,47 +470,6 @@
                 });
             });
 
-            // Double-click to set sewing quantity
-            $(document).on('dblclick', '.remaining-quantity', function() {
-                const remainingQuantity = $(this).val();
-                $(this).closest('tr').find('.sewing-quantity').val(remainingQuantity);
-                calculateAvailableCapacity();
-            });
-
-
-            // Function to attach sewing quantity handlers
-            function attachSewingQuantityHandlers() {
-                $('.sewing-quantity').off('input').on('input', function() {
-                    const remaining = parseInt($(this).closest('tr').find('.remaining-quantity').val(), 10);
-                    const entered = parseInt($(this).val(), 10) || 0;
-
-                    if (entered > remaining) {
-                        Swal.fire('Error', 'Exceeds remaining quantity.', 'error');
-                        $(this).val(remaining);
-                    }
-
-                    saveFormData();
-                    calculateAvailableCapacity();
-                });
-            }
-
-            // Function to save form data
-            function saveFormData() {
-                const formData = {
-                    colorQuantities: []
-                };
-
-                $('.sewing-quantity').each(function() {
-                    const colorId = $(this).closest('tr').find('input[name="color_id[]"]').val();
-                    formData.colorQuantities.push({
-                        colorId: colorId,
-                        quantity: $(this).val()
-                    });
-                });
-
-                localStorage.setItem('sewingPlanFormData', JSON.stringify(formData));
-            }
-
             // Function to calculate available capacity
             function calculateAvailableCapacity() {
                 let totalSewing = 0;
@@ -599,48 +484,19 @@
                 monthlyCapacityQuantityAvailable.val(Math.max(available, 0));
 
                 if (available < 0) {
-                    Swal.fire('Warning', 'Exceeds available capacity.', 'warning');
-                    $('.sewing-quantity').val(0);
-                    monthlyCapacityQuantityAvailable.val(monthlyCapacity - existingCapacity);
+                    Swal.fire('Warning', 'Exceeds available capacity by ' + Math.abs(available), 'warning');
                 }
             }
 
-            // Restore form data on page load
-            const savedSearch = JSON.parse(localStorage.getItem('sewingPlanSearchCriteria'));
-            if (savedSearch) {
-                $('#buyer_id').val(savedSearch.buyerId).trigger('change');
-                // Trigger PO and Style loading after buyer change
-                $(document).one('buyerPoStylesLoaded', function() {
-                    $('#po').val(savedSearch.po);
-                    $('#style_id').val(savedSearch.styleId);
-                    $('input[name="shipment_start_date"]').val(savedSearch.shipmentStartDate);
-                    $('input[name="shipment_end_date"]').val(savedSearch.shipmentEndDate);
-                    $('#productionPlan').val(savedSearch.productionPlan);
-                });
-            }
-
-
-
-            //reset button click event
+            // Reset button click event
             $('#resetButton').on('click', function() {
                 localStorage.removeItem('sewingPlanSearchCriteria');
-                localStorage.removeItem('sewingPlanFormData');
                 location.reload();
             });
 
-            // Clear localStorage on page unload
-            $(window).on('beforeunload', function() {
-                localStorage.removeItem('sewingPlanSearchCriteria');
-                localStorage.removeItem('sewingPlanFormData');
-            });
-
-            // Initialize handlers
-            attachSewingQuantityHandlers();
+            // Initialize
             calculateAvailableCapacity();
-        });
 
-
-        $(document).ready(function() {
             // Sync production plan to hidden input
             $('#productionPlan').on('change', function() {
                 $('#form_production_plan').val($(this).val());
@@ -649,7 +505,7 @@
             // Initialize hidden field
             $('#form_production_plan').val($('#productionPlan').val());
 
-            // Fix save button handler
+            // Save button handler
             $('#saveButton').on('click', function() {
                 const checkedRows = $('#colorWayTableBody input[type="checkbox"]:checked');
                 if (checkedRows.length === 0) {
@@ -664,12 +520,22 @@
                     }
                 });
 
-                // Clear localStorage
-                localStorage.removeItem('sewingPlanSearchCriteria');
-                localStorage.removeItem('sewingPlanFormData');
-
                 return true;
             });
+
+            // Restore search criteria if exists
+            const savedSearch = JSON.parse(localStorage.getItem('sewingPlanSearchCriteria'));
+            if (savedSearch) {
+                $('#buyer_id').val(savedSearch.buyerId).trigger('change');
+                // Trigger PO and Style loading after buyer change
+                $(document).one('buyerPoStylesLoaded', function() {
+                    $('#po').val(savedSearch.po);
+                    $('#style_id').val(savedSearch.styleId);
+                    $('input[name="shipment_start_date"]').val(savedSearch.shipmentStartDate);
+                    $('input[name="shipment_end_date"]').val(savedSearch.shipmentEndDate);
+                    $('#productionPlan').val(savedSearch.productionPlan);
+                });
+            }
         });
     </script>
 </x-backend.layouts.master>

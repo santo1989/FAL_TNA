@@ -16,6 +16,10 @@
                         <a href="{{ route('home') }}" class="btn btn-outline-success">
                             <i class="fas fa-tachometer-alt"></i> Home
                         </a>
+                        <!-- Add this new button -->
+                        <a href="{{ route('SewingPlanmonthlySummary') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-chart-bar"></i> Monthly Summary
+                        </a>
                     </div>
                 </div>
             </div>
@@ -39,33 +43,33 @@
                                     <label for="buyer_filter">Buyer</label>
                                     <select class="form-control" name="buyer_filter" id="buyer_filter">
                                         <option value="">All Buyers</option>
-                                        @foreach($buyers as $buyer)
-                                            <option value="{{ $buyer->buyer_id }}" 
+                                        @foreach ($buyers as $buyer)
+                                            <option value="{{ $buyer->buyer_id }}"
                                                 {{ request('buyer_filter') == $buyer->buyer_id ? 'selected' : '' }}>
                                                 {{ $buyer->buyer }}
                                             </option>
                                         @endforeach
                                     </select>
                                 </div>
-                                
+
                                 <div class="col-md-3">
                                     <label for="shipment_date_from">Shipment From</label>
-                                    <input type="date" class="form-control" name="shipment_date_from" 
+                                    <input type="date" class="form-control" name="shipment_date_from"
                                         id="shipment_date_from" value="{{ request('shipment_date_from') }}">
                                 </div>
-                                
+
                                 <div class="col-md-3">
                                     <label for="shipment_date_to">Shipment To</label>
-                                    <input type="date" class="form-control" name="shipment_date_to" 
+                                    <input type="date" class="form-control" name="shipment_date_to"
                                         id="shipment_date_to" value="{{ request('shipment_date_to') }}">
                                 </div>
-                                
+
                                 <div class="col-md-3">
                                     <label for="production_plan">Production Plan (Month)</label>
                                     <select class="form-control" name="production_plan" id="production_plan">
                                         <option value="">All Months</option>
-                                        @foreach($production_plan as $plan)
-                                            <option value="{{ $plan->production_plan }}" 
+                                        @foreach ($production_plan as $plan)
+                                            <option value="{{ $plan->production_plan }}"
                                                 {{ request('production_plan') == $plan->production_plan ? 'selected' : '' }}>
                                                 {{ \Carbon\Carbon::parse($plan->production_plan)->format('M Y') }}
                                             </option>
@@ -73,10 +77,11 @@
                                     </select>
                                 </div>
                             </div>
-                            
+
                             <div class="row mb-3">
                                 <div class="col-md-12 text-end">
-                                    <a type="button" class="btn btn-secondary" href="{{ route('sewing_plans.index') }}">
+                                    <a type="button" class="btn btn-secondary"
+                                        href="{{ route('sewing_plans.index') }}">
                                         <i class="fas fa-sync"></i> Reset
                                     </a>
                                     <button type="submit" class="btn btn-primary">
@@ -108,7 +113,67 @@
                                 <tbody>
                                     @forelse ($sewing_plan as $plan)
                                         <tr>
-                                            <td>{{ \Carbon\Carbon::parse($plan->production_plan)->format('M Y') }}</td>
+                                            <td>
+                                                {{-- {{ \Carbon\Carbon::parse($plan->production_plan)->format('M Y') }} --}}
+                                                <!--modole button to production_plan month and year-->
+                                            <!--change production_plan -->
+                                                <button type="button" class="btn btn-outline-primary"
+                                                    data-bs-toggle="modal" data-bs-target="#productionPlanModal"
+                                                    data-production-plan="{{ $plan->production_plan }}">
+                                                    {{ \Carbon\Carbon::parse($plan->production_plan)->format('M Y') }}
+                                                </button>
+
+                                            <!--end of change production_plan -->
+                                            <!--modal-->
+                                                <div class="modal fade" id="productionPlanModal" tabindex="-1"
+                                                    aria-labelledby="productionPlanModalLabel" aria-hidden="true">
+                                                    <div class="modal-dialog">
+                                                        <div class="modal-content">
+                                                            <div class="modal-header">
+                                                                <h5 class="modal-title" id="productionPlanModalLabel">
+                                                                    Change Production Plan</h5>
+                                                                <button type="button" class="btn-close"
+                                                                    data-bs-dismiss="modal" aria-label="Close"></button>
+                                                            </div>
+                                                            <div class="modal-body">
+                                                                <form method="POST"
+                                                                    action="{{ route('sewing_plans.update_production_plan') }}">
+                                                                    @csrf
+                                                                    <input type="hidden" name="job_no"
+                                                                        value="{{ $plan->job_no }}">
+                                                                    <input type="hidden" name="current_production_plan"
+                                                                        value="{{ $plan->production_plan }}">
+                                                                    <div class="mb-3">
+                                                                        <label for="new_production_plan"
+                                                                            class="form-label">New Production Plan
+                                                                            (Month)</label>
+                                                                        {{-- <select class="form-select"
+                                                                            name="new_production_plan"
+                                                                            id="new_production_plan">
+                                                                            @foreach ($production_plan as $pp)
+                                                                                <option value="{{ $pp->production_plan }}"
+                                                                                    {{ $pp->production_plan == $plan->production_plan ? 'selected' : '' }}>
+                                                                                    {{ \Carbon\Carbon::parse($pp->production_plan)->format('M Y') }}
+                                                                                </option>
+                                                                            @endforeach
+
+                                                                        </select> --}}
+                                                                        <input type="month"
+                                                                            class="form-control"
+                                                                            name="new_production_plan"
+                                                                            id="new_production_plan"
+                                                                            value="{{ \Carbon\Carbon::parse($plan->production_plan)->format('Y-m') }}"
+                                                                            required>
+                                                                    </div>
+                                                                    <button type="submit"
+                                                                        class="btn btn-outline-primary">Update Production Plan</button>
+                                                                </form> 
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+
+                                            </td>
                                             <td>{{ $plan->buyer }}</td>
                                             <td>{{ $plan->style }}</td>
                                             <td>
@@ -163,7 +228,7 @@
 
     <script>
         $(document).ready(function() {
-            
+
             // Export functionality
             $('#exportBtn').click(function() {
                 // Get current filter parameters
@@ -173,7 +238,7 @@
                     shipment_date_to: $('#shipment_date_to').val(),
                     production_plan: $('#production_plan').val()
                 });
-                
+
                 // Redirect to export route with filters
                 window.location.href = "{{ route('sewing_plans.export') }}?" + params.toString();
             });

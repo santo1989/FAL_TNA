@@ -301,13 +301,16 @@ Route::middleware('auth')->group(function () {
     Route::get('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'show'])->name('sewing_plans.show');
     Route::get('/sewing_plans/{sewing_plan}/edit', [SewingPlanController::class, 'edit'])->name('sewing_plans.edit');
     Route::put('/sewing_plans/{sewing_plan}', [SewingPlanController::class, 'update'])->name('sewing_plans.update');
-
+    Route::get('/SewingPlanmonthlySummary', [SewingPlanController::class, 'SewingPlanmonthlySummary'])
+        ->name('SewingPlanmonthlySummary');
     // Route
     Route::post('/sewing_plans_destroy/{job_no}', [SewingPlanController::class, 'sewing_plans_destroy'])->name('sewing_plans_destroy');
     //sewing_plans_destroy_single
     Route::post('/sewing_plans_destroy_single/{job_no}', [SewingPlanController::class, 'sewing_plans_destroy_single'])->name('sewing_plans_destroy_single');
     Route::get('/sewing-plans/export', [SewingPlanController::class, 'export'])
         ->name('sewing_plans.export');
+    //sewing_plans.update_production_plan
+    Route::post('/sewing_plans/update_production_plan', [SewingPlanController::class, 'update_production_plan'])->name('sewing_plans.update_production_plan');
 
 
 
